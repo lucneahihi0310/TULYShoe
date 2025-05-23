@@ -1,1 +1,2 @@
+# Bỏ qua tất cả node_modules trong mọi thư mục con
 **/node_modules/
