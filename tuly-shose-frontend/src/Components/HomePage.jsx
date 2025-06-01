@@ -2,6 +2,7 @@ import React from "react";
 import { Card, Row, Col } from "antd";
 import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
 import styles from "../CSS/HomePage.module.css";
+import { useInView } from "react-intersection-observer";
 
 const products = [
   {
@@ -63,6 +64,16 @@ const products = [
 ];
 
 const HomePage = () => {
+  const { ref: productRef, inView: productInView } = useInView({
+    triggerOnce: true,
+    rootMargin: "100px",
+  });
+
+  const { ref: aboutRef, inView: aboutInView } = useInView({
+    triggerOnce: true,
+    rootMargin: "100px",
+  });
+
   return (
     <>
       <header
@@ -80,6 +91,7 @@ const HomePage = () => {
           marginBottom: 0,
         }}
       >
+        {/* header content */}
         <h1
           style={{
             fontWeight: 800,
@@ -128,123 +140,140 @@ const HomePage = () => {
         </span>
       </section>
 
-      <Row
-        gutter={[16, 16]}
-        justify="center"
-        style={{ maxWidth: 1500, margin: "0 auto", padding: "0 16px" }}
-      >
-        {products.map((product) => (
-          <Col key={product.id} xs={12} sm={6} md={6} lg={6}>
-            <Card
-              hoverable
-              className={styles["custom-card"]}
-              bodyStyle={{ padding: "8px" }}
-              style={{
-                backgroundColor: "white",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div style={{ position: "relative" }}>
-                <img
-                  src={product.img}
-                  alt={product.name}
+      {/* Phần sản phẩm: chỉ render khi scroll đến */}
+      <div ref={productRef}>
+        {productInView ? (
+          <Row
+            gutter={[16, 16]}
+            justify="center"
+            style={{ maxWidth: 1500, margin: "0 auto", padding: "0 16px" }}
+          >
+            {products.map((product) => (
+              <Col key={product.id} xs={12} sm={6} md={6} lg={6}>
+                <Card
+                  hoverable
+                  className={styles["custom-card"]}
+                  bodyStyle={{ padding: "8px" }}
                   style={{
-                    width: "100%",
-                    height: "auto",
-                    aspectRatio: "1 / 1",
-                    objectFit: "cover",
-                    borderRadius: 4,
-                  }}
-                />
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 4,
-                    left: 4,
-                    backgroundColor: "#bbf7d0",
-                    color: "#166534",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    padding: "0 4px",
-                    borderRadius: 2,
-                    userSelect: "none",
+                    backgroundColor: "white",
+                    position: "relative",
+                    overflow: "hidden",
                   }}
                 >
-                  1:1
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  marginTop: 4,
-                  lineHeight: 1.2,
-                  minHeight: "2.4rem",
-                }}
-              >
-                {product.name}
-              </p>
-              <p
-                style={{
-                  fontSize: 10,
-                  color: "#9ca3af",
-                  textDecoration: "line-through",
-                  margin: "2px 0 0 0",
-                }}
-              >
-                {product.oldPrice}
-              </p>
-              <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#16a34a" }}>
-                {product.newPrice}
-              </p>
+                  <div style={{ position: "relative" }}>
+                    <img
+                      src={product.img}
+                      alt={product.name}
+                      loading="lazy"
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        aspectRatio: "1 / 1",
+                        objectFit: "cover",
+                        borderRadius: 4,
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 4,
+                        left: 4,
+                        backgroundColor: "#bbf7d0",
+                        color: "#166534",
+                        fontSize: 10,
+                        fontWeight: 600,
+                        padding: "0 4px",
+                        borderRadius: 2,
+                        userSelect: "none",
+                      }}
+                    >
+                      1:1
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 600,
+                      marginTop: 4,
+                      lineHeight: 1.2,
+                      minHeight: "2.4rem",
+                    }}
+                  >
+                    {product.name}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 10,
+                      color: "#9ca3af",
+                      textDecoration: "line-through",
+                      margin: "2px 0 0 0",
+                    }}
+                  >
+                    {product.oldPrice}
+                  </p>
+                  <p
+                    style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#16a34a" }}
+                  >
+                    {product.newPrice}
+                  </p>
 
-              <div className={styles["product-actions"]}>
-                <button className={styles["product-button"]}>
-                  <ThunderboltOutlined /> Mua ngay
-                </button>
-                <button
-                  className={`${styles["product-button"]} ${styles["cart"]}`}
-                >
-                  <ShoppingCartOutlined /> Giỏ hàng
-                </button>
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+                  <div className={styles["product-actions"]}>
+                    <button className={styles["product-button"]}>
+                      <ThunderboltOutlined /> Mua ngay
+                    </button>
+                    <button
+                      className={`${styles["product-button"]} ${styles["cart"]}`}
+                    >
+                      <ShoppingCartOutlined /> Giỏ hàng
+                    </button>
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <div style={{ height: 600 }}></div> // giữ chỗ tránh nhảy layout
+        )}
+      </div>
 
-      <Row
-        justify="center"
-        style={{
-          marginTop: 40,
-          backgroundColor: "#D9D9D9",
-          padding: "2rem 0",
-        }}
-      >
-        <Col span={24} style={{ textAlign: "center" }}>
-          <h2 style={{ fontSize: 30, fontWeight: 700, color: "#4b5563" }}>
-            Tại sao chọn Tuly Shoe?
-          </h2>
-          <p
+      {/* Phần About: cũng tương tự */}
+      <div ref={aboutRef}>
+        {aboutInView ? (
+          <Row
+            justify="center"
             style={{
-              fontSize: 16,
-              color: "#6b7280",
-              maxWidth: 800,
-              margin: "0 auto",
+              marginTop: 40,
+              backgroundColor: "#D9D9D9",
+              padding: "2rem 0",
             }}
           >
-            Chúng tôi cung cấp những đôi giày replica chất lượng cao với thiết
-            kế tinh tế và giá cả phải chăng. Mỗi sản phẩm đều được kiểm tra kỹ
-            lưỡng để đảm bảo mang đến trải nghiệm tốt nhất cho khách hàng.
-          </p>
+            <Col span={24} style={{ textAlign: "center" }}>
+              <h2 style={{ fontSize: 30, fontWeight: 700, color: "#4b5563" }}>
+                Tại sao chọn Tuly Shoe?
+              </h2>
+              <p
+                style={{
+                  fontSize: 16,
+                  color: "#6b7280",
+                  maxWidth: 800,
+                  margin: "0 auto",
+                }}
+              >
+                Chúng tôi cung cấp những đôi giày replica chất lượng cao với thiết
+                kế tinh tế và giá cả phải chăng. Mỗi sản phẩm đều được kiểm tra kỹ
+                lưỡng để đảm bảo mang đến trải nghiệm tốt nhất cho khách hàng.
+              </p>
 
-          <p style={{ fontSize: 16, color: "#6b7280" }}>
-            * Tất cả sản phẩm đều là hàng replica chất lượng cao, không phải
-            hàng chính hãng.
-          </p>
-        </Col>
-      </Row>
+              <p style={{ fontSize: 16, color: "#6b7280" }}>
+                * Tất cả sản phẩm đều là hàng replica chất lượng cao, không phải
+                hàng chính hãng.
+              </p>
+            </Col>
+          </Row>
+        ) : (
+          <div style={{ height: 300 }}></div>
+        )}
+      </div>
     </>
   );
 };
