@@ -1,0 +1,49 @@
+.productActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.productButton {
+  flex: 1;
+  background-color: #FF3300;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.productButton > * {
+  position: relative;
+  z-index: 2;
+}
+
+.cart {
+  background-color: #FF6600;
+}
+
+.productButton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(211, 211, 211, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 6px;
+}
+
+.productButton:hover::after {
+  opacity: 1;
+}
