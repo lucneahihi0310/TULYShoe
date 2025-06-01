@@ -6,6 +6,7 @@ import Header from './Components/Header'
 import HomePage from './Components/HomePage'
 import Footer from './Components/Footer'
 import ProductDetail from './Components/ProductDetail'
+import ListProduct from './Components/ListProduct'
 
 
 function App() {
@@ -14,7 +15,8 @@ function App() {
     <>
       <Header/>
       {/* <HomePage/> */}
-      <ProductDetail/>
+      {/* <ProductDetail/> */}
+      <ListProduct/>
       <Footer/>
     </>
   )
