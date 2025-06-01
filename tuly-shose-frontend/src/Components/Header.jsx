@@ -53,6 +53,8 @@ const Header = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           boxShadow: '0 1px 2px rgb(0 0 0 / 0.05)',
+          borderBottom: '1px solid #e5e7eb', // Tailwind gray-200
+          marginBottom: 20
         }}
       >
         {/* Logo */}

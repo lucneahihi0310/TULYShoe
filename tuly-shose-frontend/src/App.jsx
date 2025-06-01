@@ -5,6 +5,7 @@ import Home from './Components/Header'
 import Header from './Components/Header'
 import HomePage from './Components/HomePage'
 import Footer from './Components/Footer'
+import ProductDetail from './Components/ProductDetail'
 
 
 function App() {
@@ -12,7 +13,8 @@ function App() {
   return (
     <>
       <Header/>
-      <HomePage/>
+      {/* <HomePage/> */}
+      <ProductDetail/>
       <Footer/>
     </>
   )

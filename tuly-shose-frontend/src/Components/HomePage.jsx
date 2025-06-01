@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, Row, Col } from "antd";
 import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import styles from "../CSS/HomePage.module.css";
 
 const products = [
   {
@@ -64,115 +65,8 @@ const products = [
 const HomePage = () => {
   return (
     <>
-      {/* Thêm style tại đây */}
-      <style>
-        {`
-          .product-actions {
-            position: absolute;
-            bottom: 8px;
-            left: 8px;
-            right: 8px;
-            display: flex;
-            gap: 8px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-          }
-
-          .ant-card:hover .product-actions {
-            opacity: 1;
-          }
-
-          .product-button {
-            flex: 1;
-            background-color: #FF3300;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-          }
-
-          .product-button.cart {
-            background-color: #FF6600;
-          }
-            .product-button {
-  position: relative;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.product-button::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(211, 211, 211, 0.5); /* màu xám nhạt + opacity */
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-  border-radius: 4px;
-  pointer-events: none; /* để không cản sự kiện click */
-}
-
-.product-button:hover::after {
-  opacity: 1;
-}
-
-            .custom-card {
-      transition: padding-bottom 0.3s ease;
-    }
-    .custom-card:hover {
-      padding-bottom: 40px !important;
-    }
-    .custom-card:hover .product-actions {
-      opacity: 1;
-    }
-      @keyframes headerFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0);
-  }
-    50% {
-    opacity: 1;
-    transform: scale(2);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.header-animate {
-  animation: headerFadeIn 0.8s ease-out forwards;
-}
-  @keyframes fireFlicker {
-  0% {
-    text-shadow: 0 0 2px #ff6a00, 0 0 4px #ff6a00, 0 0 6px #ff6a00, 0 0 8px #ff3c00;
-    transform: scale(1);
-  }
-  50% {
-    text-shadow: 0 0 3px #ffa200, 0 0 6px #ff6a00, 0 0 10px #ff3c00, 0 0 14px #ff0000;
-    transform: scale(1.05);
-  }
-  100% {
-    text-shadow: 0 0 2px #ff6a00, 0 0 4px #ff6a00, 0 0 6px #ff6a00, 0 0 8px #ff3c00;
-    transform: scale(1);
-  }
-}
-
-.fire-text {
-  animation: fireFlicker 1s infinite ease-in-out;
-  color: #dc2626; /* đỏ tươi */
-}
-
-        `}
-      </style>
       <header
-        className="header-animate"
+        className={styles["header-animate"]}
         style={{
           background:
             "linear-gradient(90deg, #4b5563 0%, #6b7280 50%, #d1d5db 100%)",
@@ -227,7 +121,7 @@ const HomePage = () => {
       >
         HÀNG CAO CẤP
         <span
-          className="fire-text"
+          className={styles["fire-text"]}
           style={{ fontWeight: 700, marginLeft: "0.25rem" }}
         >
           HOT NHẤT
@@ -243,7 +137,7 @@ const HomePage = () => {
           <Col key={product.id} xs={12} sm={6} md={6} lg={6}>
             <Card
               hoverable
-              className="custom-card"
+              className={styles["custom-card"]}
               bodyStyle={{ padding: "8px" }}
               style={{
                 backgroundColor: "white",
@@ -258,8 +152,8 @@ const HomePage = () => {
                   style={{
                     width: "100%",
                     height: "auto",
-                    aspectRatio: "1 / 1", // ảnh vuông, luôn full chiều rộng
-                    objectFit: "cover", // hoặc "contain" nếu muốn không cắt hình
+                    aspectRatio: "1 / 1",
+                    objectFit: "cover",
                     borderRadius: 4,
                   }}
                 />
@@ -301,16 +195,17 @@ const HomePage = () => {
               >
                 {product.oldPrice}
               </p>
-              <p style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#16a34a" }}>
                 {product.newPrice}
               </p>
 
-              {/* Buttons shown on hover */}
-              <div className="product-actions">
-                <button className="product-button">
+              <div className={styles["product-actions"]}>
+                <button className={styles["product-button"]}>
                   <ThunderboltOutlined /> Mua ngay
                 </button>
-                <button className="product-button cart">
+                <button
+                  className={`${styles["product-button"]} ${styles["cart"]}`}
+                >
                   <ShoppingCartOutlined /> Giỏ hàng
                 </button>
               </div>
@@ -318,6 +213,7 @@ const HomePage = () => {
           </Col>
         ))}
       </Row>
+
       <Row
         justify="center"
         style={{
