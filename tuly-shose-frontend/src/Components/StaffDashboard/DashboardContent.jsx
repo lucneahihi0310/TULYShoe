@@ -1,16 +1,18 @@
 // Components/Dashboard/DashboardContent.jsx
 import React from 'react';
-import StaffProductList from '../StaffProducList';
-import StaffProfile from '../StaffProfile';
+import StaffProductList from '../StaffMenuList/StaffProducList';
+import StaffProfile from '../StaffMenuList/StaffProfile';
+import OrderList from '../StaffMenuList/OrderList';
+import CustomerFeedback from '../StaffMenuList/CustomerFeedback';
 
 const DashboardContent = ({ activeSection }) => {
   switch (activeSection) {
-    // case 'feedbacks':
-    //   return <FeedbackList />;
+    case 'feedbacks':
+      return <CustomerFeedback />;
     case 'products':
       return <StaffProductList />;
-    // case 'orders':
-    //   return <OrderList />;
+    case 'orders':
+      return <OrderList />;
     // case 'notifications':
     //   return <div>List of Notifications</div>;
     // case 'schedule':

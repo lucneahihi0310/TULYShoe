@@ -5,7 +5,7 @@ import Home from './Components/Header'
 import Header from './Components/Header'
 
 import Footer from './Components/Footer'
-import StaffDashboard from './Components/Dashboard/StaffDashboard'
+import StaffDashboard from './Components/StaffDashboard/StaffMenu'
 
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';

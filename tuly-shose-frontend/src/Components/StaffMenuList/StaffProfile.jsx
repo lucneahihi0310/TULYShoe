@@ -30,9 +30,9 @@ const StaffProfile = () => {
 >
 
  <div
-      style={{ width: '100%', maxWidth: 1100 }}
+      style={{ width: '100%', maxWidth: 1100, display: 'flex', justifyContent: 'center', alignItems:'center', overflow: 'hidden' ,maxWidth: '1100', width: '100%'}}
     >
-      <Row gutter={32} style={{ width: '100%', maxWidth: 1000 }}>
+      <Row gutter={32} style={{ padding: '20px' }}>
         {/* LEFT PROFILE CARD */}
         <Col xs={24} md={8}>
           <Card
