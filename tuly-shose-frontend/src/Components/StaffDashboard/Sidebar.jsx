@@ -1,8 +1,11 @@
 // Components/Dashboard/Sidebar.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // ⬅️ import thêm
 import '../../CSS/Sidebar.css';
 
-const Sidebar = ({ setActiveSection }) => {
+const Sidebar = () => {
+  const navigate = useNavigate(); // ⬅️ Hook để điều hướng
+
   const menu = [
     { key: 'feedbacks', label: 'Customer Feedbacks' },
     { key: 'products', label: 'Products' },
@@ -18,7 +21,7 @@ const Sidebar = ({ setActiveSection }) => {
         <div
           key={item.key}
           className="sidebar-item"
-          onClick={() => setActiveSection(item.key)}
+          onClick={() => navigate(`/dashboard/${item.key}`)} // ⬅️ Điều hướng URL
         >
           {item.label}
         </div>

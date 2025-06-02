@@ -1,16 +1,14 @@
 // Components/Dashboard/StaffDashboard.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import Sidebar from './Sidebar';
 import DashboardContent from './DashboardContent';
 import '../../CSS/StaffDashboard.css';
 
 const StaffDashboard = () => {
-  const [activeSection, setActiveSection] = useState('feedbacks');
-
   return (
     <div className="dashboard-container">
-      <Sidebar setActiveSection={setActiveSection} />
-      <DashboardContent activeSection={activeSection} />
+      <Sidebar /> {/* Không cần setActiveSection nữa */}
+      <DashboardContent /> {/* Lấy dữ liệu từ URL qua useParams */}
     </div>
   );
 };

@@ -33,8 +33,10 @@ const CustomerFeedback = () => {
   };
 
   return (
+    
     <div className="feedback-container">
-      <h2>Customer Feedbacks</h2>
+<h2 className="feedback-title">Customer Feedbacks</h2>
+      
 
       <div className="feedback-filters">
         <input
@@ -96,6 +98,7 @@ const CustomerFeedback = () => {
         </div>
       )}
     </div>
+    
   );
 };
 

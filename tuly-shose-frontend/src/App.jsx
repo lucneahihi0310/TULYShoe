@@ -8,7 +8,7 @@ import Footer from './Components/Footer'
 import StaffDashboard from './Components/StaffDashboard/StaffMenu'
 
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
 
@@ -17,8 +17,12 @@ function App() {
     <Header/>
       <BrowserRouter>
       <Routes>
-        <Route path="/dashboard" element={<StaffDashboard />} />
-      </Routes>
+{/* Redirect khi vào /dashboard mặc định về feedbacks */}
+        <Route path="/dashboard" element={<Navigate to="/dashboard/feedbacks" />} />
+
+        {/* Dùng StaffDashboard làm layout chính cho các section */}
+        <Route path="/dashboard/:section" element={<StaffDashboard />} /></Routes>
+
     </BrowserRouter>
     <Footer/>
     </>

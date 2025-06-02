@@ -1,24 +1,22 @@
 // Components/Dashboard/DashboardContent.jsx
 import React from 'react';
+import { useParams } from 'react-router-dom';
 import StaffProductList from '../StaffMenuList/StaffProducList';
+import CustomerFeedback from '../StaffMenuList/CustomerFeedback';
 import StaffProfile from '../StaffMenuList/StaffProfile';
 import OrderList from '../StaffMenuList/OrderList';
-import CustomerFeedback from '../StaffMenuList/CustomerFeedback';
+const DashboardContent = () => {
+  const { section } = useParams();
 
-const DashboardContent = ({ activeSection }) => {
-  switch (activeSection) {
+  switch (section) {
     case 'feedbacks':
       return <CustomerFeedback />;
     case 'products':
       return <StaffProductList />;
     case 'orders':
       return <OrderList />;
-    // case 'notifications':
-    //   return <div>List of Notifications</div>;
-    // case 'schedule':
-    //   return <div>Work Schedule (Coming soon)</div>;
     case 'profile':
-      return <StaffProfile/>;
+      return <StaffProfile />;
     default:
       return <div>Welcome to Staff Dashboard</div>;
   }
