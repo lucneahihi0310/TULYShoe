@@ -1,5 +1,5 @@
 import React from 'react'
-// import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+//import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 // import './App.css'
 import Home from './Components/Header'
 import Header from './Components/Header'
@@ -9,8 +9,9 @@ import ProductDetail from './Components/ProductDetail'
 import ListProduct from './Components/ListProduct'
 import ManagerDashboard from './Components/ManagerDashboard'
 import ManagerHeader from './Components/ManagerHeader'
+import StaffDashboard from './Components/Dashboard/StaffDashboard'
 
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 function App() {
 
   return (
@@ -21,7 +22,13 @@ function App() {
       {/* <ListProduct/> */}
       {/* <ManagerHeader/> */}
       {/* <ManagerDashboard /> */}
-      <Footer/>
+      
+      <BrowserRouter>
+      <Routes>
+        <Route path="/dashboard" element={<StaffDashboard />} />
+      </Routes>
+    </BrowserRouter>
+    <Footer/>
     </>
   )
 }
