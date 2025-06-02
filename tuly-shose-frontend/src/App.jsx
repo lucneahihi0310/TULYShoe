@@ -7,7 +7,7 @@ import HomePage from './Components/HomePage'
 import Footer from './Components/Footer'
 import ProductDetail from './Components/ProductDetail'
 import ListProduct from './Components/ListProduct'
-import ManagerDashboard from './Components/ManagerDashboard'
+import ManagerProduct from './Components/ManagerProduct'
 import ManagerHeader from './Components/ManagerHeader'
 
 
@@ -19,8 +19,8 @@ function App() {
       {/* <HomePage/> */}
       {/* <ProductDetail/> */}
       {/* <ListProduct/> */}
-      <ManagerHeader/>
-      <ManagerDashboard />
+      <ManagerHeader />
+      <ManagerProduct />
       {/* <Footer/> */}
     </>
   )
