@@ -15,13 +15,13 @@ function App() {
 
   return (
     <>
-      <Header/>
+      {/* <Header/> */}
       {/* <HomePage/> */}
       {/* <ProductDetail/> */}
       {/* <ListProduct/> */}
-      {/* <ManagerHeader/> */}
-      {/* <ManagerDashboard /> */}
-      <Footer/>
+      <ManagerHeader/>
+      <ManagerDashboard />
+      {/* <Footer/> */}
     </>
   )
 }

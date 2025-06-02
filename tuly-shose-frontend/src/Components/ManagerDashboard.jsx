@@ -4,8 +4,8 @@ const { Meta } = Card
 
 const ManagerDashboard = () => {
     return (
-        <>
-            <Row>
+        <div>
+            <Row justify={'center'} align={'middle'}>
                 <Col span={8}>
                     <div>products</div>
                 </Col>
@@ -18,7 +18,7 @@ const ManagerDashboard = () => {
                     </Button>
                 </Col>
             </Row>
-            <Row>
+            <Row justify={'center'} align={'middle'}>
                 <Col style={{ padding: '5px' }}>
                     <Button type="text" block>
                         <h4 style={{ color: "#d0d9db" }}>All products</h4>
@@ -103,7 +103,7 @@ const ManagerDashboard = () => {
                     </Card>
                 </div>
             </Row>
-        </>
+        </div>
     );
 };
 
