@@ -3,25 +3,24 @@ import React from 'react'
 // import './App.css'
 import Home from './Components/Header'
 import Header from './Components/Header'
-import HomePage from './Components/HomePage'
-import Footer from './Components/Footer'
-import ProductDetail from './Components/ProductDetail'
-import ListProduct from './Components/ListProduct'
-import ManagerDashboard from './Components/ManagerDashboard'
-import ManagerHeader from './Components/ManagerHeader'
 
+import Footer from './Components/Footer'
+import StaffDashboard from './Components/Dashboard/StaffDashboard'
+
+
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
 
   return (
     <>
-      <Header/>
-      {/* <HomePage/> */}
-      {/* <ProductDetail/> */}
-      {/* <ListProduct/> */}
-      {/* <ManagerHeader/> */}
-      {/* <ManagerDashboard /> */}
-      <Footer/>
+    <Header/>
+      <BrowserRouter>
+      <Routes>
+        <Route path="/dashboard" element={<StaffDashboard />} />
+      </Routes>
+    </BrowserRouter>
+    <Footer/>
     </>
   )
 }
