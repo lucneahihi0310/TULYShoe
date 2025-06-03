@@ -1,7 +1,7 @@
 // Components/Dashboard/Sidebar.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom'; // ⬅️ import thêm
-import '../../CSS/Sidebar.css';
+import '../../../CSS/Sidebar.css';
 
 const Sidebar = () => {
   const navigate = useNavigate(); // ⬅️ Hook để điều hướng

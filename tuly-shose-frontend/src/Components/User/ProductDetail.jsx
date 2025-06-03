@@ -12,7 +12,7 @@ import {
   Typography,
   Divider,
 } from "antd";
-import styles from "../CSS/ProductDetail.module.css";
+import styles from "../../CSS/ProductDetail.module.css";
 import { ThunderboltOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;

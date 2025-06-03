@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaEye } from 'react-icons/fa';
 import { MdOutlineQuestionAnswer } from "react-icons/md"; 
-import '../../CSS/CustomerFeedback.css';
+import '../../../CSS/CustomerFeedback.css';
 
 const CustomerFeedback = () => {
   const [searchTerm, setSearchTerm] = useState('');

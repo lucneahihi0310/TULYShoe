@@ -60,7 +60,7 @@ const Header = () => {
         {/* Logo */}
         <div style={{ flexShrink: 0 }}>
           <img
-            src="../image/logo_den.png"
+            src="../../image/logo_den.png"
             alt="Tuly Shoe logo with black shoe icon and text Tuly Shoe below it"
             style={{ height: 50, width: 'auto' }}
           />

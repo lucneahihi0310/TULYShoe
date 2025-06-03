@@ -12,7 +12,7 @@ const Footer = () => {
         <Col xs={24} sm={12} md={6}>
           <div style={{ marginBottom: 16 }}>
             <img
-              src="../image/logo_trang.png"
+              src="../../image/logo_trang.png"
               alt="Tuly Shoe"
               style={{ height: 100, width: 'auto', display: 'block', marginBottom: 40 }}
             />

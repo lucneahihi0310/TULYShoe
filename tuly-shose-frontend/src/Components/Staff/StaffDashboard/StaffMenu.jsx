@@ -2,7 +2,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import DashboardContent from './DashboardContent';
-import '../../CSS/StaffDashboard.css';
+import '../../../CSS/StaffDashboard.css';
 
 const StaffDashboard = () => {
   return (

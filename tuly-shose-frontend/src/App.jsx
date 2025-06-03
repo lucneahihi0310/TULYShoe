@@ -1,33 +1,33 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./Components/Header";
-import Header from "./Components/Header";
-import HomePage from "./Components/HomePage";
-import Footer from "./Components/Footer";
-import ProductDetail from "./Components/ProductDetail";
-import ListProduct from "./Components/ListProduct";
-import ManagerProduct from "./Components/ManagerProduct";
-import ManagerHeader from "./Components/ManagerHeader";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Header from "./Components/Other_Screen/Header";
+import Footer from "./Components/Other_Screen/Footer";
+import HomePage from "./Components/User/HomePage";
+import ProductDetail from "./Components/User/ProductDetail";
+import ListProduct from "./Components/User/ListProduct";
+import StaffDashboard from './Components/Staff/StaffDashboard/StaffMenu'
 
 function App() {
   return (
-    <>
+    <BrowserRouter>
       <Header />
-      <BrowserRouter>
-        <Routes>
-          {/* Redirect khi vào /dashboard mặc định về feedbacks */}
-          <Route
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/products" element={<ListProduct />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+        {/* các Route khác */}
+        {/* Redirect khi vào /dashboard mặc định về feedbacks */}
+          {/* <Route
             path="/dashboard"
             element={<Navigate to="/dashboard/feedbacks" />}
-          />
+          /> */}
 
           {/* Dùng StaffDashboard làm layout chính cho các section */}
           <Route path="/dashboard/:section" element={<StaffDashboard />} />
-        </Routes>
-      </BrowserRouter>
+      </Routes>
       <Footer />
-    </>
+    </BrowserRouter>
   );
 }
+
 
 export default App;

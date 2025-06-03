@@ -15,7 +15,7 @@ import {
   ThunderboltOutlined,
   ShoppingCartOutlined,
 } from "@ant-design/icons";
-import styles from "../CSS/ListProduct.module.css"; // Adjust the path as necessary
+import styles from "../../CSS/ListProduct.module.css"; // Adjust the path as necessary
 
 const { Option } = Select;
 

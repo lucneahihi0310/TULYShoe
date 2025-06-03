@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../../CSS/StaffOrderList.css";
+import "../../../CSS/StaffOrderList.css";
 import { FaSearch, FaEye, FaEdit, FaTrash } from "react-icons/fa";
 
 const OrderList = () => {

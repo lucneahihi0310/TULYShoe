@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, Row, Col } from "antd";
 import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import styles from "../CSS/HomePage.module.css";
+import styles from "../../CSS/HomePage.module.css";
 import { useInView } from "react-intersection-observer";
 
 const products = [
