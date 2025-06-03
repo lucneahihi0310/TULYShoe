@@ -4,8 +4,8 @@ const { Meta } = Card
 
 const ManagerHeader = () => {
   return (
-    <div>
-      <Row justify='center' align='middle'>
+    <>
+      <Row>
         <Col span={3}>
           <div style={{padding: '10px'}}>
             <h2>Logo tuly shoe</h2>
@@ -42,7 +42,7 @@ const ManagerHeader = () => {
           </div>
         </Col>
       </Row>
-    </div>
+    </>
   )
 }
 
