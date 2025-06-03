@@ -1,9 +1,24 @@
-import React from "react";
-import { Col, Input, Row, Button, Card, Space, Divider } from "antd";
+import React, { useState } from "react";
+import { Col, Input, Row, Button, Card, Space, Divider, Modal } from "antd";
 const { Meta } = Card
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
+import { useNavigate } from "react-router-dom";
+
 
 const ManagerProduct = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleOk = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+    const navigate = useNavigate();
     return (
         <div style={{ borderRadius: '10px', padding: '10px', backgroundColor: '#f7f9fa' }}>
             <Row gutter={16} style={{ padding: '10px' }}>
@@ -16,9 +31,20 @@ const ManagerProduct = () => {
                     <Input placeholder="Search product..." prefix={<SearchOutlined />} />
                 </Col>
                 <Col span={4} offset={4}>
-                    <Button style={{ color: 'black' }} shape="round" icon={<PlusOutlined />}>
+                    <Button style={{ color: 'black' }} shape="round" icon={<PlusOutlined />} onClick={showModal}>
                         Add New Product
                     </Button>
+                    <Modal
+                        title="Basic Modal"
+                        closable={{ 'aria-label': 'Custom Close Button' }}
+                        open={isModalOpen}
+                        onOk={handleOk}
+                        onCancel={handleCancel}
+                    >
+                        <p>Some contents...</p>
+                        <p>Some contents...</p>
+                        <p>Some contents...</p>
+                    </Modal>
                 </Col>
             </Row>
             <Row justify={'center'} align={'middle'} style={{ padding: '5px' }}>
