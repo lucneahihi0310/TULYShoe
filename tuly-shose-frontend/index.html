@@ -2,12 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="../image/logo_den.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TULY Shoe</title>
+    <link id="favicon" rel="icon" type="image/png" href="/image/logo_den.png" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <script>
+      const favicon = document.getElementById("favicon");
+      const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+      function updateFavicon(e) {
+        const isDarkMode = e.matches;
+        favicon.href = isDarkMode ? "/image/logo_trang.png" : "/image/logo_den.png";
+      }
+
+      // Cập nhật lúc load trang
+      updateFavicon(darkModeMediaQuery);
+
+      // Nghe thay đổi theme (live switch)
+      darkModeMediaQuery.addEventListener("change", updateFavicon);
+    </script>
   </body>
 </html>
