@@ -1,27 +1,24 @@
 import React from "react";
-import { Col, Input, Row, Button, Card, Space, Divider } from "antd";
+import { Col, Input, Row, Button, Card } from "antd";
 const { Meta } = Card
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 
-const ManagerProduct = () => {
+const ManagerDashboard = () => {
     return (
-        <div style={{ borderRadius: '10px', padding: '10px', backgroundColor:'#f7f9fa' }}>
-            <Row gutter={16} style={{ padding: '10px' }}>
-                <Col span={4}>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <h2>Products</h2>
-                    </div>
+        <>
+            <Row>
+                <Col span={8}>
+                    <div>products</div>
                 </Col>
-                <Col span={8} offset={4}>
-                    <Input placeholder="Search product..." prefix={<SearchOutlined />} />
+                <Col span={8}>
+                    <Input placeholder="Basic usage" />
                 </Col>
-                <Col span={4} offset={4}>
-                    <Button style={{ color: 'black' }} shape="round" icon={<PlusOutlined />}>
-                        Add New Product
+                <Col span={8}>
+                    <Button ghost>
+                        Add new product
                     </Button>
                 </Col>
             </Row>
-            <Row justify={'center'} align={'middle'} style={{ padding: '10px' }}>
+            <Row>
                 <Col style={{ padding: '5px' }}>
                     <Button type="text" block>
                         <h4 style={{ color: "#d0d9db" }}>All products</h4>
@@ -68,7 +65,7 @@ const ManagerProduct = () => {
                     </Button>
                 </Col>
             </Row>
-            <Row justify={'center'} align={'middle'}>
+            <Row>
                 <div style={{ margin: '20px' }}>
                     <Card
                         hoverable
@@ -106,8 +103,8 @@ const ManagerProduct = () => {
                     </Card>
                 </div>
             </Row>
-        </div>
+        </>
     );
 };
 
-export default ManagerProduct;
+export default ManagerDashboard;
