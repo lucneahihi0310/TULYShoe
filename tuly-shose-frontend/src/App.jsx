@@ -1,13 +1,13 @@
 import React from "react";
-// import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-// import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./Components/Header";
 import Header from "./Components/Header";
-
+import HomePage from "./Components/HomePage";
 import Footer from "./Components/Footer";
-import StaffDashboard from "./Components/StaffDashboard/StaffMenu";
-
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ProductDetail from "./Components/ProductDetail";
+import ListProduct from "./Components/ListProduct";
+import ManagerProduct from "./Components/ManagerProduct";
+import ManagerHeader from "./Components/ManagerHeader";
 
 function App() {
   return (
