@@ -1,10 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./Components/Other_Screen/Header";
 import Footer from "./Components/Other_Screen/Footer";
 import HomePage from "./Components/User/HomePage";
 import ProductDetail from "./Components/User/ProductDetail";
 import ListProduct from "./Components/User/ListProduct";
-import StaffDashboard from './Components/Staff/StaffDashboard/StaffMenu'
+import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
 
 function App() {
   return (
@@ -16,18 +16,16 @@ function App() {
         <Route path="/products/:id" element={<ProductDetail />} />
         {/* các Route khác */}
         {/* Redirect khi vào /dashboard mặc định về feedbacks */}
-          {/* <Route
-            path="/dashboard"
-            element={<Navigate to="/dashboard/feedbacks" />}
-          /> */}
-
-          {/* Dùng StaffDashboard làm layout chính cho các section */}
-          <Route path="/dashboard/:section" element={<StaffDashboard />} />
+        <Route
+          path="/dashboard"
+          element={<Navigate to="/dashboard/feedbacks" replace />}
+        />
+        {/* Dùng StaffDashboard làm layout chính cho các section */}
+        <Route path="/dashboard/:section" element={<StaffDashboard />} />
       </Routes>
       <Footer />
     </BrowserRouter>
   );
 }
-
 
 export default App;
