@@ -5,6 +5,7 @@ import HomePage from "./Components/User/HomePage";
 import ProductDetail from "./Components/User/ProductDetail";
 import ListProduct from "./Components/User/ListProduct";
 import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
+import ManagerProduct from "./Components/Manager/ManagerProduct";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/manager/product" element={<ManagerProduct />} />
         {/* các Route khác */}
         {/* Redirect khi vào /dashboard mặc định về feedbacks */}
         <Route
