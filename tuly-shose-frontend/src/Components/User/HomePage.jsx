@@ -178,16 +178,16 @@ const HomePage = () => {
                         position: "absolute",
                         top: 4,
                         left: 4,
-                        backgroundColor: "#bbf7d0",
-                        color: "#166534",
-                        fontSize: 10,
+                        backgroundColor: "#F5A89A",
+                        color: "#FF6600",
+                        fontSize: 15,
                         fontWeight: 600,
                         padding: "0 4px",
                         borderRadius: 2,
                         userSelect: "none",
                       }}
                     >
-                      1:1
+                      25%
                     </span>
                   </div>
                   <p
