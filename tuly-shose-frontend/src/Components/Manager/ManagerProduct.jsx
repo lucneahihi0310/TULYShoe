@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Col, Input, Row, Button, Card, Space, Divider, Modal, Form } from "antd";
 const { Meta } = Card
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
-import { useNavigate } from "react-router-dom";
 
 const productList = [
     {
@@ -47,15 +46,19 @@ const ManagerProduct = () => {
     };
 
     //xử lý product detail và edit , delete product
+    const [form] = Form.useForm();
     const [productDetail, setproductDetail] = useState(false);
-    const showProductDetail = () => {
+    const showProductDetail = (product) => {
+        form.setFieldsValue({
+            name: product.name,
+            price: product.price
+        });
         setproductDetail(true);
     };
     const handleProductDetailCancel = () => {
         setproductDetail(false);
     };
 
-    const navigate = useNavigate();
     return (
         <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa' }}>
             <Row gutter={16} style={{ padding: '10px' }}>
@@ -142,7 +145,7 @@ const ManagerProduct = () => {
                                 hoverable
                                 style={{ width: 240 }}
                                 cover={<img alt="example" src={product.imageUrl} />}
-                                onClick={showProductDetail}
+                                onClick={() => showProductDetail(product)}
                             >
                                 <Meta title={product.name} />
                                 <div style={{ paddingTop: "5px", paddingBottom: '10px' }}>
@@ -160,14 +163,39 @@ const ManagerProduct = () => {
                                 </div>
                             </Card>
                             <Modal
-                                title={product.name}
+                                title="Edit product"
                                 closable={{ 'aria-label': 'Custom Close Button' }}
                                 open={productDetail}
-                                onCancel={handleProductDetailCancel}>
+                                onCancel={handleProductDetailCancel}
+                                footer={null}>
                                 <img alt="example" style={{ width: '100%', height: '250px', objectFit: "cover" }} src={product.imageUrl} />
-                                <p>Some contents...</p>
-                                <p>Some contents...</p>
-                                <p>Some contents...</p>
+                                <Form
+                                    form={form}
+                                    name="wrap"
+                                    labelCol={{ flex: '110px' }}
+                                    labelAlign="left"
+                                    labelWrap
+                                    wrapperCol={{ flex: 1 }}
+                                    colon={false}
+                                    style={{ paddingTop: '15px' }}
+                                >
+                                    <Form.Item label="Name" name="name">
+                                        <Input />
+                                    </Form.Item>
+
+                                    <Form.Item label="Price" name="price">
+                                        <Input />
+                                    </Form.Item>
+
+                                    <Form.Item label=" ">
+                                        <Button type="primary" htmlType="submit">
+                                            Submit
+                                        </Button>
+                                        <Button type="primary" htmlType="reset">
+                                            Reset
+                                        </Button>
+                                    </Form.Item>
+                                </Form>
                             </Modal>
                         </div>
                     ))
