@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Card, Space, Modal, Form, Table } from "antd";
 const { Meta } = Card
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
+import axios from 'axios';
 
 const ManagerCategory = () => {
+    const [categories, setCategories] = useState([]);
     //xử lý add category
     const [addCategory, setAddCategory] = useState(false);
     const showAddCategoryModal = () => {
@@ -12,6 +14,32 @@ const ManagerCategory = () => {
     const handleAddCategoryCancel = () => {
         setAddCategory(false);
     };
+    //fetch data
+    useEffect(() => {
+        fetchCategories();
+    }, [])
+    const fetchCategories = async () => {
+        const res = await axios.get(`http://localhost:9999/categories`);
+        setCategories(res.data);
+    }
+    const columns = [
+        {
+            title: '_id',
+            dataIndex: '_id',
+            key: '_id'
+        },
+        {
+            title: 'category name',
+            dataIndex: 'category_name',
+            key: 'category_name'
+        },
+        {
+            title: 'status',
+            dataIndex: 'is_active',
+            key: 'is_active',
+            render: (active) => true ? 'Active' : 'Inactive'
+        }
+    ];
     return (
         <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa' }}>
             <Row gutter={16} style={{ padding: '10px' }}>
@@ -59,11 +87,9 @@ const ManagerCategory = () => {
                     </Modal>
                 </Col>
             </Row>
-            <Row>
-                <Col>
-                    a
-                </Col>
-            </Row>
+            <div justify={"center"} align={"middle"}>
+                <Table dataSource={categories} columns={columns} />
+            </div>
         </div>
     );
 };

@@ -19,6 +19,7 @@ app.get('/', async(req, res)=>{
     }
 });
 
+app.use('/', require('./routes/category.route'));
 
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
