@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Card, Space, Modal, Form, Table } from "antd";
+import { Col, Input, Row, Button, Card, Space, Modal, Form, Table, Select } from "antd";
 const { Meta } = Card
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import axios from 'axios';
 
 const ManagerCategory = () => {
     const [categories, setCategories] = useState([]);
+    const [filterCategory, setFilterCategory] = useState("");
+    const [statusFilter, setStatusFilter] = useState(null);
     //xử lý add category
     const [addCategory, setAddCategory] = useState(false);
     const showAddCategoryModal = () => {
@@ -22,22 +24,37 @@ const ManagerCategory = () => {
         const res = await axios.get(`http://localhost:9999/categories`);
         setCategories(res.data);
     }
+    const searchCategory = categories.filter((c) => {
+        const searchName = c.category_name.toLowerCase().includes(filterCategory.toLowerCase());
+        const filterStatus = statusFilter === null || c.is_active === statusFilter;
+        return searchName && filterStatus;
+    })
     const columns = [
         {
-            title: '_id',
+            title: 'Id',
             dataIndex: '_id',
             key: '_id'
         },
         {
-            title: 'category name',
+            title: 'Category name',
             dataIndex: 'category_name',
             key: 'category_name'
         },
         {
-            title: 'status',
+            title: 'Status',
             dataIndex: 'is_active',
             key: 'is_active',
-            render: (active) => true ? 'Active' : 'Inactive'
+            render: (active) => active ? 'Active' : 'Inactive'
+        },
+        {
+            title: 'Create date',
+            dataIndex: 'create_at',
+            key: 'create_at'
+        },
+        {
+            title: 'Update date',
+            dataIndex: 'update_at',
+            key: 'update_at'
         }
     ];
     return (
@@ -49,8 +66,21 @@ const ManagerCategory = () => {
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search category..." prefix={<SearchOutlined />} />
+                    <Input placeholder="Search category..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategory(e.target.value)} />
+                    <Select
+                        placeholder="Filter by status"
+                        allowClear
+                        style={{ width: 160, marginLeft: 8 }}
+                        onChange={(value) => setStatusFilter(value)}
+                        options={[
+                            { label: 'Active', value: true },
+                            { label: 'Inactive', value: false }
+                        ]}
+                    />
                 </Col>
+                {/* <Col span={}>
+                    a
+                </Col> */}
                 <Col span={4} offset={4}>
                     <Button style={{ color: 'black' }} shape="round" icon={<PlusOutlined />} onClick={showAddCategoryModal}>
                         Add New Category
@@ -88,7 +118,7 @@ const ManagerCategory = () => {
                 </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
-                <Table dataSource={categories} columns={columns} />
+                <Table dataSource={searchCategory} columns={columns} />
             </div>
         </div>
     );

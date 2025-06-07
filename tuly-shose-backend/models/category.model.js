@@ -7,8 +7,14 @@ const categorySchema = new mongoose.Schema({
     },
     is_active: {
         type: Boolean
+    },
+    create_at: {
+        type: Date,
+    },
+    update_at: {
+        type: Date,
     }
-}, { collection: "categories"});
+}, { collection: "categories" });
 
 const category = mongoose.model('category', categorySchema);
 module.exports = category;

@@ -3,7 +3,7 @@ const { list_category } = require('../controllers/category.controller');
 const router = express.Router();
 
 const timelog = (req, res, next) => {
-    console.log(`Date : ${Date.now}`);
+    console.log(`Date : ${Date.now()}`);
     next();
 }
 router.use(timelog);
