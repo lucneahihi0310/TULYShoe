@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        default: () => new mongoose.Types.ObjectId().toString()
+    },
     category_name: {
         type: String,
         required: true
@@ -9,10 +13,12 @@ const categorySchema = new mongoose.Schema({
         type: Boolean
     },
     create_at: {
-        type: Date,
+        type: String,
+        default: () => new Date().toISOString()
     },
     update_at: {
-        type: Date,
+        type: String,
+        default: () => new Date().toISOString()
     }
 }, { collection: "categories" });
 

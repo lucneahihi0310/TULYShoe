@@ -219,8 +219,7 @@ const ManagerCategory = () => {
                             labelAlign="left"
                             labelWrap
                             wrapperCol={{ flex: 1 }}
-                            colon={false}
-                            style={{ maxWidth: 600 }}>
+                            colon={false}>
                             <Form.Item
                                 label="Name"
                                 name="name"
