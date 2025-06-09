@@ -5,6 +5,7 @@ import StaffProductList from '../StaffMenuList/StaffProducList';
 import CustomerFeedback from '../StaffMenuList/CustomerFeedback';
 import StaffProfile from '../StaffMenuList/StaffProfile';
 import OrderList from '../StaffMenuList/OrderList';
+import NotificationList from '../StaffMenuList/NotificationsList';
 const DashboardContent = () => {
   const { section } = useParams();
 
@@ -17,6 +18,8 @@ const DashboardContent = () => {
       return <OrderList />;
     case 'profile':
       return <StaffProfile />;
+      case 'notifications':
+      return <NotificationList />;
     default:
       return <div>Welcome to Staff Dashboard</div>;
   }
