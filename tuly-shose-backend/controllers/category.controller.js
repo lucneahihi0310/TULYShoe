@@ -48,16 +48,21 @@ exports.edit_category = async (req, res, next) => {
         const { category_name, is_active } = req.body;
         const updatedCategory = await category.findByIdAndUpdate(
             id,
-            { category_name, is_active },
+            { category_name, is_active, update_at: new Date().toISOString() },
             { new: true, runValidators: true } // new: trả về bản ghi đã update
         );
-
-        if (!updatedCategory) {
-            return res.status(404).json({ message: 'Category not found' });
-        }
-
         res.status(201).json(updatedCategory);
     } catch (error) {
-        next(error)
+        next(error);
+    }
+}
+
+exports.delete_category = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const deleteCategory = await category.findByIdAndDelete(id);
+        res.status(201).json(deleteCategory);
+    } catch (error) {
+        next(error);
     }
 }

@@ -20,12 +20,25 @@ const ManagerCategory = () => {
     //cancel add category
     const handleCancelAddCategory = () => {
         setAddCategory(false);
+        form2.resetFields();
     };
 
     //edit category
-    const handleEditCategory = () => {
-        const record = form.getFieldsValue();
-        console.log("Edit:", record);
+    const handleEditCategory = async () => {
+        try {
+            const record = await form.validateFields();
+            console.log("Edit:", record);
+
+            await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
+                category_name: record.category_name,
+                is_active: record.status
+            });
+            setEdittingRow(null);
+            fetchCategories();
+        }
+        catch (error) {
+            console.log(error);
+        }
     };
 
     //cancel edit category
@@ -34,8 +47,10 @@ const ManagerCategory = () => {
     }
 
     //delete category
-    const handleDeleteCategory = () => {
-        console.log("Edit:");
+    const handleDeleteCategory = async (id) => {
+        console.log("Delete : ", id);
+        await axios.delete(`http://localhost:9999/manager/categories/delete/${id}`);
+        fetchCategories();
     };
 
     //fetch data và filter category
@@ -67,7 +82,23 @@ const ManagerCategory = () => {
             render: (value, record) => {
                 if (record._id == edittingRow) {
                     return (
-                        <Form.Item name="category_name" rules={[{ required: true, message: "Please enter category name" }]}>
+                        <Form.Item
+                            name="category_name"
+                            rules={[
+                                { required: true, message: "Please enter category name" },
+                                {
+                                    validator: (_, value) => {
+                                        const isDuplicate = categories.some(
+                                            (cat) =>
+                                                cat.category_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                                cat._id !== edittingRow
+                                        );
+                                        return isDuplicate
+                                            ? Promise.reject("This category name already exists!")
+                                            : Promise.resolve();
+                                    }
+                                }
+                            ]}>
                             <Input />
                         </Form.Item>
                     )
@@ -248,7 +279,21 @@ const ManagerCategory = () => {
                             <Form.Item
                                 label="Category name"
                                 name="category_name"
-                                rules={[{ required: true, message: "Please enter category name" }]}>
+                                rules={[
+                                    { required: true, message: "Please enter category name" },
+                                    {
+                                        validator: (_, value) => {
+                                            const isDuplicate = categories.some(
+                                                (cat) =>
+                                                    cat.category_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                                    cat._id !== edittingRow
+                                            );
+                                            return isDuplicate
+                                                ? Promise.reject("This category name already exists!")
+                                                : Promise.resolve();
+                                        }
+                                    }
+                                ]}>
                                 <Input placeholder="Enter category name" />
                             </Form.Item>
 
