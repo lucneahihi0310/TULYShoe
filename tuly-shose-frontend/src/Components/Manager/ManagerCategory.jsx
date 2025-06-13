@@ -10,6 +10,7 @@ const ManagerCategory = () => {
     const [filterCategoryStatus, setFilterCategoryStatus] = useState(undefined);
     const [addCategory, setAddCategory] = useState(false);
     const [form] = Form.useForm();
+    const [form2] = Form.useForm();
 
     //show add category
     const showAddCategoryModal = () => {
@@ -22,7 +23,8 @@ const ManagerCategory = () => {
     };
 
     //edit category
-    const handleEditCategory = (record) => {
+    const handleEditCategory = () => {
+        const record = form.getFieldsValue();
         console.log("Edit:", record);
     };
 
@@ -32,8 +34,8 @@ const ManagerCategory = () => {
     }
 
     //delete category
-    const handleDeleteCategory = (record) => {
-        console.log("Edit:", record);
+    const handleDeleteCategory = () => {
+        console.log("Edit:");
     };
 
     //fetch data và filter category
@@ -43,6 +45,7 @@ const ManagerCategory = () => {
     const fetchCategories = async () => {
         const res = await axios.get(`http://localhost:9999/manager/categories`);
         setCategories(res.data);
+        console.log('a');
     }
     const searchCategory = categories.filter((c) => {
         const findCategoryByName = c.category_name.toLowerCase().includes(filterCategoryName.toLowerCase());
@@ -88,11 +91,10 @@ const ManagerCategory = () => {
                         <Form.Item
                             name="status"
                             initialValue={record.status}
-                            rules={[{ required: true, message: "Please enter status" }]}>
+                            rules={[{ required: true, message: "Please select status" }]}>
                             <Select
                                 placeholder="Select status"
                                 allowClear
-                                // onChange={(value) => { setFilterCategoryStatus(value) }}
                                 options={[
                                     { label: 'Active', value: true },
                                     { label: 'Inactive', value: false }
@@ -132,7 +134,9 @@ const ManagerCategory = () => {
                         <Button
                             color="primary"
                             variant="solid"
-                            onClick={() => handleEditCategory(record._id)}>
+                            onClick={() => {
+                                handleEditCategory()
+                            }}>
                             Save
                         </Button>
 
@@ -162,7 +166,9 @@ const ManagerCategory = () => {
                         </Button>
                         <Popconfirm
                             title="Are you sure to delete this category?"
-                            onConfirm={() => handleDeleteCategory(record._id)}
+                            onConfirm={() => {
+                                handleDeleteCategory(record._id)
+                            }}
                             okText="Yes"
                             cancelText="No">
                             <Button
@@ -192,7 +198,9 @@ const ManagerCategory = () => {
                     <Select
                         placeholder="Filter by status"
                         allowClear
-                        onChange={(value) => { setFilterCategoryStatus(value) }}
+                        onChange={(value) => {
+                            setFilterCategoryStatus(value)
+                        }}
                         options={[
                             { label: 'Active', value: true },
                             { label: 'Inactive', value: false }
@@ -211,26 +219,51 @@ const ManagerCategory = () => {
                         title="Add new category"
                         closable={{ 'aria-label': 'Custom Close Button' }}
                         open={addCategory}
-                        onCancel={handleCancelAddCategory}
+                        onCancel={() => {
+                            handleCancelAddCategory()
+                        }}
                         footer={null}>
                         <Form
+                            form={form2}
                             name="wrap"
                             labelCol={{ flex: '110px' }}
                             labelAlign="left"
                             labelWrap
                             wrapperCol={{ flex: 1 }}
-                            colon={false}>
+                            colon={false}
+                            onFinish={async (values) => {
+                                try {
+                                    console.log(values);
+                                    await axios.post('http://localhost:9999/manager/categories/create', {
+                                        category_name: values.category_name,
+                                        is_active: values.is_active
+                                    });
+                                    form2.resetFields();
+                                    setAddCategory(false);
+                                    fetchCategories();
+                                } catch (error) {
+                                    console.log(error)
+                                }
+                            }}>
                             <Form.Item
-                                label="Name"
-                                name="name"
-                                rules={[{ required: true }]}>
-                                <Input />
+                                label="Category name"
+                                name="category_name"
+                                rules={[{ required: true, message: "Please enter category name" }]}>
+                                <Input placeholder="Enter category name" />
                             </Form.Item>
 
                             <Form.Item
-                                label="Description"
-                                name="description">
-                                <Input />
+                                label="Status"
+                                name="is_active"
+                                rules={[{ required: true, message: "Please select status" }]}>
+                                <Select
+                                    placeholder="Select status"
+                                    allowClear
+                                    options={[
+                                        { label: 'Active', value: true },
+                                        { label: 'Inactive', value: false }
+                                    ]}
+                                />
                             </Form.Item>
 
                             <Form.Item

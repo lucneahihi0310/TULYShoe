@@ -41,3 +41,23 @@ exports.create_category = async (req, res, next) => {
         next(error);
     }
 }
+
+exports.edit_category = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const { category_name, is_active } = req.body;
+        const updatedCategory = await category.findByIdAndUpdate(
+            id,
+            { category_name, is_active },
+            { new: true, runValidators: true } // new: trả về bản ghi đã update
+        );
+
+        if (!updatedCategory) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        res.status(201).json(updatedCategory);
+    } catch (error) {
+        next(error)
+    }
+}
