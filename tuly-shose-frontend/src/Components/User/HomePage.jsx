@@ -141,12 +141,12 @@ const HomePage = () => {
       </section>
 
       {/* Phần sản phẩm: chỉ render khi scroll đến */}
-      <div ref={productRef}>
+      <div ref={productRef} style={{ width: "80%", margin: "0 auto" }}>
         {productInView ? (
           <Row
             gutter={[16, 16]}
             justify="center"
-            style={{ maxWidth: 1500, margin: "0 auto", padding: "0 16px" }}
+            style={{ maxWidth: 1500, margin: "0 auto"}}
           >
             {products.map((product) => (
               <Col key={product.id} xs={12} sm={6} md={6} lg={6}>
@@ -178,16 +178,16 @@ const HomePage = () => {
                         position: "absolute",
                         top: 4,
                         left: 4,
-                        backgroundColor: "#bbf7d0",
-                        color: "#166534",
-                        fontSize: 10,
+                        backgroundColor: "#F5A89A",
+                        color: "#FF6600",
+                        fontSize: 15,
                         fontWeight: 600,
                         padding: "0 4px",
                         borderRadius: 2,
                         userSelect: "none",
                       }}
                     >
-                      1:1
+                      25%
                     </span>
                   </div>
                   <p
