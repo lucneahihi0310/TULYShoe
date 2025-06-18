@@ -8,6 +8,7 @@ import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
 import ManagerProduct from "./Components/Manager/ManagerProduct";
 import ManagerCategory from "./Components/Manager/ManagerCategory";
 import Cart from "./Components/User/Cart_Item";
+import Oder from "./Components/User/Order";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/order" element={<Oder />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/manager/product" element={<ManagerProduct />} />
         <Route path="/manager/category" element={<ManagerCategory />} />

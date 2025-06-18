@@ -140,7 +140,7 @@ const CartPage = () => {
               <React.Fragment key={index}>
                 <CartItem {...item} />
                 {index < cartItems.length - 1 && (
-                  <Divider dashed className={styles.customdivider} />
+                  <Divider  className={styles.customdivider} />
                 )}
               </React.Fragment>
             ))}

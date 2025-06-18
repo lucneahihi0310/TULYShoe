@@ -231,5 +231,6 @@
 }
 
 .customdivider {
-  border-top: 2px dashed #c5c5c5;
+  border-style: dashed;
+  border-color: #d1d5db;
 }
