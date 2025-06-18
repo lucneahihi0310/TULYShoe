@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Typography, Space } from 'antd';
 import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
-
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
