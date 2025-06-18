@@ -25,7 +25,7 @@ const products = [
     originalPrice: "1,350,000₫",
     discountedPrice: "1,200,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/af180b94-4fd8-4ab4-7703-4ae97cd8939e.jpg",
+      "https://storage.googleapis.com/a1aa/image/3c4c1585-708b-493e-90d3-df9109889830.jpg",
     tag: "New",
     tagColor: "blue",
   },
@@ -36,7 +36,7 @@ const products = [
     originalPrice: "1,500,000₫",
     discountedPrice: "1,200,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/fdbe7118-37f2-4135-4213-d78ab56a367e.jpg",
+      "https://storage.googleapis.com/a1aa/image/5a252150-7d7f-4024-3ca4-e4ce280cf78a.jpg",
     tag: "Sale",
     tagColor: "red",
   },
@@ -47,7 +47,7 @@ const products = [
     originalPrice: "1,500,000₫",
     discountedPrice: "1,350,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/d7243125-22d9-4834-9030-870e165a16ea.jpg",
+      "https://storage.googleapis.com/a1aa/image/e97d7cb8-2010-4824-9d8b-88bc9541454b.jpg",
     tag: "New",
     tagColor: "blue",
   },
@@ -58,7 +58,7 @@ const products = [
     originalPrice: "1,300,000₫",
     discountedPrice: "1,100,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/4c68580c-f665-45c6-e8c4-9437133c1b5e.jpg",
+      "https://storage.googleapis.com/a1aa/image/410fe2e2-0fb4-4859-ee38-e32147155c15.jpg",
     tag: "New",
     tagColor: "blue",
   },
@@ -69,7 +69,7 @@ const products = [
     originalPrice: "1,400,000₫",
     discountedPrice: "1,250,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/db373427-3845-4df8-c703-9d46765465d4.jpg",
+      "https://storage.googleapis.com/a1aa/image/4b3fb163-e5ec-4b1d-6d12-02dbe0ba1452.jpg",
     tag: "Sale",
     tagColor: "red",
   },
@@ -80,7 +80,7 @@ const products = [
     originalPrice: "1,300,000₫",
     discountedPrice: "1,150,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/d561a5d3-052a-4e66-cfbe-080b2e36324e.jpg",
+      "https://storage.googleapis.com/a1aa/image/3c8ce39b-b73f-434d-df50-92b64d616ad7.jpg",
     tag: "New",
     tagColor: "blue",
   },
@@ -91,7 +91,7 @@ const products = [
     originalPrice: "1,450,000₫",
     discountedPrice: "1,300,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/558bcffa-59d8-4caf-1b3a-5808cc672c06.jpg",
+      "https://storage.googleapis.com/a1aa/image/23a35aad-98a6-43ea-6e43-36a1cbd31040.jpg",
     tag: "Sale",
     tagColor: "red",
   },
@@ -102,7 +102,7 @@ const products = [
     originalPrice: "1,350,000₫",
     discountedPrice: "1,180,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/bc55ced6-8a24-4a7c-ef7e-0a5939845fd7.jpg",
+      "https://storage.googleapis.com/a1aa/image/6982ba59-96d3-4a04-7273-002822329715.jpg",
     tag: "New",
     tagColor: "blue",
   },
@@ -113,7 +113,7 @@ const products = [
     originalPrice: "1,250,000₫",
     discountedPrice: "1,100,000₫",
     image:
-      "https://storage.googleapis.com/a1aa/image/2ba44e73-6340-43f4-d9dd-8a237ef006cd.jpg",
+      "https://storage.googleapis.com/a1aa/image/31f5283b-b20c-46d2-685f-f7fdf3115ecc.jpg",
     tag: "New",
     tagColor: "blue",
   },
