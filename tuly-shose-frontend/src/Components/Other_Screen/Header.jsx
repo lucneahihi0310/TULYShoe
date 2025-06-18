@@ -31,6 +31,7 @@ const Header = () => {
 
   return (
     <>
+    <div style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
       {/* Top bar */}
       <div
         style={{
@@ -128,6 +129,7 @@ const Header = () => {
           <ShoppingCartOutlined style={{ cursor: 'pointer' }} />
         </Space>
       </AntHeader>
+      </div>
     </>
   );
 };
