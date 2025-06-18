@@ -1,7 +1,18 @@
-import React from 'react';
-import { Form, Input, Select, Checkbox, Button, Typography, Row, Col, Divider } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import styles from '../../CSS/Order.module.css';
+import React from "react";
+import {
+  Form,
+  Input,
+  Select,
+  Checkbox,
+  Button,
+  Typography,
+  Row,
+  Col,
+  Divider,
+  Tooltip,
+} from "antd";
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import styles from "../../CSS/Order.module.css";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -10,15 +21,15 @@ const { Option } = Select;
 const cart = [
   {
     id: 1,
-    name: 'Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus',
-    size: 'S',
+    name: "Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus",
+    size: "S",
     price: 69000,
     quantity: 10,
   },
   {
     id: 2,
-    name: 'Vintas Vivu - Low Top - Warm Sand',
-    size: '36.5',
+    name: "Vintas Vivu - Low Top - Warm Sand",
+    size: "36.5",
     price: 620000,
     quantity: 2,
   },
@@ -26,14 +37,18 @@ const cart = [
 
 function Order() {
   // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
   const discount = 0;
   const shippingFee = 0;
   const paymentFee = 0;
   const total = subtotal - discount + shippingFee + paymentFee;
 
   // Format price to VND
-  const formatPrice = (price) => price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  const formatPrice = (price) =>
+    price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
   return (
     <div className={styles.container}>
@@ -79,11 +94,6 @@ function Order() {
                   </Form.Item>
                 </Col>
               </Row>
-              <Form.Item>
-                <Checkbox>
-                  Cập nhật các thông tin mới nhất về chương trình từ Ananas
-                </Checkbox>
-              </Form.Item>
             </div>
 
             {/* Delivery Method */}
@@ -92,13 +102,21 @@ function Order() {
                 PHƯƠNG THỨC GIAO HÀNG
               </Title>
               <Form.Item>
-                <Checkbox defaultChecked>
-                  <span className={styles.checkboxLabel}>
-                    Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
-                    <QuestionCircleOutlined className={styles.infoIcon} title="Thông tin" />
-                  </span>
+                <div className={styles.checkboxWrapper}>
+                  <Checkbox defaultChecked>
+                    <span className={styles.checkboxLabel}>
+                      Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
+                      <Tooltip
+                        title="Tuỳ vào địa chỉ giao hàng mà tốc độ giao hàng tiêu chuẩn sẽ khác nhau. Chúng tôi luôn cố gắng để đơn hàng đến tay bạn sớm nhất."
+                        color="#808080"
+                        overlayStyle={{ fontSize: "12px" }}
+                      >
+                        <QuestionCircleOutlined className={styles.infoIcon} />
+                      </Tooltip>
+                    </span>
+                  </Checkbox>
                   <span className={styles.price}>0 VNĐ</span>
-                </Checkbox>
+                </div>
               </Form.Item>
             </div>
 
@@ -111,15 +129,27 @@ function Order() {
                 <Checkbox defaultChecked>
                   <span className={styles.checkboxLabel}>
                     Thanh toán trực tiếp khi giao hàng
-                    <QuestionCircleOutlined className={styles.infoIcon} title="Thông tin" />
+                    <Tooltip
+                      title="Là phương thức thanh toán bằng tiền mặt trực tiếp khi nhận hàng"
+                      color="#808080"
+                      overlayStyle={{ fontSize: "12px" }}
+                    >
+                      <QuestionCircleOutlined className={styles.infoIcon} />
+                    </Tooltip>
                   </span>
                 </Checkbox>
               </Form.Item>
               <Form.Item>
                 <Checkbox>
                   <span className={styles.checkboxLabel}>
-                    Thanh toán bằng Thẻ quốc tế / Thẻ nội địa / QR Code
-                    <QuestionCircleOutlined className={styles.infoIcon} title="Thông tin" />
+                    Thanh toán trực tuyến.
+                    <Tooltip
+                      title="Là phương thức thanh toán trực tuyến qua cổng thanh toán của chúng tôi. Bạn sẽ được chuyển hướng đến trang thanh toán an toàn."
+                      color="#808080"
+                      overlayStyle={{ fontSize: "12px" }}
+                    >
+                      <QuestionCircleOutlined className={styles.infoIcon} />
+                    </Tooltip>
                   </span>
                 </Checkbox>
               </Form.Item>
@@ -140,7 +170,9 @@ function Order() {
                     <Text strong>{item.name}</Text>
                     <div className={styles.itemDetail}>Size: {item.size}</div>
                   </div>
-                  <Text className={styles.itemPrice}>{formatPrice(item.price)}</Text>
+                  <Text className={styles.itemPrice}>
+                    {formatPrice(item.price)}
+                  </Text>
                 </div>
                 <Text className={styles.quantity}>x {item.quantity}</Text>
               </React.Fragment>
@@ -165,7 +197,9 @@ function Order() {
             <Divider className={styles.divider} />
             <div className={styles.totalRow}>
               <Text strong>TỔNG CỘNG</Text>
-              <Text strong className={styles.totalPrice}>{formatPrice(total)}</Text>
+              <Text strong className={styles.totalPrice}>
+                {formatPrice(total)}
+              </Text>
             </div>
             <Button type="primary" size="large" className={styles.submitButton}>
               HOÀN TẤT ĐẶT HÀNG

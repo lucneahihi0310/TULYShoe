@@ -11,9 +11,11 @@ import {
   Carousel,
 } from "antd";
 import { HeartOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useNavigate } from 'react-router-dom';
 import styles from "../../CSS/CartItem.module.css";
 
 const { Title, Text } = Typography;
+
 
 const CartItem = ({ image, title, price, size, quantity, total, inStock }) => (
   <div className={styles.cartItem}>
@@ -63,7 +65,7 @@ const CartPage = () => {
     {
       image:
         "https://storage.googleapis.com/a1aa/image/0cebac6f-6e3b-4eba-3d70-6f295c9a4b84.jpg",
-      title: "Die-cut Insoles - Ananas Ortholite 7mm RF White Asparagus",
+      title: "Die-cut Insoles - Ortholite 7mm RF White Asparagus",
       price: "69.000 VND",
     },
     {
@@ -78,7 +80,7 @@ const CartPage = () => {
     {
       image:
         "https://storage.googleapis.com/a1aa/image/0cebac6f-6e3b-4eba-3d70-6f295c9a4b84.jpg",
-      title: "Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus",
+      title: "Die-cut Insoles -  Ortholite 7mm RF - White Asparagus",
       price: "69.000 VND",
       size: "S",
       quantity: 10,
@@ -96,7 +98,7 @@ const CartPage = () => {
       inStock: "Còn hàng",
     },
   ];
-
+const navigate = useNavigate();
   return (
     <div className={styles.container}>
       <Row gutter={[32, 32]}>
@@ -140,7 +142,7 @@ const CartPage = () => {
               <React.Fragment key={index}>
                 <CartItem {...item} />
                 {index < cartItems.length - 1 && (
-                  <Divider  className={styles.customdivider} />
+                  <Divider className={styles.customdivider} />
                 )}
               </React.Fragment>
             ))}
@@ -149,7 +151,7 @@ const CartPage = () => {
             <Button danger className={styles.actionButton}>
               XÓA HẾT
             </Button>
-            <Button className={styles.actionButton}>QUAY LẠI MUA HÀNG</Button>
+            <Button onClick={() => navigate("/products")} className={styles.actionButton}>QUAY LẠI MUA HÀNG</Button>
           </div>
         </Col>
 
@@ -168,7 +170,7 @@ const CartPage = () => {
                 <Button type="primary">ÁP DỤNG</Button>
               </div>
             </div>
-            <Divider dashed />
+            <Divider className={styles.customdivider} />
             <div className={styles.summaryItem}>
               <Text>Đơn hàng</Text>
               <Text>1.930.000 VND</Text>
@@ -177,12 +179,17 @@ const CartPage = () => {
               <Text type="secondary">Giảm</Text>
               <Text type="secondary">0 VND</Text>
             </div>
-            <Divider dashed />
+            <Divider className={styles.customdivider} />
             <div className={styles.summaryTotal}>
               <Text strong>TẠM TÍNH</Text>
               <Text strong>1.930.000 VND</Text>
             </div>
-            <Button type="primary" block className={styles.checkoutButton}>
+            <Button
+              onClick={() => navigate("/order")}
+              type="primary"
+              block
+              className={styles.checkoutButton}
+            >
               TIẾP TỤC THANH TOÁN
             </Button>
           </section>

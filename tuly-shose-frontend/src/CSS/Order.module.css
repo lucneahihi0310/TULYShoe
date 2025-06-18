@@ -21,20 +21,37 @@
   margin-bottom: 16px;
 }
 
-.checkboxLabel {
+.checkboxWrapper {
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+
 .infoIcon {
-  font-size: 12px;
+  font-size: 14px;
   color: #f97316;
-  margin-left: 4px;
+  margin-left: 6px;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+  vertical-align: middle;
+}
+
+.infoIcon:hover {
+  color: #ea580c;
+  transform: scale(1.1);
 }
 
 .price {
-  margin-left: auto;
   font-weight: bold;
+  color: #111827;
+  white-space: nowrap;
 }
 
 .orderSummary {

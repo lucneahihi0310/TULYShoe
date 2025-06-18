@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Typography, Space } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 const { Header: AntHeader } = Layout;
@@ -28,6 +29,7 @@ const Header = () => {
   const handleClickSlogan = () => {
     setCurrentSloganIndex((prevIndex) => (prevIndex + 1) % slogans.length);
   };
+  const navigate = useNavigate();
 
   return (
     <>
@@ -100,6 +102,7 @@ const Header = () => {
             src="../../image/logo_den.png"
             alt="Tuly Shoe logo"
             style={{ height: 50, width: 'auto' }}
+            onClick={() => navigate('/')}
           />
         </div>
 
@@ -126,7 +129,10 @@ const Header = () => {
 
         <Space size="large" style={{ color: 'black', fontSize: 25 }}>
           <SearchOutlined style={{ cursor: 'pointer' }} />
-          <ShoppingCartOutlined style={{ cursor: 'pointer' }} />
+          <ShoppingCartOutlined
+      style={{ cursor: 'pointer' }}
+      onClick={() => navigate('/cart')}
+    />
         </Space>
       </AntHeader>
       </div>
