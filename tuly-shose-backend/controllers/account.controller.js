@@ -51,3 +51,48 @@ exports.getUser = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.addAccount = async (req, res, next) => {
+    try {
+        const {
+            first_name,
+            last_name,
+            dob,
+            gender,
+            address_shipping_id,
+            email,
+            phone,
+            password,
+            role,
+            avatar_image,
+            is_active,
+            create_at,
+            update_at
+        } = req.body;
+
+        const exists = await User.findOne({ email });
+        if (exists) return res.status(400).json({ message: 'Email exists' });
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            first_name,
+            last_name,
+            dob,
+            gender,
+            address_shipping_id,
+            email,
+            phone,
+            password: passwordHash,
+            role: role || "user",
+            avatar_image: avatar_image || null,
+            is_active: typeof is_active === 'boolean' ? is_active : true,
+            create_at: create_at || Date.now(),
+            update_at: update_at || Date.now()
+        });
+
+        res.status(201).json(user);
+    } catch (error) {
+        next(error);
+    }
+};
