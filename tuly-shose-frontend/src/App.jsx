@@ -28,7 +28,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     try {
       const decoded = jwtDecode(token);
-      setUserRole(decoded.role); // lấy role từ token
+      setUserRole(decoded.role);
     } catch (error) {
       console.error("Invalid token:", error);
       localStorage.removeItem("token");

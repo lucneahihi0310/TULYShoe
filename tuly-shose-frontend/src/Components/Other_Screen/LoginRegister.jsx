@@ -51,6 +51,7 @@ const LoginRegister = () => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
+        window.dispatchEvent(new Event("storage"));
         if (remember) {
           localStorage.setItem("rememberedEmail", email);
         } else {

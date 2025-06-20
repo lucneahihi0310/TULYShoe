@@ -44,7 +44,7 @@ exports.listAll = async (req, res, next) => {
 
 exports.getUser = async (req, res, next) => {
     try {
-        const user = await User.findById(req.customerId).select('role');
+        const user = await User.findById(req.customerId).select('first_name last_name avatar_image');
         if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);
     } catch (error) {
