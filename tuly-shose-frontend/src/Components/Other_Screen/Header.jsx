@@ -79,6 +79,7 @@ const Header = () => {
               fontStyle: "normal",
               userSelect: "none",
             }}
+            onClick={() => navigate("/profile")}
           >
             Chào buổi sáng! Dương Văn Lực
           </Text>

@@ -1,13 +1,13 @@
 .layout {
   background: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   min-height: 100vh;
 }
 
 .content {
-  max-width: 80%;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0px 40px;
 }
 
 .breadcrumb {
@@ -55,7 +55,7 @@
   gap: 1.5rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) { /* Target 14-inch laptops and up */
   .mainContent {
     grid-template-columns: 250px 1fr;
   }
@@ -65,6 +65,7 @@
   background: #fff;
   padding: 1rem;
   height: auto;
+  min-width: 250px; /* Ensure minimum width for sidebar */
 }
 
 .filterSection {
@@ -109,13 +110,13 @@
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) { /* Adjusted for 14-inch screens */
   .productGrid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .productGrid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -127,6 +128,7 @@
   overflow: hidden;
   transition: box-shadow 0.2s;
   max-width: 100%;
+  height: 100%; /* Ensure consistent height */
 }
 
 .productCard:hover {
@@ -182,6 +184,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
 }
 
 .productName a {

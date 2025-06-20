@@ -191,11 +191,11 @@ function ListProduct() {
           <div className={styles.productGrid}>
             {products.map((product) => (
               <Link
-                to={"/products/:id"}
+                to={`/products/${product.id}`}
                 style={{ textDecoration: "none", color: "inherit" }}
+                key={product.id}
               >
                 <Card
-                  key={product.id}
                   className={styles.productCard}
                   cover={
                     <div className={styles.imageContainer}>
@@ -239,9 +239,9 @@ function ListProduct() {
                       icon={<ShoppingCartOutlined />}
                       className={styles.cartButton}
                       onClick={(e) => {
-                        e.preventDefault(); // Ngăn Link kích hoạt
-                        e.stopPropagation(); // Ngăn nổi bọt
-                        navigate("/cart"); // Chuyển hướng sang /cart
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate("/cart");
                       }}
                       aria-label={`Thêm ${product.name} vào giỏ hàng`}
                     />
