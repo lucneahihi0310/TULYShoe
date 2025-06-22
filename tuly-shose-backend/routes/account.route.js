@@ -14,7 +14,7 @@ router.post('/login', login);
 router.post('/register', register);
 router.get('/user', middleware, getUser);
 router.post('/add', middleware, addAccount);
-router.post('/api/forgot-password', forgotPassword);
-router.post('/api/reset-password', resetPassword);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;

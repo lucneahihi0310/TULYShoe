@@ -13,7 +13,7 @@ const accountSchema = new mongoose.Schema({
     phone: { type: String, required: true, unique: [true, 'Phone must be unique value'] },
     password: { type: String, required: true },
     role: { type: String, required: true, default: "user" },
-    avatar_image: { type: String, default: null },
+    avatar_image: { type: String, default: "https://duongvanluc2002.sirv.com/hinh-ve-la-co-viet-nam_021823685.jpg" },
     is_active: { type: Boolean, required: true, default: true },
     resetToken: { type: String, default: null },
     resetTokenExpiration: { type: Date, default: null },

@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const { cleanExpiredTokens } = require('./config/cronJobs');
 
+
 app.use(cors({
   origin: 'http://localhost:5173', // domain của frontend
   credentials: true // nếu cần gửi cookie hoặc token
@@ -23,6 +24,7 @@ app.get('/', async(req, res)=>{
 });
 
 app.use('/account', require('./routes/account.route'));
+app.use('/address', require('./routes/address_shipping.route'));
 
 app.use('/manager', require('./routes/category.route'));
 

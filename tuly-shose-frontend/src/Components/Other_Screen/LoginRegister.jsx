@@ -52,7 +52,7 @@ const LoginRegister = () => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // localStorage.setItem("user", JSON.stringify(data.user));
         if (remember) {
           localStorage.setItem("rememberedEmail", email);
         } else {
@@ -136,7 +136,7 @@ const LoginRegister = () => {
       phone,
       dob,
       gender,
-      address_shipping_id: address
+      address
     };
 
     try {
@@ -195,7 +195,7 @@ const LoginRegister = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/forgot-password`, {
+      const response = await fetch(`${API_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
@@ -226,7 +226,7 @@ const LoginRegister = () => {
     if (!isValid) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/reset-password`, {
+      const response = await fetch(`${API_URL}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), resetToken: resetToken.toUpperCase(), newPassword }),
