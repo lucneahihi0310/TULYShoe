@@ -32,8 +32,7 @@ const Header = () => {
 
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const navigate = useNavigate();
-
-  const { user, setUser } = useContext(AuthContext); // <-- Lấy từ context
+  const { user, setUser } = useContext(AuthContext);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,8 +55,10 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setUser(null);
+    localStorage.removeItem("expires_at");
+    sessionStorage.removeItem("token");
     window.dispatchEvent(new Event("storage"));
+    setUser(null);
     navigate("/login");
   };
 

@@ -30,8 +30,23 @@ const LoginRegister = () => {
   const API_URL = "http://localhost:9999/account";
 
   useEffect(() => {
+    // Kiểm tra token trong localStorage và xóa nếu đã hết hạn
     const token = localStorage.getItem("token");
-    if (token) {
+    const expiresAt = localStorage.getItem("expires_at");
+    if (token && expiresAt) {
+      const currentTime = Date.now();
+      if (currentTime > parseInt(expiresAt)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("expires_at");
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+      }
+    }
+    if (token && !expiresAt) {
+      // Nếu token tồn tại nhưng không có expires_at (trường hợp cũ), xóa token
+      localStorage.removeItem("token");
+      window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+    }
+    if (token && expiresAt && parseInt(expiresAt) > Date.now()) {
       navigate("/");
     }
   }, [navigate]);
@@ -51,12 +66,16 @@ const LoginRegister = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
-        // localStorage.setItem("user", JSON.stringify(data.user));
         if (remember) {
-          localStorage.setItem("rememberedEmail", email);
+          // Lưu vào localStorage với thời hạn 7 ngày
+          const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("expires_at", expiresAt.toString());
         } else {
-          localStorage.removeItem("rememberedEmail");
+          // Lưu vào sessionStorage
+          sessionStorage.setItem("token", data.token);
+          localStorage.removeItem("token");
+          localStorage.removeItem("expires_at");
         }
         window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: data.token }));
         navigate("/");

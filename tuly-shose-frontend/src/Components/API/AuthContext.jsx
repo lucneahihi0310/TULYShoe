@@ -6,7 +6,22 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   const fetchUser = async () => {
-    const token = localStorage.getItem("token");
+    let token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const expiresAt = localStorage.getItem("expires_at");
+
+    // Kiểm tra token trong localStorage và thời hạn
+    if (token && localStorage.getItem("token") && expiresAt) {
+      const currentTime = Date.now();
+      if (currentTime > parseInt(expiresAt)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("expires_at");
+        localStorage.removeItem("rememberedEmail");
+        setUser(null);
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+        return;
+      }
+    }
+
     if (!token) return;
 
     try {
@@ -14,9 +29,22 @@ export const AuthProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setUser(data);
+      if (res.ok) {
+        setUser(data);
+      } else {
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("expires_at");
+        sessionStorage.removeItem("token");
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+      }
     } catch (err) {
       console.error("Lỗi khi lấy thông tin user:", err);
+      setUser(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("expires_at");
+      sessionStorage.removeItem("token");
+      window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
     }
   };
 
@@ -24,9 +52,16 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
 
     const handleStorageChange = () => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const expiresAt = localStorage.getItem("expires_at");
       if (!token) {
         setUser(null);
+      } else if (localStorage.getItem("token") && expiresAt && Date.now() > parseInt(expiresAt)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("expires_at");
+        localStorage.removeItem("rememberedEmail");
+        setUser(null);
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
       } else {
         fetchUser();
       }
