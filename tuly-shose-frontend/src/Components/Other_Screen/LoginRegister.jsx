@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import "../../CSS/LoginRegister.css";
+import styles from "../../CSS/LoginRegister.module.css";
 
 const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
@@ -30,7 +30,6 @@ const LoginRegister = () => {
   const API_URL = "http://localhost:9999/account";
 
   useEffect(() => {
-    // Kiểm tra token trong localStorage và xóa nếu đã hết hạn
     const token = localStorage.getItem("token");
     const expiresAt = localStorage.getItem("expires_at");
     if (token && expiresAt) {
@@ -44,7 +43,6 @@ const LoginRegister = () => {
       }
     }
     if (token && !expiresAt) {
-      // Nếu token tồn tại nhưng không có expires_at (trường hợp cũ), xóa token
       localStorage.removeItem("token");
       window.dispatchEvent(
         new StorageEvent("storage", { key: "token", newValue: null })
@@ -72,17 +70,9 @@ const LoginRegister = () => {
       if (response.ok) {
         if (remember) {
           const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-          console.log(
-            "expires_at:",
-            expiresAt,
-            new Date(expiresAt).toLocaleString("vi-VN", {
-              timeZone: "Asia/Ho_Chi_Minh",
-            })
-          );
           localStorage.setItem("token", data.token);
           localStorage.setItem("expires_at", expiresAt.toString());
         } else {
-          // Lưu vào sessionStorage
           sessionStorage.setItem("token", data.token);
           localStorage.removeItem("token");
           localStorage.removeItem("expires_at");
@@ -309,27 +299,27 @@ const LoginRegister = () => {
   };
 
   return (
-    <div className="login-register-container">
+    <div className={styles.loginRegisterContainer}>
       <Card className="text-center border-0">
         <Card.Body>
-          <div className="tabs mb-4">
+          <div className={styles.tabs}>
             <Button
               variant="outline-danger"
-              className={`me-2 ${currentForm === "login" ? "active-tab" : ""}`}
+              className={`${styles.tabButton} ${currentForm === "login" ? styles.activeTab : ""}`}
               onClick={() => setCurrentForm("login")}
             >
               <i className="bi bi-box-arrow-in-right"> Đăng nhập</i>
             </Button>
             <Button
               variant="outline-warning"
-              className={currentForm === "register" ? "active-tab" : ""}
+              className={`${styles.tabButton} ${currentForm === "register" ? styles.activeTab : ""}`}
               onClick={() => setCurrentForm("register")}
             >
               <i className="bi bi-person-plus-fill"> Đăng ký</i>
             </Button>
           </div>
 
-          <div className="form-container">
+          <div className={styles.formContainer}>
             {currentForm === "login" && (
               <Form onSubmit={handleLogin}>
                 <h2>Đăng nhập</h2>
@@ -360,7 +350,7 @@ const LoginRegister = () => {
                     required
                   />
                 </InputGroup>
-                {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
                 <Form.Group
                   className="mb-3"
                   style={{
@@ -382,7 +372,7 @@ const LoginRegister = () => {
                   </Form.Check.Label>
                 </Form.Group>
 
-                <div className="forgot-password">
+                <div className={styles.forgotPassword}>
                   <Button
                     style={{
                       textDecoration: "none",
@@ -613,7 +603,7 @@ const LoginRegister = () => {
                   </Form.Control.Feedback>
                 </InputGroup>
 
-                {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
 
                 <Button
                   style={{ marginBottom: "5px" }}
@@ -658,7 +648,7 @@ const LoginRegister = () => {
             {currentForm === "forgotPassword" && (
               <Form onSubmit={handleForgotPassword}>
                 {errorMessage && (
-                  <div className="text-danger">{errorMessage}</div>
+                  <div className={styles.errorMessage}>{errorMessage}</div>
                 )}
                 <h2 className="mb-4">Quên mật khẩu</h2>
                 <InputGroup className="mb-3">
@@ -697,7 +687,7 @@ const LoginRegister = () => {
             {currentForm === "resetPassword" && (
               <Form onSubmit={handleResetPassword}>
                 {errorMessage && (
-                  <div className="text-danger">{errorMessage}</div>
+                  <div className={styles.errorMessage}>{errorMessage}</div>
                 )}
                 <h2 className="mb-4">Đặt lại mật khẩu</h2>
                 <InputGroup className="mb-3">
