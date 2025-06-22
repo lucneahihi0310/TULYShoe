@@ -7,6 +7,7 @@ const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Thêm state để hiển thị mật khẩu
   const [first_name, setFirst_name] = useState("");
   const [last_name, setLast_name] = useState("");
   const [phone, setPhone] = useState("");
@@ -16,10 +17,13 @@ const LoginRegister = () => {
   const [remember, setRemember] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Thêm state cho confirm password
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false); // Thêm state cho new password
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false); // Thêm state cho confirm new password
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [popupVisible, setPopupVisible] = useState(false);
@@ -283,6 +287,7 @@ const LoginRegister = () => {
   const handleCancel = () => {
     setEmail("");
     setPassword("");
+    setShowPassword(false); // Reset trạng thái hiển thị mật khẩu
     setFirst_name("");
     setLast_name("");
     setPhone("");
@@ -290,9 +295,12 @@ const LoginRegister = () => {
     setGender("");
     setAddress("");
     setConfirmPassword("");
+    setShowConfirmPassword(false); // Reset trạng thái hiển thị confirm password
     setResetToken("");
     setNewPassword("");
+    setShowNewPassword(false); // Reset trạng thái hiển thị new password
     setConfirmNewPassword("");
+    setShowConfirmNewPassword(false); // Reset trạng thái hiển thị confirm new password
     setErrorMessage("");
     setValidationErrors({});
     setCurrentForm("login");
@@ -340,7 +348,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Mật khẩu"
                     value={password}
                     onChange={(e) => {
@@ -349,6 +357,13 @@ const LoginRegister = () => {
                     }}
                     required
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                 </InputGroup>
                 {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
                 <Form.Group
@@ -493,7 +508,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="* Mật khẩu"
                     value={password}
                     onChange={(e) => {
@@ -506,6 +521,13 @@ const LoginRegister = () => {
                     }}
                     isInvalid={!!validationErrors.password}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.password}
                   </Form.Control.Feedback>
@@ -515,7 +537,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock-fill"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="* Xác nhận mật khẩu"
                     value={confirmPassword}
                     onChange={(e) => {
@@ -528,6 +550,13 @@ const LoginRegister = () => {
                     }}
                     isInvalid={!!validationErrors.confirmPassword}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showConfirmPassword}
+                      onChange={(e) => setShowConfirmPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.confirmPassword}
                   </Form.Control.Feedback>
@@ -717,7 +746,7 @@ const LoginRegister = () => {
                     <i className="bi bi-key"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => {
                       setNewPassword(e.target.value);
@@ -730,6 +759,13 @@ const LoginRegister = () => {
                     placeholder="Nhập mật khẩu mới"
                     isInvalid={!!resetValidationErrors.newPassword}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showNewPassword}
+                      onChange={(e) => setShowNewPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {resetValidationErrors.newPassword}
                   </Form.Control.Feedback>
@@ -739,7 +775,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock-fill"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showConfirmNewPassword ? "text" : "password"}
                     value={confirmNewPassword}
                     onChange={(e) => {
                       setConfirmNewPassword(e.target.value);
@@ -752,6 +788,13 @@ const LoginRegister = () => {
                     placeholder="Xác nhận mật khẩu mới"
                     isInvalid={!!resetValidationErrors.confirmNewPassword}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showConfirmNewPassword}
+                      onChange={(e) => setShowConfirmNewPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {resetValidationErrors.confirmNewPassword}
                   </Form.Control.Feedback>

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Layout, Menu, Typography, Space, Dropdown, Button } from "antd";
+import { Layout, Menu, Typography, Space, Dropdown, Button, Grid } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   SearchOutlined,
@@ -72,6 +72,8 @@ const Header = () => {
     },
   ];
 
+  const screens = Grid.useBreakpoint();
+
   return (
     <div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
       {/* Top bar */}
@@ -83,39 +85,48 @@ const Header = () => {
           fontWeight: 400,
           userSelect: "none",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "center", // Căn giữa toàn bộ nội dung
           alignItems: "center",
-          height: 24,
+          height: 30,
           padding: "0 16px",
+          position: "relative", // Để đặt greeting ở góc phải
         }}
       >
+        {/* Slogan ở giữa */}
+        {screens.md && (
+          <div
+            style={{
+              cursor: "pointer",
+              color: "#9ca3af",
+              textAlign: "center"
+            }}
+            onClick={handleClickSlogan}
+            title="Nhấn để đổi slogan"
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSloganIndex}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Text strong style={{ fontWeight: "700" }}>
+                  {slogans[currentSloganIndex]}
+                </Text>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Greeting hoặc nút đăng nhập ở góc phải */}
         <div
           style={{
-            flex: 1,
-            cursor: "pointer",
-            color: "#9ca3af",
-            textAlign: "center",
-            marginLeft: 68,
+            position: "absolute",
+            right: 16, // Đặt ở góc phải
+            fontSize: 12,
           }}
-          onClick={handleClickSlogan}
-          title="Nhấn để đổi slogan"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSloganIndex}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Text strong style={{ fontWeight: "700" }}>
-                {slogans[currentSloganIndex]}
-              </Text>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <div style={{ fontSize: 12 }}>
           {user ? (
             <Dropdown
               menu={{ items: menuItems }}
@@ -125,7 +136,9 @@ const Header = () => {
               <Text
                 style={{
                   color: "#4b5563",
-                  fontStyle: "normal",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  fontFamily: "Segoe UI, Roboto, sans-serif",
                   cursor: "pointer",
                 }}
               >
