@@ -26,7 +26,7 @@ const LoginRegister = () => {
   const [resetValidationErrors, setResetValidationErrors] = useState({});
 
   const navigate = useNavigate();
-  const API_URL = "http://localhost:9999/account";
+  const API_URL = "http://localhost:9999/account"; // Updated to include /account prefix
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -51,12 +51,13 @@ const LoginRegister = () => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
-        window.dispatchEvent(new Event("storage"));
+        localStorage.setItem("user", JSON.stringify(data.user));
         if (remember) {
           localStorage.setItem("rememberedEmail", email);
         } else {
           localStorage.removeItem("rememberedEmail");
         }
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: data.token }));
         navigate("/");
       } else {
         setErrorMessage(data.message || "Email hoặc mật khẩu không đúng!");
@@ -191,7 +192,7 @@ const LoginRegister = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:9999/api/forgot-password", {
+      const response = await fetch(`${API_URL}/api/forgot-password`, { // Updated to include /account prefix
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
@@ -222,10 +223,10 @@ const LoginRegister = () => {
     if (!isValid) return;
 
     try {
-      const response = await fetch("http://localhost:9999/api/reset-password", {
+      const response = await fetch(`${API_URL}/api/reset-password`, { // Updated to include /account prefix
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), resetToken, newPassword }),
+        body: JSON.stringify({ email: email.trim(), resetToken: resetToken.toUpperCase(), newPassword }),
       });
 
       const data = await response.json();
@@ -616,7 +617,7 @@ const LoginRegister = () => {
                     type="text"
                     value={resetToken}
                     onChange={(e) => {
-                      setResetToken(e.target.value);
+                      setResetToken(e.target.value.toUpperCase());
                       setErrorMessage("");
                       setResetValidationErrors((prevErrors) => ({
                         ...prevErrors,
