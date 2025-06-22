@@ -38,17 +38,13 @@ const LoginRegister = () => {
       if (currentTime > parseInt(expiresAt)) {
         localStorage.removeItem("token");
         localStorage.removeItem("expires_at");
-        window.dispatchEvent(
-          new StorageEvent("storage", { key: "token", newValue: null })
-        );
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
       }
     }
     if (token && !expiresAt) {
       // Nếu token tồn tại nhưng không có expires_at (trường hợp cũ), xóa token
       localStorage.removeItem("token");
-      window.dispatchEvent(
-        new StorageEvent("storage", { key: "token", newValue: null })
-      );
+      window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
     }
     if (token && expiresAt && parseInt(expiresAt) > Date.now()) {
       navigate("/");
@@ -71,14 +67,8 @@ const LoginRegister = () => {
 
       if (response.ok) {
         if (remember) {
+          // Lưu vào localStorage với thời hạn 7 ngày
           const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-          console.log(
-            "expires_at:",
-            expiresAt,
-            new Date(expiresAt).toLocaleString("vi-VN", {
-              timeZone: "Asia/Ho_Chi_Minh",
-            })
-          );
           localStorage.setItem("token", data.token);
           localStorage.setItem("expires_at", expiresAt.toString());
         } else {
@@ -87,9 +77,7 @@ const LoginRegister = () => {
           localStorage.removeItem("token");
           localStorage.removeItem("expires_at");
         }
-        window.dispatchEvent(
-          new StorageEvent("storage", { key: "token", newValue: data.token })
-        );
+        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: data.token }));
         navigate("/");
       } else {
         setErrorMessage(data.message || "Email hoặc mật khẩu không đúng!");
@@ -135,8 +123,7 @@ const LoginRegister = () => {
     if (!password) {
       validationErrors.password = "Mật khẩu không được để trống!";
     } else if (!passwordRegex.test(password)) {
-      validationErrors.password =
-        "Mật khẩu phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
+      validationErrors.password = "Mật khẩu phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
     }
 
     if (!confirmPassword) {
@@ -168,7 +155,7 @@ const LoginRegister = () => {
       phone,
       dob,
       gender,
-      address,
+      address
     };
 
     try {
@@ -205,16 +192,13 @@ const LoginRegister = () => {
     if (!newPassword) {
       resetValidationErrors.newPassword = "Mật khẩu mới không được để trống!";
     } else if (!passwordRegex.test(newPassword)) {
-      resetValidationErrors.newPassword =
-        "Mật khẩu mới phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
+      resetValidationErrors.newPassword = "Mật khẩu mới phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
     }
 
     if (!confirmNewPassword) {
-      resetValidationErrors.confirmNewPassword =
-        "Vui lòng xác nhận mật khẩu mới!";
+      resetValidationErrors.confirmNewPassword = "Vui lòng xác nhận mật khẩu mới!";
     } else if (newPassword !== confirmNewPassword) {
-      resetValidationErrors.confirmNewPassword =
-        "Mật khẩu xác nhận không khớp!";
+      resetValidationErrors.confirmNewPassword = "Mật khẩu xác nhận không khớp!";
     }
 
     setResetValidationErrors(resetValidationErrors);
@@ -245,9 +229,7 @@ const LoginRegister = () => {
         setPopupVisible(true);
         setCurrentForm("resetPassword");
       } else {
-        setErrorMessage(
-          data.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!"
-        );
+        setErrorMessage(data.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!");
       }
     } catch (error) {
       console.error("Lỗi quên mật khẩu:", error);
@@ -266,11 +248,7 @@ const LoginRegister = () => {
       const response = await fetch(`${API_URL}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          resetToken: resetToken.toUpperCase(),
-          newPassword,
-        }),
+        body: JSON.stringify({ email: email.trim(), resetToken: resetToken.toUpperCase(), newPassword }),
       });
 
       const data = await response.json();
@@ -377,9 +355,7 @@ const LoginRegister = () => {
                     onChange={(e) => setRemember(e.target.checked)}
                     style={{ marginRight: "10px" }}
                   />
-                  <Form.Check.Label htmlFor="remember">
-                    Ghi nhớ
-                  </Form.Check.Label>
+                  <Form.Check.Label htmlFor="remember">Ghi nhớ</Form.Check.Label>
                 </Form.Group>
 
                 <div className="forgot-password">
@@ -397,11 +373,7 @@ const LoginRegister = () => {
                     <i className="bi bi-question-circle"> Quên mật khẩu?</i>
                   </Button>
                 </div>
-                <Button
-                  type="submit"
-                  className="btn-danger w-100"
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" className="btn-danger w-100" disabled={isSubmitting}>
                   <i className="bi bi-box-arrow-in-right"> Đăng nhập</i>
                 </Button>
               </Form>
@@ -615,18 +587,10 @@ const LoginRegister = () => {
 
                 {errorMessage && <p className="text-danger">{errorMessage}</p>}
 
-                <Button
-                  style={{ marginBottom: "5px" }}
-                  variant="secondary"
-                  onClick={handleCancel}
-                >
+                <Button style={{ marginBottom: "5px" }} variant="secondary" onClick={handleCancel}>
                   <i className="bi bi-x-circle"> Hủy</i>
                 </Button>
-                <Button
-                  type="submit"
-                  className="btn-warning w-100"
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" className="btn-warning w-100" disabled={isSubmitting}>
                   <i className="bi bi-person-plus-fill"> Đăng ký</i>
                 </Button>
               </Form>
@@ -641,25 +605,17 @@ const LoginRegister = () => {
                 <Modal.Title>Tạo tài khoản thành công</Modal.Title>
               </Modal.Header>
               <Modal.Body>
-                <p>
-                  Tài khoản của bạn đã được tạo thành công. Vui lòng đăng nhập
-                  để trải nghiệm!
-                </p>
+                <p>Tài khoản của bạn đã được tạo thành công. Vui lòng đăng nhập để trải nghiệm!</p>
               </Modal.Body>
               <Modal.Footer>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowSuccessModal(false)}
-                >
+                <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
                   Đóng
                 </Button>
               </Modal.Footer>
             </Modal>
             {currentForm === "forgotPassword" && (
               <Form onSubmit={handleForgotPassword}>
-                {errorMessage && (
-                  <div className="text-danger">{errorMessage}</div>
-                )}
+                {errorMessage && <div className="text-danger">{errorMessage}</div>}
                 <h2 className="mb-4">Quên mật khẩu</h2>
                 <InputGroup className="mb-3">
                   <InputGroup.Text>
@@ -696,9 +652,7 @@ const LoginRegister = () => {
             )}
             {currentForm === "resetPassword" && (
               <Form onSubmit={handleResetPassword}>
-                {errorMessage && (
-                  <div className="text-danger">{errorMessage}</div>
-                )}
+                {errorMessage && <div className="text-danger">{errorMessage}</div>}
                 <h2 className="mb-4">Đặt lại mật khẩu</h2>
                 <InputGroup className="mb-3">
                   <InputGroup.Text>
