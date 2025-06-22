@@ -17,9 +17,8 @@ const accountSchema = new mongoose.Schema({
     is_active: { type: Boolean, required: true, default: true },
     resetToken: { type: String, default: null },
     resetTokenExpiration: { type: Date, default: null },
-    create_at: { type: Date, default: Date.now, required: true },
-    update_at: { type: Date, default: Date.now, required: true }
-    
+    create_at: { type: Date},
+    update_at: { type: Date}
 });
 
 module.exports = mongoose.model("Account", accountSchema);

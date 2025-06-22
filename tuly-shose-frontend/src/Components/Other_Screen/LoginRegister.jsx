@@ -12,6 +12,7 @@ const LoginRegister = () => {
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
+  const [address, setAddress] = useState("");
   const [remember, setRemember] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,7 +27,7 @@ const LoginRegister = () => {
   const [resetValidationErrors, setResetValidationErrors] = useState({});
 
   const navigate = useNavigate();
-  const API_URL = "http://localhost:9999/account"; // Updated to include /account prefix
+  const API_URL = "http://localhost:9999/account";
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -80,6 +81,7 @@ const LoginRegister = () => {
     if (!first_name) validationErrors.first_name = "Họ không được để trống!";
     if (!last_name) validationErrors.last_name = "Tên không được để trống!";
     if (!gender) validationErrors.gender = "Giới tính không được để trống!";
+    if (!address) validationErrors.address = "Địa chỉ không được để trống!";
 
     if (!email) {
       validationErrors.email = "Email không được để trống!";
@@ -134,6 +136,7 @@ const LoginRegister = () => {
       phone,
       dob,
       gender,
+      address_shipping_id: address
     };
 
     try {
@@ -192,7 +195,7 @@ const LoginRegister = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/forgot-password`, { // Updated to include /account prefix
+      const response = await fetch(`${API_URL}/api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
@@ -223,7 +226,7 @@ const LoginRegister = () => {
     if (!isValid) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/reset-password`, { // Updated to include /account prefix
+      const response = await fetch(`${API_URL}/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), resetToken: resetToken.toUpperCase(), newPassword }),
@@ -254,6 +257,7 @@ const LoginRegister = () => {
     setPhone("");
     setDob("");
     setGender("");
+    setAddress("");
     setConfirmPassword("");
     setResetToken("");
     setNewPassword("");
@@ -401,6 +405,28 @@ const LoginRegister = () => {
                   />
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.last_name}
+                  </Form.Control.Feedback>
+                </InputGroup>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text>
+                    <i className="bi bi-house"></i>
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    placeholder="* Địa chỉ"
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setErrorMessage("");
+                      setValidationErrors((prevErrors) => ({
+                        ...prevErrors,
+                        address: "",
+                      }));
+                    }}
+                    isInvalid={!!validationErrors.address}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validationErrors.address}
                   </Form.Control.Feedback>
                 </InputGroup>
                 <InputGroup className="mb-3">
