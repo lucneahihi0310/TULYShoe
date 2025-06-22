@@ -1,12 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-  Layout,
-  Menu,
-  Typography,
-  Space,
-  Dropdown,
-  Button,
-} from "antd";
+import { Layout, Menu, Typography, Space, Dropdown, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   SearchOutlined,
@@ -57,7 +50,9 @@ const Header = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("expires_at");
     sessionStorage.removeItem("token");
-    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(
+      new StorageEvent("storage", { key: "token", newValue: null })
+    );
     setUser(null);
     navigate("/login");
   };
