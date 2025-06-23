@@ -40,9 +40,9 @@ const Header = () => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "Chào buổi sáng";
-    if (hour >= 12 && hour < 17) return "Chào buổi trưa";
-    if (hour >= 17 && hour < 21) return "Chào buổi chiều";
+    if (hour >= 1 && hour < 10) return "Chào buổi sáng";
+    if (hour >= 10 && hour < 13) return "Chào buổi trưa";
+    if (hour >= 13 && hour < 18) return "Chào buổi chiều";
     return "Chào buổi tối";
   };
 
@@ -142,7 +142,7 @@ const Header = () => {
                   cursor: "pointer",
                 }}
               >
-                {getGreeting()} {user.first_name + " " + user.last_name}!
+                {getGreeting()} {user.last_name}!
               </Text>
             </Dropdown>
           ) : (
@@ -172,8 +172,7 @@ const Header = () => {
           alignItems: "center",
           justifyContent: "space-between",
           boxShadow: "0 1px 2px rgb(0 0 0 / 0.05)",
-          borderBottom: "1px solid #e5e7eb",
-          marginBottom: 20,
+          borderBottom: "1px solid #e5e7eb"
         }}
       >
         <div style={{ flexShrink: 0 }}>
