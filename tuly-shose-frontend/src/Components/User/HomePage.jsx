@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, Row, Col } from "antd";
 import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import {Link} from "react-router-dom"; // Bên trong map:
 import styles from "../../CSS/HomePage.module.css";
 import { useInView } from "react-intersection-observer";
 
@@ -141,93 +142,104 @@ const HomePage = () => {
       </section>
 
       {/* Phần sản phẩm: chỉ render khi scroll đến */}
-      <div ref={productRef}>
+      <div ref={productRef} style={{ width: "80%", margin: "0 auto" }}>
         {productInView ? (
           <Row
             gutter={[16, 16]}
             justify="center"
-            style={{ maxWidth: 1500, margin: "0 auto", padding: "0 16px" }}
+            style={{ maxWidth: 1500, margin: "0 auto" }}
           >
+            
             {products.map((product) => (
               <Col key={product.id} xs={12} sm={6} md={6} lg={6}>
-                <Card
-                  hoverable
-                  className={styles["custom-card"]}
-                  bodyStyle={{ padding: "8px" }}
-                  style={{
-                    backgroundColor: "white",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
+                <Link
+                  to={"/products/:id"}
+                  style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <div style={{ position: "relative" }}>
-                    <img
-                      src={product.img}
-                      alt={product.name}
-                      loading="lazy"
+                  <Card
+                    hoverable
+                    className={styles["custom-card"]}
+                    bodyStyle={{ padding: "8px" }}
+                    style={{
+                      backgroundColor: "white",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ position: "relative" }}>
+                      <img
+                        src={product.img}
+                        alt={product.name}
+                        loading="lazy"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          aspectRatio: "1 / 1",
+                          objectFit: "cover",
+                          borderRadius: 4,
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 4,
+                          left: 4,
+                          backgroundColor: "#F5A89A",
+                          color: "#FF6600",
+                          fontSize: 15,
+                          fontWeight: 600,
+                          padding: "0 4px",
+                          borderRadius: 2,
+                          userSelect: "none",
+                        }}
+                      >
+                        25%
+                      </span>
+                    </div>
+                    <p
                       style={{
-                        width: "100%",
-                        height: "auto",
-                        aspectRatio: "1 / 1",
-                        objectFit: "cover",
-                        borderRadius: 4,
-                      }}
-                    />
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 4,
-                        left: 4,
-                        backgroundColor: "#bbf7d0",
-                        color: "#166534",
-                        fontSize: 10,
+                        fontSize: 15,
                         fontWeight: 600,
-                        padding: "0 4px",
-                        borderRadius: 2,
-                        userSelect: "none",
+                        marginTop: 4,
+                        lineHeight: 1.2,
+                        minHeight: "2.4rem",
                       }}
                     >
-                      1:1
-                    </span>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      marginTop: 4,
-                      lineHeight: 1.2,
-                      minHeight: "2.4rem",
-                    }}
-                  >
-                    {product.name}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 10,
-                      color: "#9ca3af",
-                      textDecoration: "line-through",
-                      margin: "2px 0 0 0",
-                    }}
-                  >
-                    {product.oldPrice}
-                  </p>
-                  <p
-                    style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#16a34a" }}
-                  >
-                    {product.newPrice}
-                  </p>
-
-                  <div className={styles["product-actions"]}>
-                    <button className={styles["product-button"]}>
-                      <ThunderboltOutlined /> Mua ngay
-                    </button>
-                    <button
-                      className={`${styles["product-button"]} ${styles["cart"]}`}
+                      {product.name}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 10,
+                        color: "#9ca3af",
+                        textDecoration: "line-through",
+                        margin: "2px 0 0 0",
+                      }}
                     >
-                      <ShoppingCartOutlined /> Giỏ hàng
-                    </button>
-                  </div>
-                </Card>
+                      {product.oldPrice}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 700,
+                        margin: 0,
+                        color: "#16a34a",
+                      }}
+                    >
+                      {product.newPrice}
+                    </p>
+
+                    <div className={styles["product-actions"]}>
+                      <button className={styles["product-button"]}>
+                        <ThunderboltOutlined /> Mua ngay
+                      </button>
+                      <button
+                        className={`${styles["product-button"]} ${styles["cart"]}`}
+                      >
+                        <ShoppingCartOutlined /> Giỏ hàng
+                      </button>
+                    </div>
+                  </Card>
+                </Link>
               </Col>
             ))}
           </Row>
@@ -259,9 +271,10 @@ const HomePage = () => {
                   margin: "0 auto",
                 }}
               >
-                Chúng tôi cung cấp những đôi giày replica chất lượng cao với thiết
-                kế tinh tế và giá cả phải chăng. Mỗi sản phẩm đều được kiểm tra kỹ
-                lưỡng để đảm bảo mang đến trải nghiệm tốt nhất cho khách hàng.
+                Chúng tôi cung cấp những đôi giày replica chất lượng cao với
+                thiết kế tinh tế và giá cả phải chăng. Mỗi sản phẩm đều được
+                kiểm tra kỹ lưỡng để đảm bảo mang đến trải nghiệm tốt nhất cho
+                khách hàng.
               </p>
 
               <p style={{ fontSize: 16, color: "#6b7280" }}>

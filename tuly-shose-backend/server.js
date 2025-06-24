@@ -4,12 +4,14 @@ const app = express();
 const connectDB = require('./config/db');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const morgan = require('morgan');
 const cors = require('cors');
 
 app.use(cors({
   origin: 'http://localhost:5173', // domain của frontend
   credentials: true // nếu cần gửi cookie hoặc token
 }));
+app.use(morgan('dev'));
 
 app.get('/', async(req, res)=>{
     try {
@@ -19,6 +21,9 @@ app.get('/', async(req, res)=>{
     }
 });
 
+app.use('/account', require('./routes/account.route'));
+
+app.use('/manager', require('./routes/category.route'));
 
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');

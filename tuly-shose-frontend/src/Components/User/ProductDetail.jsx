@@ -12,6 +12,7 @@ import {
   Typography,
   Divider,
 } from "antd";
+import { useNavigate } from 'react-router-dom';
 import styles from "../../CSS/ProductDetail.module.css";
 import { ThunderboltOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 
@@ -130,8 +131,9 @@ const ProductDetail = () => {
     message.success(
       `Đã thêm giày màu ${selectedColor} size ${selectedSize} vào giỏ hàng!`
     );
+    navigate("/cart");
   };
-
+const navigate = useNavigate();
   return (
     <div style={{ maxWidth: 1200, margin: "auto", padding: 16 }}>
       <Breadcrumb>
@@ -241,7 +243,7 @@ const ProductDetail = () => {
           </div>
 
           <div className={styles.productActions}>
-            <button className={styles.productButton}>
+            <button onClick={() => navigate("/order")}  className={styles.productButton}>
               <ThunderboltOutlined />
               Mua ngay
             </button>
