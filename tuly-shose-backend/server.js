@@ -6,6 +6,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const morgan = require('morgan');
 const cors = require('cors');
+const { cleanExpiredTokens } = require('./config/cronJobs');
+
 
 app.use(cors({
   origin: 'http://localhost:5173', // domain của frontend
@@ -22,6 +24,7 @@ app.get('/', async(req, res)=>{
 });
 
 app.use('/account', require('./routes/account.route'));
+app.use('/address', require('./routes/address_shipping.route'));
 
 app.use('/manager', require('./routes/category.route'));
 
@@ -32,7 +35,10 @@ app.use((req, res, next) => {
 });
 
 app.use(require('./middlewares/errorHandler'));
+
 const PORT = process.env.PORT || 9999;
-app.listen(PORT, () => {console.log(`Server running on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
     connectDB();
+    cleanExpiredTokens(); // Start cron job to clean expired reset tokens
 });
