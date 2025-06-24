@@ -1,7 +1,7 @@
-import React from 'react';
-import { Input, Select, Checkbox, Radio, Button, Tooltip } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import styles from '../../CSS/Order.module.css';
+import React from "react";
+import { Input, Select, Checkbox, Radio, Button, Tooltip } from "antd";
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import styles from "../../CSS/Order.module.css";
 
 const { Option } = Select;
 
@@ -16,11 +16,7 @@ function Order() {
             <form className={styles.form}>
               <div>
                 <h3 className={styles.sectionTitle}>Thông tin giao hàng</h3>
-                <Input
-                  placeholder="HỌ TÊN"
-                  className={styles.input}
-                  required
-                />
+                <Input placeholder="HỌ TÊN" className={styles.input} required />
               </div>
               <div>
                 <Input
@@ -30,11 +26,7 @@ function Order() {
                 />
               </div>
               <div>
-                <Input
-                  placeholder="Email"
-                  className={styles.input}
-                  required
-                />
+                <Input placeholder="Email" className={styles.input} required />
               </div>
               <div>
                 <Input
@@ -50,7 +42,9 @@ function Order() {
                   aria-label="Tỉnh/ Thành Phố"
                   required
                 >
-                  <Option value="" disabled>Tỉnh/ Thành Phố</Option>
+                  <Option value="" disabled>
+                    Tỉnh/ Thành Phố
+                  </Option>
                   <Option value="Hà Nội">Hà Nội</Option>
                   <Option value="TP Hồ Chí Minh">TP Hồ Chí Minh</Option>
                   <Option value="Đà Nẵng">Đà Nẵng</Option>
@@ -64,7 +58,9 @@ function Order() {
                   aria-label="Quận/ Huyện"
                   required
                 >
-                  <Option value="" disabled>Quận/ Huyện</Option>
+                  <Option value="" disabled>
+                    Quận/ Huyện
+                  </Option>
                   <Option value="Quận 1">Quận 1</Option>
                   <Option value="Quận 3">Quận 3</Option>
                   <Option value="Quận 5">Quận 5</Option>
@@ -76,7 +72,9 @@ function Order() {
                   aria-label="Phường/ Xã"
                   required
                 >
-                  <Option value="" disabled>Phường/ Xã</Option>
+                  <Option value="" disabled>
+                    Phường/ Xã
+                  </Option>
                   <Option value="Phường Bến Nghé">Phường Bến Nghé</Option>
                   <Option value="Phường Võ Thị Sáu">Phường Võ Thị Sáu</Option>
                   <Option value="Phường 12">Phường 12</Option>
@@ -85,20 +83,26 @@ function Order() {
               </div>
               <div>
                 <h3 className={styles.sectionTitle}>Phương thức giao hàng</h3>
-                <Checkbox
-                  defaultChecked
-                  className={styles.checkbox}
-                >
-                  Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
-                  <Tooltip title="Giao hàng trong vòng 2 đến 5 ngày làm việc">
-                    <QuestionCircleOutlined className={styles.tooltipIcon} />
-                  </Tooltip>
-                  <span className={styles.price}>0 VNĐ</span>
+                <Checkbox defaultChecked className={styles.checkbox}>
+                  <div className={styles.checkboxContent}>
+                    <span>
+                      Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
+                      <Tooltip title="Giao hàng trong vòng 2 đến 5 ngày làm việc">
+                        <QuestionCircleOutlined
+                          className={styles.tooltipIcon}
+                        />
+                      </Tooltip>
+                    </span>
+                    <span className={styles.price}>0 VNĐ</span>
+                  </div>
                 </Checkbox>
               </div>
               <div>
                 <h3 className={styles.sectionTitle}>Phương thức thanh toán</h3>
-                <Radio.Group name="payment-method" className={styles.radioGroup}>
+                <Radio.Group
+                  name="payment-method"
+                  className={styles.radioGroup}
+                >
                   <Radio value="cod" className={styles.radio}>
                     Thanh toán trực tiếp khi giao hàng
                     <Tooltip title="Thanh toán khi nhận hàng">
@@ -127,11 +131,14 @@ function Order() {
                     alt="Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus product image"
                     className={styles.productImage}
                     src="https://storage.googleapis.com/a1aa/image/48395c39-3135-4324-539c-fec50ad1d323.jpg"
-                    onError={(e) => (e.target.src = 'https://via.placeholder.com/80')}
+                    onError={(e) =>
+                      (e.target.src = "https://via.placeholder.com/80")
+                    }
                   />
                   <div>
                     <p className={styles.productName}>
-                      Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus
+                      Die-cut Insoles - Ananas Ortholite 7mm RF - White
+                      Asparagus
                     </p>
                     <p className={styles.productDetail}>Size: S</p>
                     <p className={styles.productQuantity}>x 10</p>
@@ -146,7 +153,9 @@ function Order() {
                     alt="Vintas Vivu - Low Top - Warm Sand product image"
                     className={styles.productImage}
                     src="https://storage.googleapis.com/a1aa/image/ffd3f636-496f-4687-5163-cb372a2185d7.jpg"
-                    onError={(e) => (e.target.src = 'https://via.placeholder.com/80')}
+                    onError={(e) =>
+                      (e.target.src = "https://via.placeholder.com/80")
+                    }
                   />
                   <div>
                     <p className={styles.productName}>
@@ -183,10 +192,7 @@ function Order() {
               <span>TỔNG CỘNG</span>
               <span>1.930.000 ₫</span>
             </div>
-            <Button
-              className={styles.submitButton}
-              aria-label="Complete order"
-            >
+            <Button className={styles.submitButton} aria-label="Complete order">
               HOÀN TẤT ĐẶT HÀNG
             </Button>
           </aside>
