@@ -1,213 +1,198 @@
-import React from "react";
-import {
-  Form,
-  Input,
-  Select,
-  Checkbox,
-  Button,
-  Typography,
-  Row,
-  Col,
-  Divider,
-  Tooltip,
-} from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
-import styles from "../../CSS/Order.module.css";
+import React from 'react';
+import { Input, Select, Checkbox, Radio, Button, Tooltip } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import styles from '../../CSS/Order.module.css';
 
-const { Title, Text } = Typography;
 const { Option } = Select;
 
-// Sample cart data (replace with actual cart data from your app)
-const cart = [
-  {
-    id: 1,
-    name: "Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus",
-    size: "S",
-    price: 69000,
-    quantity: 10,
-  },
-  {
-    id: 2,
-    name: "Vintas Vivu - Low Top - Warm Sand",
-    size: "36.5",
-    price: 620000,
-    quantity: 2,
-  },
-];
-
 function Order() {
-  // Calculate totals
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const discount = 0;
-  const shippingFee = 0;
-  const paymentFee = 0;
-  const total = subtotal - discount + shippingFee + paymentFee;
-
-  // Format price to VND
-  const formatPrice = (price) =>
-    price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-
   return (
-    <div className={styles.container}>
-      <Row gutter={[32, 16]}>
-        {/* Left form section */}
-        <Col xs={24} md={14}>
-          <Form layout="vertical" className={styles.form}>
-            {/* Delivery Information */}
-            <div className={styles.section}>
-              <Title level={5} className={styles.sectionTitle}>
-                THÔNG TIN GIAO HÀNG
-              </Title>
-              <Form.Item>
-                <Input placeholder="HỌ TÊN" size="large" />
-              </Form.Item>
-              <Form.Item>
-                <Input placeholder="Số điện thoại" size="large" />
-              </Form.Item>
-              <Form.Item>
-                <Input placeholder="Email" size="large" type="email" />
-              </Form.Item>
-              <Form.Item>
-                <Input placeholder="Địa chỉ" size="large" />
-              </Form.Item>
-              <Form.Item>
-                <Select placeholder="Tỉnh/ Thành Phố" size="large">
-                  <Option value="">Tỉnh/ Thành Phố</Option>
+    <main className={`${styles.main} ${styles.fadeIn}`}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>Đặt hàng tại TULY Shoe</h2>
+        <div className={styles.content}>
+          {/* Order Form */}
+          <section className={styles.formSection}>
+            <form className={styles.form}>
+              <div>
+                <h3 className={styles.sectionTitle}>Thông tin giao hàng</h3>
+                <Input
+                  placeholder="HỌ TÊN"
+                  className={styles.input}
+                  required
+                />
+              </div>
+              <div>
+                <Input
+                  placeholder="Số điện thoại"
+                  className={styles.input}
+                  required
+                />
+              </div>
+              <div>
+                <Input
+                  placeholder="Email"
+                  className={styles.input}
+                  required
+                />
+              </div>
+              <div>
+                <Input
+                  placeholder="Địa chỉ"
+                  className={styles.input}
+                  required
+                />
+              </div>
+              <div>
+                <Select
+                  placeholder="Tỉnh/ Thành Phố"
+                  className={styles.select}
+                  aria-label="Tỉnh/ Thành Phố"
+                  required
+                >
+                  <Option value="" disabled>Tỉnh/ Thành Phố</Option>
+                  <Option value="Hà Nội">Hà Nội</Option>
+                  <Option value="TP Hồ Chí Minh">TP Hồ Chí Minh</Option>
+                  <Option value="Đà Nẵng">Đà Nẵng</Option>
+                  <Option value="Hải Phòng">Hải Phòng</Option>
                 </Select>
-              </Form.Item>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item>
-                    <Select placeholder="Quận/ Huyện" size="large">
-                      <Option value="">Quận/ Huyện</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item>
-                    <Select placeholder="Phường/ Xã" size="large">
-                      <Option value="">Phường/ Xã</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Delivery Method */}
-            <div className={styles.section}>
-              <Title level={5} className={styles.sectionTitle}>
-                PHƯƠNG THỨC GIAO HÀNG
-              </Title>
-              <Form.Item>
-                <div className={styles.checkboxWrapper}>
-                  <Checkbox defaultChecked>
-                    <span className={styles.checkboxLabel}>
-                      Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
-                      <Tooltip
-                        title="Tuỳ vào địa chỉ giao hàng mà tốc độ giao hàng tiêu chuẩn sẽ khác nhau. Chúng tôi luôn cố gắng để đơn hàng đến tay bạn sớm nhất."
-                        color="#808080"
-                        overlayStyle={{ fontSize: "12px" }}
-                      >
-                        <QuestionCircleOutlined className={styles.infoIcon} />
-                      </Tooltip>
-                    </span>
-                  </Checkbox>
+              </div>
+              <div className={styles.selectGroup}>
+                <Select
+                  placeholder="Quận/ Huyện"
+                  className={styles.select}
+                  aria-label="Quận/ Huyện"
+                  required
+                >
+                  <Option value="" disabled>Quận/ Huyện</Option>
+                  <Option value="Quận 1">Quận 1</Option>
+                  <Option value="Quận 3">Quận 3</Option>
+                  <Option value="Quận 5">Quận 5</Option>
+                  <Option value="Quận 10">Quận 10</Option>
+                </Select>
+                <Select
+                  placeholder="Phường/ Xã"
+                  className={styles.select}
+                  aria-label="Phường/ Xã"
+                  required
+                >
+                  <Option value="" disabled>Phường/ Xã</Option>
+                  <Option value="Phường Bến Nghé">Phường Bến Nghé</Option>
+                  <Option value="Phường Võ Thị Sáu">Phường Võ Thị Sáu</Option>
+                  <Option value="Phường 12">Phường 12</Option>
+                  <Option value="Phường 15">Phường 15</Option>
+                </Select>
+              </div>
+              <div>
+                <h3 className={styles.sectionTitle}>Phương thức giao hàng</h3>
+                <Checkbox
+                  defaultChecked
+                  className={styles.checkbox}
+                >
+                  Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
+                  <Tooltip title="Giao hàng trong vòng 2 đến 5 ngày làm việc">
+                    <QuestionCircleOutlined className={styles.tooltipIcon} />
+                  </Tooltip>
                   <span className={styles.price}>0 VNĐ</span>
-                </div>
-              </Form.Item>
-            </div>
-
-            {/* Payment Method */}
-            <div className={styles.section}>
-              <Title level={5} className={styles.sectionTitle}>
-                PHƯƠNG THỨC THANH TOÁN
-              </Title>
-              <Form.Item>
-                <Checkbox defaultChecked>
-                  <span className={styles.checkboxLabel}>
+                </Checkbox>
+              </div>
+              <div>
+                <h3 className={styles.sectionTitle}>Phương thức thanh toán</h3>
+                <Radio.Group name="payment-method" className={styles.radioGroup}>
+                  <Radio value="cod" className={styles.radio}>
                     Thanh toán trực tiếp khi giao hàng
-                    <Tooltip
-                      title="Là phương thức thanh toán bằng tiền mặt trực tiếp khi nhận hàng"
-                      color="#808080"
-                      overlayStyle={{ fontSize: "12px" }}
-                    >
-                      <QuestionCircleOutlined className={styles.infoIcon} />
+                    <Tooltip title="Thanh toán khi nhận hàng">
+                      <QuestionCircleOutlined className={styles.tooltipIcon} />
                     </Tooltip>
-                  </span>
-                </Checkbox>
-              </Form.Item>
-              <Form.Item>
-                <Checkbox>
-                  <span className={styles.checkboxLabel}>
-                    Thanh toán trực tuyến.
-                    <Tooltip
-                      title="Là phương thức thanh toán trực tuyến qua cổng thanh toán của chúng tôi. Bạn sẽ được chuyển hướng đến trang thanh toán an toàn."
-                      color="#808080"
-                      overlayStyle={{ fontSize: "12px" }}
-                    >
-                      <QuestionCircleOutlined className={styles.infoIcon} />
+                  </Radio>
+                  <Radio value="online" className={styles.radio}>
+                    Thanh toán trực tuyến
+                    <Tooltip title="Thanh toán qua cổng trực tuyến">
+                      <QuestionCircleOutlined className={styles.tooltipIcon} />
                     </Tooltip>
-                  </span>
-                </Checkbox>
-              </Form.Item>
-            </div>
-          </Form>
-        </Col>
+                  </Radio>
+                </Radio.Group>
+              </div>
+            </form>
+          </section>
 
-        {/* Right order summary */}
-        <Col xs={24} md={10}>
-          <div className={styles.orderSummary}>
-            <Title level={5} className={styles.sectionTitle}>
-              ĐƠN HÀNG
-            </Title>
-            {cart.map((item) => (
-              <React.Fragment key={item.id}>
-                <div className={styles.orderItem}>
+          {/* Order Summary */}
+          <aside className={styles.orderSummary} aria-label="Order summary">
+            <h3 className={styles.summaryTitle}>Order Summary</h3>
+            <div className={styles.summaryItems}>
+              {/* Product 1 */}
+              <div className={styles.product}>
+                <div className={styles.productInfo}>
+                  <img
+                    alt="Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus product image"
+                    className={styles.productImage}
+                    src="https://storage.googleapis.com/a1aa/image/48395c39-3135-4324-539c-fec50ad1d323.jpg"
+                    onError={(e) => (e.target.src = 'https://via.placeholder.com/80')}
+                  />
                   <div>
-                    <Text strong>{item.name}</Text>
-                    <div className={styles.itemDetail}>Size: {item.size}</div>
+                    <p className={styles.productName}>
+                      Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus
+                    </p>
+                    <p className={styles.productDetail}>Size: S</p>
+                    <p className={styles.productQuantity}>x 10</p>
                   </div>
-                  <Text className={styles.itemPrice}>
-                    {formatPrice(item.price)}
-                  </Text>
                 </div>
-                <Text className={styles.quantity}>x {item.quantity}</Text>
-              </React.Fragment>
-            ))}
-            <Divider className={styles.divider} />
-            <div className={styles.summaryRow}>
-              <Text strong>Đơn hàng</Text>
-              <Text strong>{formatPrice(subtotal)}</Text>
+                <div className={styles.productPrice}>69.000 ₫</div>
+              </div>
+              {/* Product 2 */}
+              <div className={styles.product}>
+                <div className={styles.productInfo}>
+                  <img
+                    alt="Vintas Vivu - Low Top - Warm Sand product image"
+                    className={styles.productImage}
+                    src="https://storage.googleapis.com/a1aa/image/ffd3f636-496f-4687-5163-cb372a2185d7.jpg"
+                    onError={(e) => (e.target.src = 'https://via.placeholder.com/80')}
+                  />
+                  <div>
+                    <p className={styles.productName}>
+                      Vintas Vivu - Low Top - Warm Sand
+                    </p>
+                    <p className={styles.productDetail}>Size: 36.5</p>
+                    <p className={styles.productQuantity}>x 2</p>
+                  </div>
+                </div>
+                <div className={styles.productPrice}>620.000 ₫</div>
+              </div>
             </div>
-            <div className={styles.summaryRow}>
-              <Text strong>Giảm</Text>
-              <Text strong>{formatPrice(-discount)}</Text>
+            <hr className={styles.divider} />
+            <div className={styles.summaryDetails}>
+              <div className={styles.summaryRow}>
+                <span>Đơn hàng</span>
+                <span>1.930.000 ₫</span>
+              </div>
+              <div className={styles.summaryRowSecondary}>
+                <span>Giảm</span>
+                <span>-0 ₫</span>
+              </div>
+              <div className={styles.summaryRowSecondary}>
+                <span>Phí vận chuyển</span>
+                <span>0 ₫</span>
+              </div>
+              <div className={styles.summaryRowSecondary}>
+                <span>Phí thanh toán</span>
+                <span>0 ₫</span>
+              </div>
             </div>
-            <div className={styles.summaryRow}>
-              <Text strong>Phí vận chuyển</Text>
-              <Text strong>{formatPrice(shippingFee)}</Text>
+            <hr className={styles.divider} />
+            <div className={styles.total}>
+              <span>TỔNG CỘNG</span>
+              <span>1.930.000 ₫</span>
             </div>
-            <div className={styles.summaryRow}>
-              <Text strong>Phí thanh toán</Text>
-              <Text strong>{formatPrice(paymentFee)}</Text>
-            </div>
-            <Divider className={styles.divider} />
-            <div className={styles.totalRow}>
-              <Text strong>TỔNG CỘNG</Text>
-              <Text strong className={styles.totalPrice}>
-                {formatPrice(total)}
-              </Text>
-            </div>
-            <Button type="primary" size="large" className={styles.submitButton}>
+            <Button
+              className={styles.submitButton}
+              aria-label="Complete order"
+            >
               HOÀN TẤT ĐẶT HÀNG
             </Button>
-          </div>
-        </Col>
-      </Row>
-    </div>
+          </aside>
+        </div>
+      </div>
+    </main>
   );
 }
 
