@@ -1,244 +1,185 @@
-.layout {
-  background: #fff;
-  font-family: "Montserrat", sans-serif;
-  min-height: 100vh;
-}
-
-.content {
-  max-width: 1280px;
+.main {
+  max-width: 85%;
   margin: 0 auto;
-  padding: 0px 40px;
+  padding: 24px 16px;
 }
 
-.breadcrumb {
-  margin-bottom: 1.5rem;
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.breadcrumb a {
+.heroTitle {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.highlight {
+  color: #6366f1;
+}
+
+.heroDescription {
+  font-size: 18px;
   color: #4b5563;
-  font-weight: 600;
-}
-
-.breadcrumb a:hover {
-  color: #111827;
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-@media (min-width: 768px) {
-  .header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.sortSelect {
-  width: 200px;
-}
-
-.mainContent {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 1024px) { /* Target 14-inch laptops and up */
-  .mainContent {
-    grid-template-columns: 250px 1fr;
-  }
-}
-
-.sider {
-  background: #fff;
-  padding: 1rem;
-  height: auto;
-  min-width: 250px; /* Ensure minimum width for sidebar */
 }
 
 .filterSection {
-  margin-bottom: 1.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.filterSection h3 {
-  font-size: 1.125rem;
+.filterRow {
+  width: 100%;
+}
+
+.filterItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.filterLabel {
+  font-size: 14px;
   font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.75rem;
+  color: #374151;
+  margin-bottom: 8px;
 }
 
-.filterSection .ant-checkbox-wrapper,
-.filterSection .ant-radio-wrapper {
-  display: block;
-  margin-bottom: 0.5rem;
+.select {
+  width: 100%;
+}
+
+.dropdown {
+  z-index: 1000;
+}
+
+.searchSection {
+  margin-bottom: 24px;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.resultsCount {
+  font-size: 14px;
   color: #4b5563;
-  font-size: 0.875rem;
-}
-
-.applyButton {
-  background-color: #4f46e5 !important;
-  border-color: #4f46e5 !important;
-}
-
-.applyButton:hover {
-  background-color: #4338ca !important;
-  border-color: #4338ca !important;
 }
 
 .productGrid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
-  padding: 0 0.5rem;
+  min-height: 400px;
 }
 
-@media (min-width: 640px) {
-  .productGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) { /* Adjusted for 14-inch screens */
-  .productGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1280px) {
-  .productGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.productRow {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .productCard {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   overflow: hidden;
-  transition: box-shadow 0.2s;
-  max-width: 100%;
-  height: 100%; /* Ensure consistent height */
+  transition: box-shadow 0.3s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .productCard:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.imageContainer {
-  position: relative;
-  height: 0;
-  padding-top: 100%; /* Maintain 1:1 aspect ratio */
-  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
 }
 
 .productImage {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
+  height: 256px;
   object-fit: cover;
-  transition: transform 0.3s;
 }
 
-.productCard:hover .productImage {
-  transform: scale(1.05);
-}
-
-.tag {
+.discountTag {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #fff;
-  z-index: 1;
-}
-
-.tagBlue {
-  background-color: #4f46e5;
-}
-
-.tagRed {
-  background-color: #dc2626;
+  top: 12px;
+  left: 12px;
+  font-weight: bold;
+  z-index: 10;
 }
 
 .productName {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  color: #1f2937;
 }
 
-.productName a {
-  color: #111827;
-}
-
-.productName a:hover {
-  color: #4f46e5;
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 }
 
 .productDescription {
-  font-size: 0.875rem;
   color: #4b5563;
-  margin-bottom: 0.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  font-size: 14px;
+  flex-grow: 1;
 }
 
-.priceContainer {
-  margin-bottom: 0.25rem;
-}
-
-.originalPrice {
-  font-size: 0.875rem;
-  color: #6b7280;
-  text-decoration: line-through;
-  display: block;
-}
-
-.priceAndCart {
+.priceAndCartContainer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
 }
 
-.discountedPrice {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #4f46e5;
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.cartButton {
-  color: #4f46e5;
-  font-size: 1.25rem;
+.originalPrice {
+  color: #9ca3af;
+  text-decoration: line-through;
+  font-size: 14px;
 }
 
-.cartButton:hover {
-  color: #4338ca;
+.currentPrice {
+  color: #6366f1;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.addToCart {
+  /* background: #6366f1; */
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  padding: 0;
+  border-radius: 4px;
+}
+
+.addToCart:hover {
+  background: #4f46e5;
 }
 
 .pagination {
-  margin-top: 2.5rem;
   display: flex;
   justify-content: center;
+  align-items: center;
+  margin-top: 32px;
+}
+
+.noProducts {
+  text-align: center;
+  color: #6b7280;
+  font-size: 18px;
+  margin-top: 48px;
 }
