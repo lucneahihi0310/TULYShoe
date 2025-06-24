@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Select, Input, Pagination, Button, Tag, Typography } from 'antd';
 import styles from '../../CSS/ListProduct.module.css';
 
-
 const { Option } = Select;
 const { Title, Paragraph } = Typography;
 
@@ -196,6 +195,7 @@ const productsPerPage = 8;
 function ListProduct() {
   const [filteredProducts, setFilteredProducts] = useState([...products]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isVisible, setIsVisible] = useState(false);
   const [filters, setFilters] = useState({
     price: 'all',
     category: 'all',
@@ -205,6 +205,10 @@ function ListProduct() {
     sortBy: 'default',
     search: '',
   });
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const filterAndSearch = () => {
     let filtered = [...products];
@@ -255,7 +259,7 @@ function ListProduct() {
         filtered.sort((a, b) => a.price - b.price);
         break;
       case 'price-desc':
-        filtered.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => b.price - b.price);
         break;
       case 'name-asc':
         filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -285,8 +289,8 @@ function ListProduct() {
   const productsToShow = filteredProducts.slice(start, end);
 
   return (
-    <main className={styles.main}>
-      <section className={styles.hero}>
+    <main className={`${styles.main} ${isVisible ? styles.fadeIn : ''}`}>
+      <section className={`${styles.hero} ${styles.fadeIn}`}>
         <Title level={1} className={styles.heroTitle}>
           Discover the Latest Sneakers at <span className={styles.highlight}>TULY Shoe</span>
         </Title>
@@ -295,7 +299,7 @@ function ListProduct() {
         </Paragraph>
       </section>
 
-      <section className={styles.filterSection}>
+      <section className={`${styles.filterSection} ${styles.fadeIn}`}>
         <Row gutter={[16, 16]} className={styles.filterRow}>
           <Col xs={24} md={4}>
             <div className={styles.filterItem}>
@@ -408,7 +412,7 @@ function ListProduct() {
         </Row>
       </section>
 
-      <section className={styles.searchSection}>
+      <section className={`${styles.searchSection} ${styles.fadeIn}`}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} md={8}>
             <Input
@@ -426,7 +430,7 @@ function ListProduct() {
         </Row>
       </section>
 
-      <section className={styles.productGrid}>
+      <section className={`${styles.productGrid} ${styles.fadeIn}`}>
         {productsToShow.length === 0 ? (
           <Paragraph className={styles.noProducts}>No products found.</Paragraph>
         ) : (
@@ -442,7 +446,7 @@ function ListProduct() {
                   <Card
                     hoverable
                     cover={<img alt={product.alt} src={product.image} className={styles.productImage} />}
-                    className={`${styles.productCard} animate__animated animate__fadeInUp`}
+                    className={`${styles.productCard} ${styles.fadeIn}`}
                     style={{ animationDelay: `${index * 0.1}s` }}
                     bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                   >
@@ -468,8 +472,7 @@ function ListProduct() {
                               <span className={styles.currentPrice}>${product.price.toFixed(2)}</span>
                             </div>
                             <Button
-                              // type="primary"
-                              icon={<i class="bi bi-bag-heart"></i>}
+                              icon={<i className="bi bi-bag-heart"></i>}
                               className={styles.addToCart}
                               aria-label={`Add ${product.name} to cart`}
                             />
@@ -485,7 +488,7 @@ function ListProduct() {
         )}
       </section>
 
-      <section className={styles.pagination}>
+      <section className={`${styles.pagination} ${styles.fadeIn}`}>
         <Pagination
           current={currentPage}
           total={filteredProducts.length}
