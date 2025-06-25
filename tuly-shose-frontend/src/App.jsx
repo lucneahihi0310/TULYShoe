@@ -18,7 +18,7 @@ import LoginRegister from "./Components/Other_Screen/LoginRegister";
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
     if (!token) {
@@ -32,6 +32,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     } catch (error) {
       console.error("Invalid token:", error);
       localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
     } finally {
       setIsLoading(false);
     }
