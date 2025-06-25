@@ -27,7 +27,7 @@ app.use('/account', require('./routes/account.route'));
 app.use('/address', require('./routes/address_shipping.route'));
 
 app.use('/manager', require('./routes/category.route'));
-
+app.use('/inventory', require('./routes/inventory.routes'));
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
     error.status = 404;
