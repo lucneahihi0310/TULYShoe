@@ -7,17 +7,11 @@ import HomePage from "./Components/User/HomePage";
 import ProductDetail from "./Components/User/ProductDetail";
 import ListProduct from "./Components/User/ListProduct";
 import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
-import ManagerProduct from "./Components/Manager/ManagerProduct";
-import ManagerCategory from "./Components/Manager/ManagerCategory";
 import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
-import ManagerBrand from "./Components/Manager/ManagerBrand";
-import ManagerColor from "./Components/Manager/ManagerColor";
-import ManagerForm from "./Components/Manager/ManagerForm";
-import ManagerMaterial from "./Components/Manager/ManagerMaterial";
-import ManagerSize from "./Components/Manager/ManagerSize";
+import ManagerDashboard from "./Components/Manager/ManagerDashboard";
 
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -86,61 +80,16 @@ function App() {
         <Route path="/order" element={<Order />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
-        <Route
-          path="/manager/product"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerProduct />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/manager/category"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerCategory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/manager/brand"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerBrand />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/manager/color"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerColor />
-            </ProtectedRoute>
-          }
-        />
 
         <Route
-          path="/manager/form"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerForm />
-            </ProtectedRoute>
-          }
+          path="/manager"
+          element={<Navigate to="/manager/brands" replace />}
         />
         <Route
-          path="/manager/material"
+          path="/manager/:section"
           element={
             <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerMaterial />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/manager/size"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerSize />
+              <ManagerDashboard />
             </ProtectedRoute>
           }
         />

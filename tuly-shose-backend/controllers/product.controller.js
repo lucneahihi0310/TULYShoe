@@ -1,19 +1,18 @@
 const product = require('../models/product.model');
 const formatDateTime = (date) => {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, "0");
-    const minutes = String(d.getMinutes()).padStart(2, "0");
-    const seconds = String(d.getSeconds()).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
 
     return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 };
 
 exports.list_product = async (req, res, next) => {
     try {
-        const newProduct = await product.find().populate("categories_id");
+        const newProduct = await product.find().populate("categories_id").populate("brand_id").populate("material_id").populate("form_id");
         const listProduct = newProduct.map((p) => {
             return {
                 _id: p.id,
@@ -21,8 +20,11 @@ exports.list_product = async (req, res, next) => {
                 description: p.description,
                 price: p.price,
                 categories_id: p.categories_id,
-                // create_at: formatDateTime(p.create_at),
-                // update_at: formatDateTime(p.update_at)
+                brand_id: p.brand_id,
+                material_id: p.material_id,
+                form_id: p.form_id,
+                create_at: formatDateTime(p.create_at),
+                update_at: formatDateTime(p.update_at)
             }
         })
         res.status(201).json(listProduct);

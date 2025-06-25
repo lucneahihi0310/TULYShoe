@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const sizeSchema = new mongoose.Schema({
-    _id: {
-        type: String,
-        default: () => new mongoose.Types.ObjectId().toString()
-    },
     size_name: {
         type: String,
         required: true
