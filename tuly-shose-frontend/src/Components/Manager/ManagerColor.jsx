@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
 
@@ -76,7 +76,7 @@ const ManagerColor = () => {
             key: '_id'
         },
         {
-            title: 'Category name',
+            title: 'Color code',
             dataIndex: 'color_code',
             key: 'color_code',
             render: (value, record) => {
@@ -85,7 +85,7 @@ const ManagerColor = () => {
                         <Form.Item
                             name="color_code"
                             rules={[
-                                { required: true, message: "Please enter category name" },
+                                { required: true, message: "Please enter color name" },
                                 {
                                     validator: (_, value) => {
                                         const isDuplicate = categories.some(
@@ -94,20 +94,38 @@ const ManagerColor = () => {
                                                 cat._id !== edittingRow
                                         );
                                         return isDuplicate
-                                            ? Promise.reject("This category name already exists!")
+                                            ? Promise.reject("This color code already exists!")
                                             : Promise.resolve();
                                     }
                                 }
                             ]}>
-                            <Input />
+                            {/* <Input /> ssssssssssssssssssssssssssssssssss */}
+                            <ColorPicker
+                                showText
+                                value={form.getFieldValue("color_code")}
+                                onChange={(color) => {
+                                    form.setFieldsValue({
+                                        color_code: color.toHexString()
+                                    })
+                                }}
+                            />
                         </Form.Item>
                     )
                 }
                 else {
                     return (
-                        <div>
-                            {value}
-                        </div>
+                        <Space>
+                            <div
+                                style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: value,
+                                    border: "1px solid #ddd",
+                                    borderRadius: "4px"
+                                }}
+                            />
+                            <span>{value}</span>
+                        </Space>
                     )
                 }
             }
@@ -196,12 +214,15 @@ const ManagerColor = () => {
                             Edit
                         </Button>
                         <Popconfirm
-                            title="Are you sure to delete this category?"
+                            title="Are you sure to delete this color?"
                             onConfirm={() => {
                                 handleDeleteCategory(record._id)
                             }}
                             okText="Yes"
-                            cancelText="No">
+                            cancelText="No"
+                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                        >
                             <Button
                                 color="danger"
                                 variant="solid"
@@ -215,15 +236,15 @@ const ManagerColor = () => {
         }
     ];
     return (
-        <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa' }}>
+        <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
             <Row gutter={16} style={{ padding: '10px' }}>
                 <Col span={4}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <h4>Categories</h4>
+                        <h4>Colors</h4>
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search category..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
+                    <Input placeholder="Search color..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
                 </Col>
                 <Col span={2} offset={1}>
                     <Select
@@ -244,7 +265,7 @@ const ManagerColor = () => {
                         onClick={() => {
                             showAddCategoryModal();
                         }}>
-                        Add New Category
+                        Add New Color
                     </Button>
                     <Modal
                         title="Add new category"
@@ -277,10 +298,10 @@ const ManagerColor = () => {
                                 }
                             }}>
                             <Form.Item
-                                label="Category name"
+                                label="Color code"
                                 name="color_code"
                                 rules={[
-                                    { required: true, message: "Please enter category name" },
+                                    { required: true, message: "Please select color" },
                                     {
                                         validator: (_, value) => {
                                             const isDuplicate = categories.some(
@@ -289,12 +310,20 @@ const ManagerColor = () => {
                                                     cat._id !== edittingRow
                                             );
                                             return isDuplicate
-                                                ? Promise.reject("This category name already exists!")
+                                                ? Promise.reject("This color already exists!")
                                                 : Promise.resolve();
                                         }
                                     }
                                 ]}>
-                                <Input placeholder="Enter category name" />
+                                <ColorPicker
+                                    showText
+                                    value={form2.getFieldValue("color_code")}
+                                    onChange={(color) => {
+                                        form2.setFieldsValue({
+                                            color_code: color.toHexString()
+                                        })
+                                    }}
+                                />
                             </Form.Item>
 
                             <Form.Item

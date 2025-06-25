@@ -201,7 +201,10 @@ const ManagerCategory = () => {
                                 handleDeleteCategory(record._id)
                             }}
                             okText="Yes"
-                            cancelText="No">
+                            cancelText="No"
+                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                        >
                             <Button
                                 color="danger"
                                 variant="solid"

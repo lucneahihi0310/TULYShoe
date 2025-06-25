@@ -85,7 +85,7 @@ const ManagerBrand = () => {
                         <Form.Item
                             name="brand_name"
                             rules={[
-                                { required: true, message: "Please enter category name" },
+                                { required: true, message: "Please enter brand name" },
                                 {
                                     validator: (_, value) => {
                                         const isDuplicate = categories.some(
@@ -94,7 +94,7 @@ const ManagerBrand = () => {
                                                 cat._id !== edittingRow
                                         );
                                         return isDuplicate
-                                            ? Promise.reject("This category name already exists!")
+                                            ? Promise.reject("This brand name already exists!")
                                             : Promise.resolve();
                                     }
                                 }
@@ -195,13 +195,31 @@ const ManagerBrand = () => {
                             }}>
                             Edit
                         </Button>
-                        <Popconfirm
-                            title="Are you sure to delete this category?"
+                        {/* <Popconfirm
+                            title="Are you sure to delete this brand?"
                             onConfirm={() => {
                                 handleDeleteCategory(record._id)
                             }}
                             okText="Yes"
-                            cancelText="No">
+                            cancelText="No"
+                            overlayStyle={{maxWidth: '220px', fontSize: '13px', textAlign: 'center'}}>
+                            <Button
+                                color="danger"
+                                variant="solid"
+                                icon={<DeleteOutlined />}>
+                                Delete
+                            </Button>
+                        </Popconfirm> */}
+                        <Popconfirm
+                            title="Are you sure to delete this brand?"
+                            onConfirm={() => {
+                                handleDeleteCategory(record._id)
+                            }}
+                            okText="Yes"
+                            cancelText="No"
+                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                        >
                             <Button
                                 color="danger"
                                 variant="solid"
@@ -209,6 +227,7 @@ const ManagerBrand = () => {
                                 Delete
                             </Button>
                         </Popconfirm>
+
                     </Space >
                 )
             }
@@ -223,7 +242,7 @@ const ManagerBrand = () => {
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search category..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
+                    <Input placeholder="Search brand..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
                 </Col>
                 <Col span={2} offset={1}>
                     <Select
@@ -244,7 +263,7 @@ const ManagerBrand = () => {
                         onClick={() => {
                             showAddCategoryModal();
                         }}>
-                        Add New Category
+                        Add New Brand
                     </Button>
                     <Modal
                         title="Add new category"
@@ -280,7 +299,7 @@ const ManagerBrand = () => {
                                 label="Brand name"
                                 name="brand_name"
                                 rules={[
-                                    { required: true, message: "Please enter category name" },
+                                    { required: true, message: "Please enter brand name" },
                                     {
                                         validator: (_, value) => {
                                             const isDuplicate = categories.some(
@@ -289,12 +308,12 @@ const ManagerBrand = () => {
                                                     cat._id !== edittingRow
                                             );
                                             return isDuplicate
-                                                ? Promise.reject("This category name already exists!")
+                                                ? Promise.reject("This brand name already exists!")
                                                 : Promise.resolve();
                                         }
                                     }
                                 ]}>
-                                <Input placeholder="Enter category name" />
+                                <Input placeholder="Enter brand name" />
                             </Form.Item>
 
                             <Form.Item

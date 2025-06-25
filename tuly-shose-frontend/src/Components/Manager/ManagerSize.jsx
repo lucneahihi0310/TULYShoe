@@ -76,7 +76,7 @@ const ManagerSize = () => {
             key: '_id'
         },
         {
-            title: 'Category name',
+            title: 'Size name',
             dataIndex: 'size_name',
             key: 'size_name',
             render: (value, record) => {
@@ -85,7 +85,7 @@ const ManagerSize = () => {
                         <Form.Item
                             name="size_name"
                             rules={[
-                                { required: true, message: "Please enter category name" },
+                                { required: true, message: "Please enter size name" },
                                 {
                                     validator: (_, value) => {
                                         const isDuplicate = categories.some(
@@ -94,7 +94,7 @@ const ManagerSize = () => {
                                                 cat._id !== edittingRow
                                         );
                                         return isDuplicate
-                                            ? Promise.reject("This category name already exists!")
+                                            ? Promise.reject("This size name already exists!")
                                             : Promise.resolve();
                                     }
                                 }
@@ -196,12 +196,15 @@ const ManagerSize = () => {
                             Edit
                         </Button>
                         <Popconfirm
-                            title="Are you sure to delete this category?"
+                            title="Are you sure to delete this size?"
                             onConfirm={() => {
                                 handleDeleteCategory(record._id)
                             }}
                             okText="Yes"
-                            cancelText="No">
+                            cancelText="No"
+                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                        >
                             <Button
                                 color="danger"
                                 variant="solid"
@@ -215,15 +218,15 @@ const ManagerSize = () => {
         }
     ];
     return (
-        <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa' }}>
+        <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
             <Row gutter={16} style={{ padding: '10px' }}>
                 <Col span={4}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <h4>Categories</h4>
+                        <h4>Sizes</h4>
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search category..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
+                    <Input placeholder="Search size..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
                 </Col>
                 <Col span={2} offset={1}>
                     <Select
@@ -244,10 +247,10 @@ const ManagerSize = () => {
                         onClick={() => {
                             showAddCategoryModal();
                         }}>
-                        Add New Category
+                        Add New Size
                     </Button>
                     <Modal
-                        title="Add new category"
+                        title="Add new size"
                         closable={{ 'aria-label': 'Custom Close Button' }}
                         open={addCategory}
                         onCancel={() => {
@@ -277,10 +280,10 @@ const ManagerSize = () => {
                                 }
                             }}>
                             <Form.Item
-                                label="Category name"
+                                label="Size name"
                                 name="size_name"
                                 rules={[
-                                    { required: true, message: "Please enter category name" },
+                                    { required: true, message: "Please enter size name" },
                                     {
                                         validator: (_, value) => {
                                             const isDuplicate = categories.some(
@@ -289,12 +292,12 @@ const ManagerSize = () => {
                                                     cat._id !== edittingRow
                                             );
                                             return isDuplicate
-                                                ? Promise.reject("This category name already exists!")
+                                                ? Promise.reject("This size name already exists!")
                                                 : Promise.resolve();
                                         }
                                     }
                                 ]}>
-                                <Input placeholder="Enter category name" />
+                                <Input placeholder="Enter size name" />
                             </Form.Item>
 
                             <Form.Item
