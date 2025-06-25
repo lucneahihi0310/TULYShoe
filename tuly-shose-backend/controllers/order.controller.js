@@ -1,5 +1,4 @@
 const Order = require("../models/order.model");
-const OrderStatus = require("../models/orderStatus.model");
 
 exports.getAllOrders = async (req, res) => {
     try {
