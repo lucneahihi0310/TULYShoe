@@ -16,6 +16,7 @@ import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import ManagerBrand from "./Components/Manager/ManagerBrand";
 import ManagerColor from "./Components/Manager/ManagerColor";
 import ManagerForm from "./Components/Manager/ManagerForm";
+import ManagerMaterial from "./Components/Manager/ManagerMaterial";
 
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -125,7 +126,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/manager/material"
+          element={
+            <ProtectedRoute allowedRoles={["manager"]}>
+              <ManagerMaterial />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={<Navigate to="/dashboard/feedbacks" replace />}

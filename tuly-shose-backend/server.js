@@ -31,6 +31,8 @@ app.use('/manager', require('./routes/color.route'));
 
 app.use('/manager', require('./routes/form.route'));
 
+app.use('/manager', require('./routes/material.route'));
+
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
     error.status = 404;
