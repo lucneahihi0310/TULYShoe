@@ -5,7 +5,7 @@ import { Col, Row } from 'antd';
 
 const ManagerDashboard = () => {
     return (
-        <div style={{ display: "flex", height: "835px" }}>
+        <div style={{ display: "flex", height: "100%" }}>
             <ManagerSidebar />
             <ManagerDashboardContent />
         </div>
