@@ -17,6 +17,7 @@ import ManagerBrand from "./Components/Manager/ManagerBrand";
 import ManagerColor from "./Components/Manager/ManagerColor";
 import ManagerForm from "./Components/Manager/ManagerForm";
 import ManagerMaterial from "./Components/Manager/ManagerMaterial";
+import ManagerSize from "./Components/Manager/ManagerSize";
 
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -134,6 +135,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/manager/size"
+          element={
+            <ProtectedRoute allowedRoles={["manager"]}>
+              <ManagerSize />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/dashboard"
           element={<Navigate to="/dashboard/feedbacks" replace />}
