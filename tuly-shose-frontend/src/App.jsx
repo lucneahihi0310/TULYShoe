@@ -13,6 +13,7 @@ import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
+import ManagerBrand from "./Components/Manager/ManagerBrand";
 
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -94,6 +95,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["manager"]}>
               <ManagerCategory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/brand"
+          element={
+            <ProtectedRoute allowedRoles={["manager"]}>
+              <ManagerBrand />
             </ProtectedRoute>
           }
         />

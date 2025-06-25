@@ -28,3 +28,41 @@ exports.list_brand = async (req, res, next) => {
         next(error);
     }
 }
+
+exports.create_brand = async (req, res, next) => {
+    try {
+        const newBrand = new brand({
+            brand_name: req.body.brand_name,
+            is_active: req.body.is_active
+        })
+        const insertBrand = await newBrand.save();
+        res.status(201).json(insertBrand);
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.edit_brand = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const { brand_name, is_active } = req.body;
+        const updatedBrand = await brand.findByIdAndUpdate(
+            id,
+            { brand_name, is_active, update_at: new Date().toISOString() },
+            { new: true, runValidators: true } // new: trả về bản ghi đã update
+        );
+        res.status(201).json(updatedBrand);
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.delete_brand = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const deleteBrand = await brand.findByIdAndDelete(id);
+        res.status(201).json(deleteBrand);
+    } catch (error) {
+        next(error);
+    }
+}
