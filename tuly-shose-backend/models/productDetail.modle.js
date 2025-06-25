@@ -7,11 +7,11 @@ const productDetailSchema = new mongoose.Schema({
         ref: "Product",
         required: true,
     },
-    color_id: {
+    color_id: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Color",
         required: true,
-    },
+    }],
     size_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Size",
@@ -24,7 +24,7 @@ const productDetailSchema = new mongoose.Schema({
     },
     inventory_number: { type: Number, required: true },
     price_after_discount: { type: Number, required: true },
-    images: { type: [String], required: true },
+    images: [{ type: String, required: true }],
     product_detail_status: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "ProductDetailStatus",
