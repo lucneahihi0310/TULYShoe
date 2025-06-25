@@ -14,6 +14,7 @@ import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import ManagerBrand from "./Components/Manager/ManagerBrand";
+import ManagerColor from "./Components/Manager/ManagerColor";
 
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -103,6 +104,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["manager"]}>
               <ManagerBrand />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/color"
+          element={
+            <ProtectedRoute allowedRoles={["manager"]}>
+              <ManagerColor />
             </ProtectedRoute>
           }
         />

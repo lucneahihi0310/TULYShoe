@@ -27,6 +27,8 @@ app.use('/manager', require('./routes/category.route'));
 
 app.use('/manager', require('./routes/brand.route'));
 
+app.use('/manager', require('./routes/color.route'));
+
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
     error.status = 404;
