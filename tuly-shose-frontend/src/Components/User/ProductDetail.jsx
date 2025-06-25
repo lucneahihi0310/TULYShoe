@@ -1,353 +1,398 @@
-import React, { useState } from "react";
-import {
-  Breadcrumb,
-  Button,
-  Rate,
-  Row,
-  Col,
-  Radio,
-  message,
-  Card,
-  Avatar,
-  Typography,
-  Divider,
-} from "antd";
-import { useNavigate } from 'react-router-dom';
-import styles from "../../CSS/ProductDetail.module.css";
-import { ThunderboltOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, Row, Col, Rate, Typography, Carousel, Card, Breadcrumb, Space, Tag } from 'antd';
+import { ShoppingCartOutlined, ThunderboltOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import styles from '../../CSS/ProductDetail.module.css';
 
 const { Title, Paragraph, Text } = Typography;
+
+// Mock data for product and related products
+const product = {
+  id: 1,
+  name: 'Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11',
+  price: 1350000,
+  originalPrice: 1800000,
+  discount: 25,
+  rating: 4.5,
+  reviews: 45,
+  sold: 150,
+  images: [
+    {
+      src: 'https://storage.googleapis.com/a1aa/image/755a521d-3b37-4920-dbd8-09d366639257.jpg',
+      alt: 'Nike Air Force 1 Shadow white brown gray shoe worn on foot, side view on street background',
+    },
+    {
+      src: 'https://storage.googleapis.com/a1aa/image/81ac97a5-b7e7-4163-f044-5cff7470b45e.jpg',
+      alt: 'Side view of Nike Air Force 1 Shadow white brown gray shoe on white background',
+    },
+    {
+      src: 'https://storage.googleapis.com/a1aa/image/a23ae346-db78-4539-9fcd-0e8e61238ce5.jpg',
+      alt: 'Top view of Nike Air Force 1 Shadow white brown gray shoe on white background',
+    },
+    {
+      src: 'https://storage.googleapis.com/a1aa/image/77cd1bbf-af3c-48ca-00c7-71147cef810d.jpg',
+      alt: 'Back view of Nike Air Force 1 Shadow white brown gray shoe on white background',
+    },
+    {
+      src: 'https://storage.googleapis.com/a1aa/image/98019822-c16f-4d46-450b-98697d82a45c.jpg',
+      alt: 'Side view of Nike Air Force 1 Shadow brown gray white shoe on white background',
+    },
+  ],
+  colors: [
+    { name: 'Trắng Nâu Xám', value: 'trang-nau-xam', gradient: 'linear-gradient(135deg, #FFFFFF 40%, #7B6F5B 40%, #7B6F5B 70%, #6B6B6B 70%)' },
+    { name: 'Trắng Đỏ Đen', value: 'trang-do-den', gradient: 'linear-gradient(135deg, #FFFFFF 40%, #D32F2F 40%, #D32F2F 70%, #000000 70%)' },
+    { name: 'Đen Trắng', value: 'den-trang', gradient: 'linear-gradient(135deg, #000000 40%, #FFFFFF 40%, #FFFFFF 70%, #000000 70%)' },
+    { name: 'Xám Trắng', value: 'xam-trang', gradient: 'linear-gradient(135deg, #6B6B6B 40%, #FFFFFF 40%, #FFFFFF 70%, #6B6B6B 70%)' },
+  ],
+  sizes: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
+  brand: 'Nike',
+  material: 'Da tổng hợp cao cấp, đế cao su bền bỉ',
+  colorSwatches: ['#FFFFFF', '#7B6F5B', '#6B6B6B'],
+  warranty: '12 tháng',
+  origin: 'Việt Nam',
+  description: [
+    'Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11 là phiên bản giày sneaker thời trang với thiết kế độc đáo, phối màu trắng, nâu và xám hài hòa, phù hợp cho cả nam và nữ. Được làm từ chất liệu da tổng hợp cao cấp, đế cao su bền bỉ, mang lại sự thoải mái và độ bền vượt trội khi sử dụng hàng ngày.',
+    'Đế giày được thiết kế với độ bám cao, chống trơn trượt hiệu quả. Form giày ôm chân, tạo cảm giác chắc chắn và thoải mái khi di chuyển. Đây là lựa chọn hoàn hảo cho những ai yêu thích phong cách streetwear năng động và cá tính.',
+    'Sản phẩm được bảo hành 12 tháng và cam kết chính hãng 100%. Hãy nhanh tay đặt hàng để sở hữu đôi giày thời thượng này!',
+  ],
+};
 
 const reviews = [
   {
     id: 1,
-    name: "Nguyễn Văn A",
-    avatar:
-      "https://storage.googleapis.com/a1aa/image/b4b52f6a-b8e5-4fc2-fd14-1eb9b9c84fc6.jpg",
-    rating: 5,
-    content:
-      "Giày đẹp, chất lượng tốt, đi rất êm chân. Màu sắc giống hình, shop giao hàng nhanh.",
+    name: 'Nguyễn Văn A',
+    avatar: 'https://storage.googleapis.com/a1aa/image/a9a89d02-df5d-41e0-2e0e-33e85eb5314b.jpg',
+    rating: 4.5,
+    comment: 'Giày đẹp, chất lượng tốt, đi rất êm chân. Màu sắc hài hòa, shop giao hàng nhanh.',
   },
   {
     id: 2,
-    name: "Trần Thị B",
-    avatar:
-      "https://storage.googleapis.com/a1aa/image/b8242acc-de1f-45f7-5961-236ed092b0d4.jpg",
+    name: 'Trần Thị B',
+    avatar: 'https://storage.googleapis.com/a1aa/image/c1e53cc1-013b-4056-725e-7818d58cf7c6.jpg',
     rating: 4.5,
-    content:
-      "Mình rất thích kiểu dáng và màu sắc của đôi giày này. Size chuẩn, đi thoải mái.",
+    comment: 'Mình rất thích kiểu dáng và màu sắc của đôi giày này. Size chuẩn, đi thoải mái.',
   },
   {
     id: 3,
-    name: "Lê Văn C",
-    avatar:
-      "https://storage.googleapis.com/a1aa/image/f997f8f6-98ef-43f2-fa6f-7f842b3487dc.jpg",
-    rating: 5,
-    content:
-      "Đôi giày rất đẹp, chất lượng tốt, giá cả hợp lý. Sẽ ủng hộ shop tiếp.",
+    name: 'Lê Văn C',
+    avatar: 'https://storage.googleapis.com/a1aa/image/b72c5efb-c1d3-4099-6054-7e1654f98740.jpg',
+    rating: 4.5,
+    comment: 'Đôi giày rất đẹp, chất lượng tốt, giá cả hợp lý. Sẽ ủng hộ shop tiếp.',
   },
 ];
 
 const relatedProducts = [
   {
     id: 1,
-    name: "Nike Air Max 90 Trắng Đỏ",
-    price: "1.450.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/1d4b5ac2-2721-4d9f-b490-d930af4f676a.jpg",
-    link: "#",
+    name: 'Nike Air Max 90 Trắng Đỏ',
+    image: 'https://storage.googleapis.com/a1aa/image/297f3a97-1667-462a-1094-b9ad21917b17.jpg',
+    alt: 'Nike Air Max 90 white red shoe side view on white background',
+    originalPrice: 1700000,
+    salePrice: 1450000,
+    discount: 15,
+    colors: ['trang-do-den'],
+    sizes: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
   },
   {
     id: 2,
-    name: "Nike Air Force 1 Đen Trắng",
-    price: "1.300.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/a473356e-51db-4bb6-16ad-8f1be50aaa92.jpg",
-    link: "#",
+    name: 'Nike Air Force 1 Đèn Trắng',
+    image: 'https://storage.googleapis.com/a1aa/image/7e36ada3-58af-449e-9b90-f84495c507a7.jpg',
+    alt: 'Nike Air Force 1 with glowing sole white shoe side view on black background',
+    originalPrice: 1450000,
+    salePrice: 1300000,
+    discount: 10,
+    colors: ['trang-nau-xam'],
+    sizes: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
   },
   {
     id: 3,
-    name: "Nike Blazer Mid Xám",
-    price: "1.250.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/c077e1e6-f92f-4bf1-53b7-1b2c9d5b839e.jpg",
-    link: "#",
+    name: 'Nike Blazer Mid Xám',
+    image: 'https://storage.googleapis.com/a1aa/image/19b79bee-f876-4099-aeca-36dcec3fc959.jpg',
+    alt: 'Nike Blazer Mid gray shoe side view on white background',
+    originalPrice: 1420000,
+    salePrice: 1250000,
+    discount: 12,
+    colors: ['xam-trang'],
+    sizes: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
   },
   {
     id: 4,
-    name: "Nike React Infinity Run",
-    price: "1.600.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/38afdc46-167d-4406-edf0-973fbcbd465a.jpg",
-    link: "#",
+    name: 'Nike React Infinity Run',
+    image: 'https://storage.googleapis.com/a1aa/image/0658e151-cd85-4110-4f19-fb6573b89500.jpg',
+    alt: 'Nike React Infinity Run blue shoe side view on white background',
+    originalPrice: 1730000,
+    salePrice: 1600000,
+    discount: 8,
+    colors: ['xam-trang'],
+    sizes: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
   },
 ];
 
-const ProductDetail = () => {
+function ProductDetail() {
+  const [mainImage, setMainImage] = useState(product.images[0]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [mainImage, setMainImage] = useState(
-    "https://storage.googleapis.com/a1aa/image/b94000a9-b76a-4b35-4976-a23cd3d29110.jpg"
-  );
+  const [filteredProducts, setFilteredProducts] = useState(relatedProducts);
+  const [zoomStyle, setZoomStyle] = useState({ transform: 'scale(1)', transformOrigin: 'center center' });
+  const carouselRef = useRef(null);
+  const imageContainerRef = useRef(null);
 
-  const colors = [
-    {
-      label: "Trắng Nâu Xám",
-      value: "trang-nau-xam",
-      image:
-        "https://storage.googleapis.com/a1aa/image/b94000a9-b76a-4b35-4976-a23cd3d29110.jpg",
-    },
-    {
-      label: "Trắng Đỏ Đen",
-      value: "trang-do-den",
-      image:
-        "https://storage.googleapis.com/a1aa/image/1d4b5ac2-2721-4d9f-b490-d930af4f676a.jpg",
-    },
-    {
-      label: "Đen Trắng",
-      value: "den-trang",
-      image:
-        "https://storage.googleapis.com/a1aa/image/a473356e-51db-4bb6-16ad-8f1be50aaa92.jpg",
-    },
-    {
-      label: "Xám Trắng",
-      value: "xam-trang",
-      image:
-        "https://storage.googleapis.com/a1aa/image/c077e1e6-f92f-4bf1-53b7-1b2c9d5b839e.jpg",
-    },
-  ];
-
-  const sizes = [36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
-
-  const handleAddToCart = () => {
-    if (!selectedColor) {
-      message.error("Vui lòng chọn màu giày.");
-      return;
-    }
-    if (!selectedSize) {
-      message.error("Vui lòng chọn size giày.");
-      return;
-    }
-    message.success(
-      `Đã thêm giày màu ${selectedColor} size ${selectedSize} vào giỏ hàng!`
-    );
-    navigate("/cart");
+  // Handle thumbnail click
+  const handleThumbnailClick = (image) => {
+    setMainImage(image);
   };
-const navigate = useNavigate();
-  return (
-    <div style={{ maxWidth: 1200, margin: "auto", padding: 16 }}>
-      <Breadcrumb>
-        <Breadcrumb.Item>
-          <a href="#">Trang chủ</a>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          <a href="#">Sản phẩm</a>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11
-        </Breadcrumb.Item>
-      </Breadcrumb>
 
-      <Row gutter={[32, 32]} style={{ marginTop: 24 }}>
-        <Col xs={24} md={12}>
-          <img
-            src={mainImage}
-            alt="Nike Air Force 1 Shadow"
-            style={{ width: "100%", borderRadius: 8 }}
-          />
+  // Handle color selection
+  const handleColorClick = (colorValue) => {
+    setSelectedColor(selectedColor === colorValue ? null : colorValue);
+  };
+
+  // Handle size selection
+  const handleSizeClick = (size) => {
+    setSelectedSize(selectedSize === size ? null : size);
+  };
+
+  // Handle image zoom
+  const handleMouseMove = (e) => {
+    if (imageContainerRef.current) {
+      const rect = imageContainerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const xPercent = (x / rect.width) * 100;
+      const yPercent = (y / rect.height) * 100;
+      setZoomStyle({
+        transform: 'scale(2)',
+        transformOrigin: `${xPercent}% ${yPercent}%`,
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setZoomStyle({
+      transform: 'scale(1)',
+      transformOrigin: 'center center',
+    });
+  };
+
+  // Handle add to cart
+  const handleAddToCart = (product) => {
+    console.log(`Added ${product.name} to cart`);
+    // Implement cart functionality here (e.g., dispatch to a cart context or API call)
+  };
+
+  // Filter related products
+  useEffect(() => {
+    const filtered = relatedProducts.filter((prod) => {
+      const colorMatch = selectedColor ? prod.colors.includes(selectedColor) : true;
+      const sizeMatch = selectedSize ? prod.sizes.includes(selectedSize) : true;
+      return colorMatch && sizeMatch;
+    });
+    setFilteredProducts(filtered);
+
+    // Update main product based on filters
+    if (filtered.length > 0 && (selectedColor || selectedSize)) {
+      setMainImage({ src: filtered[0].image, alt: filtered[0].alt });
+      // In a real app, update product details via API or state
+    }
+  }, [selectedColor, selectedSize]);
+
+  // Carousel navigation
+  const handlePrev = () => {
+    if (carouselRef.current) {
+      carouselRef.current.prev();
+    }
+  };
+
+  const handleNext = () => {
+    if (carouselRef.current) {
+      carouselRef.current.next();
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* Header */}
+      <header className={styles.header}>
+        <Breadcrumb>
+          <Breadcrumb.Item href="#">Trang chủ</Breadcrumb.Item>
+          <Breadcrumb.Item href="#">Sản phẩm</Breadcrumb.Item>
+          <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
+        </Breadcrumb>
+      </header>
+
+      {/* Main Content */}
+      <Row gutter={32} className={styles.main}>
+        {/* Images */}
+        <Col xs={24} lg={12}>
           <div
-            style={{
-              marginTop: 12,
-              display: "flex",
-              gap: 8,
-              overflowX: "auto",
-            }}
+            className={styles.imageContainer}
+            ref={imageContainerRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
           >
-            {colors.map((color) => (
+            <img
+              src={mainImage.src}
+              alt={mainImage.alt}
+              className={styles.mainImage}
+              style={zoomStyle}
+            />
+          </div>
+          <div className={styles.thumbnails}>
+            {product.images.slice(1).map((image, index) => (
               <img
-                key={color.value}
-                src={color.image}
-                alt={color.label}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  border:
-                    mainImage === color.image
-                      ? "2px solid #1890ff"
-                      : "1px solid #ddd",
-                }}
-                onClick={() => {
-                  setMainImage(color.image);
-                  setSelectedColor(color.value);
-                }}
+                key={index}
+                src={image.src}
+                alt={image.alt}
+                className={`${styles.thumbnail} ${mainImage.src === image.src ? styles.thumbnailSelected : ''}`}
+                onClick={() => handleThumbnailClick(image)}
               />
             ))}
           </div>
         </Col>
 
-        <Col xs={24} md={12}>
-          <Title level={2}>Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11</Title>
-          <Rate allowHalf defaultValue={4.5} disabled />
-          <Text style={{ marginLeft: 8 }}>(45 đánh giá) | Đã bán 150+</Text>
-
-          <div
-            style={{
-              marginTop: 16,
-              fontSize: 24,
-              fontWeight: "bold",
-              color: "#ff4d4f",
-            }}
-          >
-            1.350.000₫{" "}
-            <del style={{ color: "#999", marginLeft: 12 }}>1.800.000₫</del>{" "}
-            <span
-              style={{
-                backgroundColor: "#ff4d4f",
-                color: "white",
-                padding: "2px 8px",
-                borderRadius: 4,
-                fontSize: 12,
-                marginLeft: 8,
-              }}
-            >
-              Giảm 25%
-            </span>
+        {/* Product Info */}
+        <Col xs={24} lg={12} className={styles.productInfo}>
+          <Title level={3}>{product.name}</Title>
+          <Space align="center" className={styles.rating}>
+            <Rate allowHalf value={product.rating} disabled />
+            <Text>({product.reviews} đánh giá)</Text>
+            <Text>| Đã bán {product.sold}+</Text>
+          </Space>
+          <div className={styles.price}>
+            <Text className={styles.salePrice}>{product.price.toLocaleString()}₫</Text>
+            <Text delete className={styles.originalPrice}>{product.originalPrice.toLocaleString()}₫</Text>
+            <Tag color="orange">Giảm {product.discount}%</Tag>
           </div>
 
-          <div style={{ marginTop: 24 }}>
-            <Title level={4}>Chọn màu</Title>
-            <Radio.Group
-              options={colors.map((c) => ({ label: c.label, value: c.value }))}
-              onChange={(e) => {
-                setSelectedColor(e.target.value);
-                const selected = colors.find((c) => c.value === e.target.value);
-                if (selected) setMainImage(selected.image);
-              }}
-              value={selectedColor}
-              optionType="button"
-              buttonStyle="solid"
-            />
+          {/* Color Selection */}
+          <div className={styles.selection}>
+            <Text strong>Chọn màu</Text>
+            <div className={styles.colorOptions}>
+              {product.colors.map((color) => (
+                <div
+                  key={color.value}
+                  className={`${styles.colorButton} ${selectedColor === color.value ? styles.colorSelected : ''}`}
+                  style={{ background: color.gradient }}
+                  onClick={() => handleColorClick(color.value)}
+                  title={color.name}
+                />
+              ))}
+            </div>
           </div>
 
-          <div style={{ marginTop: 24 }}>
-            <Title level={4}>Chọn size</Title>
-            <Radio.Group
-              options={sizes.map((s) => ({ label: s.toString(), value: s }))}
-              onChange={(e) => setSelectedSize(e.target.value)}
-              value={selectedSize}
-              optionType="button"
-              buttonStyle="solid"
-            />
+          {/* Size Selection */}
+          <div className={styles.selection}>
+            <Text strong>Chọn size</Text>
+            <div className={styles.sizeOptions}>
+              {product.sizes.map((size) => (
+                <Button
+                  key={size}
+                  className={`${styles.sizeButton} ${selectedSize === size ? styles.sizeSelected : ''}`}
+                  onClick={() => handleSizeClick(size)}
+                >
+                  {size}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          <div className={styles.productActions}>
-            <button onClick={() => navigate("/order")}  className={styles.productButton}>
-              <ThunderboltOutlined />
+          {/* Action Buttons */}
+          <div className={styles.actions}>
+            <Button type="primary" icon={<ThunderboltOutlined />} size="large" className={styles.buyButton}>
               Mua ngay
-            </button>
-            <button
-              className={`${styles.productButton} ${styles.cart}`}
-              onClick={handleAddToCart}
-            >
-              <ShoppingCartOutlined />
+            </Button>
+            <Button icon={<ShoppingCartOutlined />} size="large" className={styles.cartButton}>
               Giỏ hàng
-            </button>
+            </Button>
           </div>
 
-          <div style={{ marginTop: 32, color: "#555" }}>
+          {/* Product Details */}
+          <div className={styles.details}>
+            <Paragraph><Text strong>Thương hiệu:</Text> {product.brand}</Paragraph>
+            <Paragraph><Text strong>Chất liệu:</Text> {product.material}</Paragraph>
             <Paragraph>
-              <b>Thương hiệu:</b> Nike
+              <Text strong>Màu sắc:</Text>
+              {product.colorSwatches.map((color, index) => (
+                <span key={index} className={styles.colorSwatch} style={{ backgroundColor: color }} />
+              ))}
             </Paragraph>
-            <Paragraph>
-              <b>Chất liệu:</b> Da tổng hợp cao cấp, đế cao su bền bỉ
-            </Paragraph>
-            <Paragraph>
-              <b>Màu sắc:</b> Trắng, nâu, xám
-            </Paragraph>
-            <Paragraph>
-              <b>Bảo hành:</b> 12 tháng
-            </Paragraph>
-            <Paragraph>
-              <b>Xuất xứ:</b> Việt Nam
-            </Paragraph>
+            <Paragraph><Text strong>Bảo hành:</Text> {product.warranty}</Paragraph>
+            <Paragraph><Text strong>Xuất xứ:</Text> {product.origin}</Paragraph>
           </div>
         </Col>
       </Row>
 
       {/* Product Description */}
-      <Divider />
-      <section>
-        <Title level={3}>Mô tả sản phẩm</Title>
-        <Paragraph>
-          Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11 là phiên bản giày sneaker
-          thời trang với thiết kế độc đáo, phối màu trắng, nâu và xám hài hòa,
-          phù hợp cho cả nam và nữ. Được làm từ chất liệu da tổng hợp cao cấp,
-          đế cao su bền bỉ, mang lại sự thoải mái và độ bền vượt trội khi sử
-          dụng hàng ngày.
-        </Paragraph>
-        <Paragraph>
-          Đế giày được thiết kế với độ bám cao, chống trơn trượt hiệu quả. Form
-          giày ôm chân, tạo cảm giác chắc chắn và thoải mái khi di chuyển. Đây
-          là lựa chọn hoàn hảo cho những ai yêu thích phong cách streetwear năng
-          động và cá tính.
-        </Paragraph>
-        <Paragraph>
-          Sản phẩm được bảo hành 12 tháng và cam kết chính hãng 100%. Hãy nhanh
-          tay đặt hàng để sở hữu đôi giày thời thượng này!
-        </Paragraph>
-      </section>
+      <div className={styles.description}>
+        <Title className={styles.titleBorder} level={3}>Mô tả sản phẩm</Title>
+        {product.description.map((para, index) => (
+          <Paragraph key={index}>{para}</Paragraph>
+        ))}
+      </div>
 
-      {/* Reviews Section */}
-      <Divider />
-      <section>
-        <Title level={3}>Đánh giá sản phẩm</Title>
-        <Row gutter={[16, 16]}>
-          {reviews.map(({ id, name, avatar, rating, content }) => (
-            <Col xs={24} md={8} key={id}>
-              <Card>
-                <Card.Meta
-                  avatar={<Avatar src={avatar} />}
-                  title={name}
-                  description={<Rate disabled defaultValue={rating} />}
-                />
-                <Paragraph style={{ marginTop: 12 }}>{content}</Paragraph>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </section>
+      {/* Reviews */}
+      <div className={styles.reviews}>
+        <Title className={styles.titleBorder} level={3}>Đánh giá sản phẩm</Title>
+        {reviews.map((review) => (
+          <Card key={review.id} className={styles.reviewCard}>
+            <div className={styles.review}>
+              <img src={review.avatar} alt={`Avatar of ${review.name}`} className={styles.avatar} />
+              <div>
+                <Text strong>{review.name}</Text>
+                <Rate allowHalf value={review.rating} disabled className={styles.reviewRating} />
+                <Paragraph>{review.comment}</Paragraph>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       {/* Related Products */}
-      <Divider />
-      <section>
-        <Title level={3}>Sản phẩm liên quan</Title>
-        <Row gutter={[16, 16]}>
-          {relatedProducts.map(({ id, name, price, image, link }) => (
-            <Col xs={12} sm={8} md={6} key={id}>
-              <Card
-                hoverable
-                cover={
-                  <img alt={name} src={image} style={{ borderRadius: 8 }} />
-                }
-                onClick={() => (window.location.href = link)}
-              >
-                <Card.Meta
-                  title={name}
-                  description={
-                    <Text strong style={{ color: "#ff4d4f" }}>
-                      {price}
-                    </Text>
-                  }
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </section>
+      <div className={styles.relatedProducts}>
+        <Title className={styles.titleBorder} level={3}>Sản phẩm liên quan</Title>
+        <div className={styles.carouselWrapper}>
+          <Button
+            icon={<LeftOutlined />}
+            onClick={handlePrev}
+            className={`${styles.carouselNav} ${styles.prev}`}
+          />
+          <Carousel ref={carouselRef} dots={false} slidesToShow={3} slidesToScroll={1} className={styles.carousel}>
+            {filteredProducts.map((prod) => (
+              <div key={prod.id} className={styles.carouselItem}>
+                <Card
+                  cover={<img src={prod.image} alt={prod.alt} className={styles.relatedImage} />}
+                  className={styles.relatedCard}
+                >
+                  <Tag color="orange" className={styles.discountTag}>-{prod.discount}%</Tag>
+                  <Card.Meta
+                    title={prod.name}
+                    description={
+                      <div className={styles.priceContainer}>
+                        <Text delete>{prod.originalPrice.toLocaleString()}₫</Text>
+                        <div className={styles.priceRow}>
+                          <Text strong className={styles.salePrice}>{prod.salePrice.toLocaleString()}₫</Text>
+                          <Button
+                            type="text"
+                            className={styles.cartIconButton}
+                            onClick={() => handleAddToCart(prod)}
+                            icon={<i className="bi bi-bag-heart"></i>}
+                          />
+                        </div>
+                      </div>
+                    }
+                  />
+                </Card>
+              </div>
+            ))}
+          </Carousel>
+          <Button
+            icon={<RightOutlined />}
+            onClick={handleNext}
+            className={`${styles.carouselNav} ${styles.next}`}
+          />
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export default ProductDetail;
