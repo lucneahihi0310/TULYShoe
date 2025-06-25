@@ -6,6 +6,7 @@ import ManagerColor from './ManagerColor';
 import ManagerForm from './ManagerForm';
 import ManagerMaterial from './ManagerMaterial';
 import ManagerSize from './ManagerSize';
+import ManagerProduct from './ManagerProduct';
 
 
 const ManagerDashboardContent = () => {
@@ -24,7 +25,8 @@ const ManagerDashboardContent = () => {
             return <ManagerMaterial />;
         case 'sizes':
             return <ManagerSize />;
-
+        case 'products':
+            return <ManagerProduct />
         default:
             return <div>Welcome to Manager Dashboard</div>;
     }

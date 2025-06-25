@@ -10,7 +10,8 @@ const ManagerSidebar = () => {
         { key: 'colors', label: 'Color Management' },
         { key: 'forms', label: 'Form Management' },
         { key: 'materials', label: 'Material Management' },
-        { key: 'sizes', label: 'Size Management' }
+        { key: 'sizes', label: 'Size Management' },
+        { key: 'products', label: 'Product Management' }
     ];
 
     return (
