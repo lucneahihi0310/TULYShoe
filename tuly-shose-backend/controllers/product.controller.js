@@ -33,18 +33,23 @@ exports.list_product = async (req, res, next) => {
     }
 }
 
-// exports.create_brand = async (req, res, next) => {
-//     try {
-//         const newBrand = new brand({
-//             brand_name: req.body.brand_name,
-//             is_active: req.body.is_active
-//         })
-//         const insertBrand = await newBrand.save();
-//         res.status(201).json(insertBrand);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
+exports.create_product = async (req, res, next) => {
+    try {
+        const newProduct = new product({
+            productName: req.body.productName,
+            description: req.body.description,
+            price: req.body.price,
+            categories_id: req.body.categories_id,
+            brand_id: req.body.brand_id,
+            material_id: req.body.material_id,
+            form_id: req.body.form_id
+        })
+        const insertProduct = await newProduct.save();
+        res.status(201).json(insertProduct);
+    } catch (error) {
+        next(error);
+    }
+}
 
 // exports.edit_brand = async (req, res, next) => {
 //     try {
