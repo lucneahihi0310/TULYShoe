@@ -30,10 +30,12 @@ const productSchema = new mongoose.Schema({
         ref: "form"
     },
     create_at: {
-        type: Date
+        type: String,
+        default: () => new Date().toISOString()
     },
     update_at: {
-        type: Date
+        type: String,
+        default: () => new Date().toISOString()
     }
 }, { collection: "products" });
 
