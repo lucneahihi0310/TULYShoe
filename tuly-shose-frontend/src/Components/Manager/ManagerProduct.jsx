@@ -4,7 +4,13 @@ import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant
 import axios from 'axios';
 
 const ManagerProduct = () => {
+    // State lưu danh sách dữ liệu tham chiếu từ các bảng liên quan
     const [categories, setCategories] = useState([]);
+    const [categories_2, setCategories_2] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [materials, setMaterials] = useState([]);
+    const [forms, setForms] = useState([]);
+    //
     const [edittingRow, setEdittingRow] = useState(null);
     const [filterCategoryName, setFilterCategoryName] = useState("");
     const [filterCategoryStatus, setFilterCategoryStatus] = useState(undefined);
@@ -60,10 +66,34 @@ const ManagerProduct = () => {
     //fetch data và filter category
     useEffect(() => {
         fetchCategories();
+        fetchCategories_2();
+        fetchBrands();
+        fetchMaterials();
+        fetchForms()
     }, [])
     const fetchCategories = async () => {
         const res = await axios.get(`http://localhost:9999/manager/products`);
         setCategories(res.data);
+        console.log('a');
+    }
+    const fetchCategories_2 = async () => {
+        const res = await axios.get(`http://localhost:9999/manager/categories`);
+        setCategories_2(res.data);
+        console.log('a');
+    }
+    const fetchBrands = async () => {
+        const res = await axios.get(`http://localhost:9999/manager/brands`);
+        setBrands(res.data);
+        console.log('a');
+    }
+    const fetchMaterials = async () => {
+        const res = await axios.get(`http://localhost:9999/manager/materials`);
+        setMaterials(res.data);
+        console.log('a');
+    }
+    const fetchForms = async () => {
+        const res = await axios.get(`http://localhost:9999/manager/forms`);
+        setForms(res.data);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
@@ -448,9 +478,11 @@ const ManagerProduct = () => {
                             // onFinish={async (values) => {
                             //     try {
                             //         console.log(values);
-                            //         await axios.post('http://localhost:9999/manager/categories/create', {
-                            //             category_name: values.category_name,
-                            //             is_active: values.is_active
+                            //         await axios.post('http://localhost:9999/manager/products/create', {
+                            //             productName: values.productName,
+                            //             description: values.description,
+                            //             categories_id: values.categories_id,
+
                             //         });
                             //         form2.resetFields();
                             //         setAddCategory(false);
@@ -514,10 +546,10 @@ const ManagerProduct = () => {
                                     //     { label: 'Active', value: true },
                                     //     { label: 'Inactive', value: false }
                                     // ]}
-                                    options={categories.map((p) => {
+                                    options={categories_2.map((p,index) => {
                                         return {
-                                            label: p.categories_id.category_name,
-                                            value: p.categories_id._id
+                                            label: p.category_name,
+                                            value: index
                                         }
                                     })}
                                 />
@@ -534,10 +566,10 @@ const ManagerProduct = () => {
                                     //     { label: 'Active', value: true },
                                     //     { label: 'Inactive', value: false }
                                     // ]}
-                                    options={categories.map((p) => {
+                                    options={brands.map((p) => {
                                         return {
-                                            label: p.brand_id.brand_name,
-                                            value: p.brand_id._id
+                                            label: p.brand_name,
+                                            value: p._id
                                         }
                                     })}
                                 />
@@ -554,10 +586,10 @@ const ManagerProduct = () => {
                                     //     { label: 'Active', value: true },
                                     //     { label: 'Inactive', value: false }
                                     // ]}
-                                    options={categories.map((p) => {
+                                    options={materials.map((p) => {
                                         return {
-                                            label: p.material_id.material_name,
-                                            value: p.material_id._id
+                                            label: p.material_name,
+                                            value: p._id
                                         }
                                     })}
                                 />
@@ -574,10 +606,10 @@ const ManagerProduct = () => {
                                     //     { label: 'Active', value: true },
                                     //     { label: 'Inactive', value: false }
                                     // ]}
-                                    options={categories.map((p) => {
+                                    options={forms.map((p) => {
                                         return {
-                                            label: p.form_id.form_name,
-                                            value: p.form_id._id
+                                            label: p.form_name,
+                                            value: p._id
                                         }
                                     })}
                                 />
