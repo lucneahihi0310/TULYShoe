@@ -475,26 +475,29 @@ const ManagerProduct = () => {
                             labelWrap
                             wrapperCol={{ flex: 1 }}
                             colon={false}
-                            // onFinish={async (values) => {
-                            //     try {
-                            //         console.log(values);
-                            //         await axios.post('http://localhost:9999/manager/products/create', {
-                            //             productName: values.productName,
-                            //             description: values.description,
-                            //             categories_id: values.categories_id,
-
-                            //         });
-                            //         form2.resetFields();
-                            //         setAddCategory(false);
-                            //         fetchCategories();
-                            //     } catch (error) {
-                            //         console.log(error)
-                            //     }
-                            // }}
-
-                            onFinish={(values) => {
-                                console.log(values)
+                            onFinish={async (values) => {
+                                try {
+                                    console.log(values);
+                                    await axios.post('http://localhost:9999/manager/products/create', {
+                                        productName: values.productName,
+                                        description: values.description,
+                                        price: values.price,
+                                        categories_id: values.categories_id,
+                                        brand_id: values.brand_id,
+                                        material_id: values.material_id,
+                                        form_id: values.form_id
+                                    });
+                                    form2.resetFields();
+                                    setAddCategory(false);
+                                    fetchCategories();
+                                } catch (error) {
+                                    console.log(error)
+                                }
                             }}
+
+                            // onFinish={(values) => {
+                            //     console.log(values)
+                            // }}
                         >
                             <Form.Item
                                 label="Product name"
@@ -546,10 +549,10 @@ const ManagerProduct = () => {
                                     //     { label: 'Active', value: true },
                                     //     { label: 'Inactive', value: false }
                                     // ]}
-                                    options={categories_2.map((p,index) => {
+                                    options={categories_2.map((p) => {
                                         return {
                                             label: p.category_name,
-                                            value: index
+                                            value: p._id
                                         }
                                     })}
                                 />
