@@ -11,6 +11,7 @@ const productSchema = new mongoose.Schema({
     },
     brand_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
     material_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Material', required: true },
+    gender_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Gender', required: true },
     form_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Form', required: true },
     create_at: { type: Date },
     update_at: { type: Date }

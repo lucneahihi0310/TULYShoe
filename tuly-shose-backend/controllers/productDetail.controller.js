@@ -1,4 +1,4 @@
-const ProductDetail = require("../models/productDetail.modle");
+const ProductDetail = require("./../models/productDetail.model");
 const Product = require("../models/product.model");
 
 exports.getAllProductDetails = async (req, res) => {

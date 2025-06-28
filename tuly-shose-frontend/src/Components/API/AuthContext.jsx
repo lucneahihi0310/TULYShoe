@@ -5,6 +5,24 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  const syncGuestCart = async (userId) => {
+    const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+    for (let item of guestCart) {
+      try {
+        await fetch("http://localhost:9999/cartItem", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...item, user_id: userId }),
+        });
+      } catch (err) {
+        console.error("Lỗi khi đồng bộ giỏ hàng:", err);
+      }
+    }
+    localStorage.removeItem("guest_cart");
+  };
+
   const fetchUser = async () => {
     let token = localStorage.getItem("token") || sessionStorage.getItem("token");
     const expiresAt = localStorage.getItem("expires_at");
@@ -31,6 +49,7 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       if (res.ok) {
         setUser(data);
+        await syncGuestCart(data._id); // ✅ Đồng bộ khi user xác thực thành công
       } else {
         setUser(null);
         localStorage.removeItem("token");
