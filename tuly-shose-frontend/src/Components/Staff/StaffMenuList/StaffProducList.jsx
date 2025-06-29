@@ -277,20 +277,6 @@ const styles = {
   },
   
 
-  spinner: {
-    border: "4px solid #f3f3f3",
-    borderTop: "4px solid #3498db",
-    borderRadius: "50%",
-    width: 40,
-    height: 40,
-    animation: "spin 1s linear infinite",
-  },
-
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-
   // Thêm animation keyframes
   loadingWrapper: {
   display: "flex",
