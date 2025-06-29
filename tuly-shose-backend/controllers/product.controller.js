@@ -23,7 +23,7 @@ exports.getFilteredProducts = async (req, res) => {
     if (search) {
       matchStage.$or = [
         { productName: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -113,6 +113,7 @@ exports.getFilteredProducts = async (req, res) => {
           _id: 1,
           productName: 1,
           description: 1,
+          title: 1,
           price: 1,
           detail: 1,
         },

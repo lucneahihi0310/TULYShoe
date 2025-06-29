@@ -48,7 +48,7 @@ exports.getReviewsByProductDetailId = async (req, res) => {
 
     res.json(reviews);
   } catch (error) {
-    console.error("❌ Lỗi khi lấy review:", error);
+    console.error("Lỗi khi lấy review:", error);
     res.status(500).json({ message: "Lỗi khi lấy đánh giá", error: error.message });
   }
 };

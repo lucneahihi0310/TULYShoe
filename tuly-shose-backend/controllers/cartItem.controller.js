@@ -21,7 +21,20 @@ exports.getCartItemById = async (req, res) => {
 exports.getCartItemsByUserId = async (req, res) => {
     try {
         const userId = req.params.userId;
-        const cartItems = await CartItem.find({ user_id: userId });
+
+        const cartItems = await CartItem.find({ user_id: userId })
+            .populate({
+                path: "pdetail_id",
+                populate: [
+                    { path: "size_id", select: "size_name" },
+                    { path: "color_id", select: "color_code" },
+                    {
+                        path: "product_id",
+                        select: "productName title",
+                    },
+                ],
+                select: "images price_after_discount size_id color_id product_id",
+            });
 
         res.json(cartItems);
     } catch (error) {
@@ -31,6 +44,7 @@ exports.getCartItemsByUserId = async (req, res) => {
         });
     }
 };
+
 
 exports.addCartItem = async (req, res) => {
     try {
@@ -66,5 +80,32 @@ exports.addCartItem = async (req, res) => {
             message: "Lỗi khi thêm sản phẩm vào giỏ hàng",
             error: error.message
         });
+    }
+};
+// Cập nhật số lượng
+exports.updateCartItemQuantity = async (req, res) => {
+    try {
+        const { quantity } = req.body;
+        const cartItem = await CartItem.findById(req.params.id);
+        if (!cartItem) return res.status(404).json({ message: "Không tìm thấy mục giỏ hàng" });
+
+        cartItem.quantity = quantity > 0 ? quantity : 1;
+        cartItem.update_at = new Date();
+        await cartItem.save();
+
+        res.json({ message: "Cập nhật thành công", data: cartItem });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi cập nhật", error: error.message });
+    }
+};
+
+// Xóa mục giỏ hàng
+exports.deleteCartItem = async (req, res) => {
+    try {
+        const deleted = await CartItem.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ message: "Không tìm thấy mục để xóa" });
+        res.json({ message: "Đã xóa khỏi giỏ hàng" });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi xóa", error: error.message });
     }
 };

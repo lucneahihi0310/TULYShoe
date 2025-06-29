@@ -243,11 +243,11 @@ const Header = () => {
           items={[
             { key: "nike", label: "NIKE" },
             { key: "adidas", label: "ADIDAS" },
-            { key: "other", label: "HÃNG KHÁC" },
+            { key: "products", label: "SẢN PHẨM" },
             { key: "bestseller", label: "BÁN CHẠY" },
           ]}
           onClick={({ key }) => {
-            if (key === "other") {
+            if (key === "products") {
               navigate("/products");
             }
           }}

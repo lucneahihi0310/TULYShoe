@@ -7,6 +7,7 @@ const Form = require("./form.model");
 
 const productSchema = new mongoose.Schema({
     productName: { type: String, required: true },
+    title: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
     categories_id: {

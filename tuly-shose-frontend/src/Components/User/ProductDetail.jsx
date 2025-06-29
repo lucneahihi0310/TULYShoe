@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Button,
@@ -28,6 +28,7 @@ const { Title, Paragraph, Text } = Typography;
 
 function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const carouselRef = useRef(null);
   const imageContainerRef = useRef(null);
   const { user } = useContext(AuthContext);
@@ -42,6 +43,7 @@ function ProductDetail() {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [zoomStyle, setZoomStyle] = useState({
     transform: "scale(1)",
     transformOrigin: "center center",
@@ -50,6 +52,7 @@ function ProductDetail() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true); // Bắt đầu loading
         const resDetail = await axios.get(
           `http://localhost:9999/productDetail/${id}`
         );
@@ -66,7 +69,6 @@ function ProductDetail() {
         );
         setReviews(resReviews.data);
 
-        // Call updated related API (material OR form)
         const resRelated = await axios.get(
           `http://localhost:9999/productDetail/related/${id}`
         );
@@ -76,24 +78,25 @@ function ProductDetail() {
         setSelectedSize(resDetail.data.size_id._id);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false); // Kết thúc loading
+        window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll lên đầu trang
       }
     };
     fetchData();
   }, [id]);
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
   const handleColorClick = async (colorId) => {
     setSelectedColor(colorId);
     const match = variants.find(
       (v) => v.color_id[0]._id === colorId && v.size_id._id === selectedSize
     );
     if (match) {
-      const res = await axios.get(
-        `http://localhost:9999/productDetail/${match._id}`
-      );
-      setProductDetail(res.data);
-      setMainImage(res.data.images[0]);
+      navigate(`/products/${match._id}`);
     }
   };
 
@@ -103,11 +106,7 @@ function ProductDetail() {
       (v) => v.size_id._id === sizeId && v.color_id[0]._id === selectedColor
     );
     if (match) {
-      const res = await axios.get(
-        `http://localhost:9999/productDetail/${match._id}`
-      );
-      setProductDetail(res.data);
-      setMainImage(res.data.images[0]);
+      navigate(`/products/${match._id}`);
     }
   };
 
@@ -126,6 +125,7 @@ function ProductDetail() {
   const handleMouseLeave = () => {
     setZoomStyle({ transform: "scale(1)", transformOrigin: "center center" });
   };
+
   const handleAddToCart = async () => {
     const cartItem = {
       pdetail_id: productDetail._id,
@@ -174,11 +174,13 @@ function ProductDetail() {
       notifyAddSuccess();
     }
   };
+
   const formatVND = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
+
   const handleAddRelatedToCart = async (prod) => {
     try {
       const cartItem = {
@@ -233,7 +235,13 @@ function ProductDetail() {
   const handlePrev = () => carouselRef.current?.prev();
   const handleNext = () => carouselRef.current?.next();
 
-  if (!productDetail || !productDetail.product_id) return <Spin fullscreen />;
+  if (loading || !productDetail || !productDetail.product_id) {
+    return (
+      <div className={styles.loadingWrapper}>
+        <Spin size="large" tip="Đang tải dữ liệu sản phẩm..." />
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
@@ -283,7 +291,7 @@ function ProductDetail() {
           </Space>
 
           <div className={styles.price}>
-            {productDetail.product_id.discount_percent > 0 ? (
+            {productDetail.discount_id?.percent_discount > 0 ? (
               <>
                 <Text className={styles.salePrice}>
                   {formatVND(productDetail.price_after_discount)}
@@ -292,7 +300,7 @@ function ProductDetail() {
                   {formatVND(productDetail.product_id.price)}
                 </Text>
                 <Tag color="orange">
-                  Giảm {productDetail.product_id.discount_percent}%
+                  Giảm {productDetail.discount_id.percent_discount}%
                 </Tag>
               </>
             ) : (
@@ -426,147 +434,163 @@ function ProductDetail() {
         <Title level={3} className={styles.titleBorder}>
           Đánh giá sản phẩm
         </Title>
-        {(showAllReviews ? reviews : reviews.slice(0, 3)).map((r) => (
-          <Card key={r._id} className={styles.reviewCard}>
-            <div className={styles.review}>
-              <img src={r.user_id?.avatar_image} className={styles.avatar} />
-              <div>
-                <Text strong>
-                  {r.user_id?.first_name} {r.user_id?.last_name}
-                </Text>
-                <div>
-                  <Rate
-                    value={r.rating}
-                    allowHalf
-                    disabled
-                    className={styles.reviewRating}
-                  />
-                </div>
-                <Paragraph>{r.review_content}</Paragraph>
-              </div>
-            </div>
 
-            {r.replies.length > 0 &&
-              r.replies.map((rep) => (
-                <div key={rep._id} className={styles.reply}>
+        {reviews.length === 0 ? (
+          <Paragraph style={{ padding: "12px 0", color: "#888" }}>
+            Chưa có đánh giá nào cho sản phẩm này.
+          </Paragraph>
+        ) : (
+          <>
+            {(showAllReviews ? reviews : reviews.slice(0, 3)).map((r) => (
+              <Card key={r._id} className={styles.reviewCard}>
+                <div className={styles.review}>
                   <img
-                    src={rep.replier_id?.avatar_image}
-                    className={styles.replyAvatar}
+                    src={r.user_id?.avatar_image}
+                    className={styles.avatar}
                   />
-                  <div className={styles.replyContent}>
+                  <div>
                     <Text strong>
-                      {rep.replier_id?.first_name} {rep.replier_id?.last_name}:
-                    </Text>{" "}
-                    {rep.reply_content}
+                      {r.user_id?.first_name} {r.user_id?.last_name}
+                    </Text>
+                    <div>
+                      <Rate
+                        value={r.rating}
+                        allowHalf
+                        disabled
+                        className={styles.reviewRating}
+                      />
+                    </div>
+                    <Paragraph>{r.review_content}</Paragraph>
                   </div>
                 </div>
-              ))}
-          </Card>
-        ))}
 
-        {reviews.length > 3 && (
-          <div className={styles.toggleReview}>
-            <Button
-              type="link"
-              onClick={() => setShowAllReviews(!showAllReviews)}
-            >
-              {showAllReviews ? "Ẩn bớt" : "Xem thêm đánh giá"}
-            </Button>
-          </div>
+                {r.replies.length > 0 &&
+                  r.replies.map((rep) => (
+                    <div key={rep._id} className={styles.reply}>
+                      <img
+                        src={rep.replier_id?.avatar_image}
+                        className={styles.replyAvatar}
+                      />
+                      <div className={styles.replyContent}>
+                        <Text strong>
+                          {rep.replier_id?.first_name}{" "}
+                          {rep.replier_id?.last_name}:
+                        </Text>{" "}
+                        {rep.reply_content}
+                      </div>
+                    </div>
+                  ))}
+              </Card>
+            ))}
+
+            {reviews.length > 3 && (
+              <div className={styles.toggleReview}>
+                <Button
+                  type="link"
+                  onClick={() => setShowAllReviews(!showAllReviews)}
+                >
+                  {showAllReviews ? "Ẩn bớt" : "Xem thêm đánh giá"}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      <div className={styles.relatedProducts}>
-        <Title level={3} className={styles.titleBorder}>
-          Sản phẩm liên quan
-        </Title>
-        <div className={styles.carouselWrapper}>
-          <Button
-            icon={<LeftOutlined />}
-            onClick={handlePrev}
-            className={`${styles.carouselNav} ${styles.prev}`}
-          />
-          <Carousel
-            ref={carouselRef}
-            dots={false}
-            slidesToShow={3}
-            slidesToScroll={1}
-            className={styles.carousel}
-          >
-            {related.map((prod) => (
-              <div key={prod._id} className={styles.carouselItem}>
-                <div className={styles.sameHeightWrapper}>
-                  <Card
-                    hoverable
-                    cover={
-                      <img
-                        src={prod.images[0]}
-                        alt={prod.product_id.productName}
-                        className={styles.relatedImage}
-                      />
-                    }
-                    className={styles.relatedCard}
-                  >
-                    {prod.discount_id.percent_discount > 0 && (
-                      <Tag color="orange" className={styles.discountTag}>
-                        -{prod.discount_id.percent_discount}%
-                      </Tag>
-                    )}
-
-                    <Card.Meta
-                      title={prod.product_id.productName}
-                      description={
-                        <>
-                          <Paragraph ellipsis={{ rows: 2 }}>
-                            {prod.product_id.description}
-                          </Paragraph>
-
-                          {prod.discount_id.percent_discount > 0 ? (
-                            <div className={styles.priceContainer}>
-                              <Text className={styles.originalPrice} delete>
-                                {formatVND(prod.product_id.price)}
-                              </Text>
-                              <div className={styles.priceRow}>
-                                <Text strong className={styles.salePrice}>
-                                  {formatVND(prod.price_after_discount)}
-                                </Text>
-                                <Button
-                                  type="text"
-                                  className={styles.cartIconButton}
-                                  icon={<ShoppingCartOutlined />}
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className={styles.priceContainer}>
-                              <div className={styles.priceRow}>
-                                <Text strong className={styles.salePrice}>
-                                  {formatVND(prod.product_id.price)}
-                                </Text>
-                                <Button
-                                  type="text"
-                                  className={styles.cartIconButton}
-                                  icon={<ShoppingCartOutlined />}
-                                  onClick={() => handleAddRelatedToCart(prod)}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </>
+      {related.length > 0 && (
+        <div className={styles.relatedProducts}>
+          <Title level={3} className={styles.titleBorder}>
+            Sản phẩm liên quan
+          </Title>
+          <div className={styles.carouselWrapper}>
+            <Button
+              icon={<LeftOutlined />}
+              onClick={handlePrev}
+              className={`${styles.carouselNav} ${styles.prev}`}
+            />
+            <Carousel
+              ref={carouselRef}
+              dots={false}
+              slidesToShow={3}
+              slidesToScroll={1}
+              className={styles.carousel}
+            >
+              {related.map((prod) => (
+                <div
+                  key={prod._id}
+                  className={styles.carouselItem}
+                  onClick={() => navigate(`/products/${prod._id}`)}
+                >
+                  <div className={styles.sameHeightWrapper}>
+                    <Card
+                      hoverable
+                      cover={
+                        <img
+                          src={prod.images[0]}
+                          alt={prod.product_id.productName}
+                          className={styles.relatedImage}
+                        />
                       }
-                    />
-                  </Card>
+                      className={styles.relatedCard}
+                    >
+                      {prod.discount_id.percent_discount > 0 && (
+                        <Tag color="orange" className={styles.discountTag}>
+                          -{prod.discount_id.percent_discount}%
+                        </Tag>
+                      )}
+                      <Card.Meta
+                        title={prod.product_id.productName}
+                        description={
+                          <>
+                            <Paragraph ellipsis={{ rows: 2 }}>
+                              {prod.product_id.description}
+                            </Paragraph>
+                            <div className={styles.priceContainer}>
+                              <div className={styles.priceRow}>
+                                {prod.discount_id.percent_discount > 0 ? (
+                                  <>
+                                    <Text
+                                      delete
+                                      className={styles.originalPrice}
+                                    >
+                                      {formatVND(prod.product_id.price)}
+                                    </Text>
+                                    <Text strong className={styles.salePrice}>
+                                      {formatVND(prod.price_after_discount)}
+                                    </Text>
+                                  </>
+                                ) : (
+                                  <Text strong className={styles.salePrice}>
+                                    {formatVND(prod.product_id.price)}
+                                  </Text>
+                                )}
+                                <Button
+                                  type="text"
+                                  className={styles.cartIconButton}
+                                  icon={<ShoppingCartOutlined />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddRelatedToCart(prod);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </>
+                        }
+                      />
+                    </Card>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </Carousel>
-          <Button
-            icon={<RightOutlined />}
-            onClick={handleNext}
-            className={`${styles.carouselNav} ${styles.next}`}
-          />
+              ))}
+            </Carousel>
+            <Button
+              icon={<RightOutlined />}
+              onClick={handleNext}
+              className={`${styles.carouselNav} ${styles.next}`}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

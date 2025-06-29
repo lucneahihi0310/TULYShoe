@@ -156,11 +156,11 @@ function ListProduct() {
     <main className={`${styles.main} ${isVisible ? styles.fadeIn : ""}`}>
       <section className={styles.hero}>
         <Title level={1}>
-          Discover Sneakers at{" "}
+          Khám phá phong cách của bạn tại{" "}
           <span className={styles.highlight}>TULY Shoe</span>
         </Title>
         <Paragraph>
-          Find your perfect pair of sneakers from our stylish collection.
+          Tìm đôi giày hoàn hảo của bạn từ bộ sưu tập thời trang của chúng tôi.
         </Paragraph>
       </section>
 
@@ -168,7 +168,7 @@ function ListProduct() {
         <Row gutter={[16, 16]}>
           <Col xs={24} md={4}>
             <Select
-              placeholder="Category"
+              placeholder="Thể loại"
               value={filters.category || undefined}
               onChange={(val) => handleFilterChange("category", val)}
               style={{ width: "100%" }}
@@ -183,7 +183,7 @@ function ListProduct() {
           </Col>
           <Col xs={24} md={4}>
             <Select
-              placeholder="Brand"
+              placeholder="Thương hiệu"
               value={filters.brand || undefined}
               onChange={(val) => handleFilterChange("brand", val)}
               style={{ width: "100%" }}
@@ -198,7 +198,7 @@ function ListProduct() {
           </Col>
           <Col xs={24} md={4}>
             <Select
-              placeholder="Material"
+              placeholder="Chất liệu"
               value={filters.material || undefined}
               onChange={(val) => handleFilterChange("material", val)}
               style={{ width: "100%" }}
@@ -213,7 +213,7 @@ function ListProduct() {
           </Col>
           <Col xs={24} md={4}>
             <Select
-              placeholder="Gender"
+              placeholder="Giới tính"
               value={filters.gender || undefined}
               onChange={(val) => handleFilterChange("gender", val)}
               style={{ width: "100%" }}
@@ -295,7 +295,7 @@ function ListProduct() {
                         description={
                           <>
                             <Paragraph ellipsis={{ rows: 2 }}>
-                              {product.description}
+                              {product.title}
                             </Paragraph>
                             <div className={styles.priceAndCartContainer}>
                               <div className={styles.priceContainer}>
