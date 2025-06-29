@@ -16,7 +16,7 @@ const categorySchema = new mongoose.Schema({
         type: String,
         default: () => new Date().toISOString()
     }
-}, { collection: "categories" });
+});
 
-const category = mongoose.model('category', categorySchema);
-module.exports = category;
+const Category = mongoose.model('Category', categorySchema, 'categories');
+module.exports = Category;

@@ -1,4 +1,5 @@
-const Review = require("../");
+const Review = require("../models/review.modle");
+const OrderDetail = require("../models/oderDetail.model");
 
 exports.getAllReviews = async (req, res) => {
     try {
@@ -23,3 +24,32 @@ exports.getReviewById = async (req, res) => {
         res.status(500).json({ message: "Error fetching review", error: error.message });
     }
 }
+
+exports.getReviewsByProductDetailId = async (req, res) => {
+  try {
+    const productDetailId = req.params.detailId;
+
+    const orderDetails = await OrderDetail.find({
+      productdetail_id: productDetailId,
+    }).select("_id");
+
+    const orderDetailIds = orderDetails.map((od) => od._id);
+
+    if (!orderDetailIds.length) {
+      return res.status(200).json([]); // Không có đơn hàng nào
+    }
+
+    const reviews = await Review.find({
+      ordetail_id: { $in: orderDetailIds },
+      is_approved: true,
+    })
+      .populate("user_id", "first_name last_name avatar_image")
+      .populate("replies.replier_id", "first_name last_name avatar_image");
+
+    res.json(reviews);
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy review:", error);
+    res.status(500).json({ message: "Lỗi khi lấy đánh giá", error: error.message });
+  }
+};
+

@@ -1,4 +1,9 @@
 const mongoose = require("mongoose");
+const Product = require("./product.model");
+const Color = require("./color.model");
+const Size = require("./size.model");
+const Discount = require("./discounts.model");
+const ProductDetailStatus = require("./productDetailStatus.model");
 
 const productDetailSchema = new mongoose.Schema({
 
@@ -23,6 +28,7 @@ const productDetailSchema = new mongoose.Schema({
         required: true,
     },
     inventory_number: { type: Number, required: true },
+    sold_number: { type: Number, required: true },
     price_after_discount: { type: Number, required: true },
     images: [{ type: String, required: true }],
     product_detail_status: {

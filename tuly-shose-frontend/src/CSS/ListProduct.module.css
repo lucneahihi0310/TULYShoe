@@ -196,3 +196,19 @@
   font-size: 18px;
   margin-top: 48px;
 }
+
+.flexRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.sameHeightCol {
+  display: flex;
+}
+
+.sameHeightCard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   Row,
@@ -21,6 +22,7 @@ function ListProduct() {
   const [products, setProducts] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({
     category: "",
     brand: "",
@@ -247,7 +249,7 @@ function ListProduct() {
         {loading ? (
           <Spin />
         ) : (
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 16]} className={styles.flexRow}>
             {products.length === 0 ? (
               <Paragraph>Không tìm thấy sản phẩm nào.</Paragraph>
             ) : (
@@ -255,14 +257,15 @@ function ListProduct() {
                 const hasDiscount = product.detail?.discount_percent > 0;
 
                 return (
-                  <Col xs={24} sm={12} md={8} lg={6} key={product._id}>
+                  <Col xs={24} sm={12} md={8} lg={6} key={product._id} className={styles.sameHeightCol}>
                     <Card
                       hoverable
+                      onClick={() => navigate(`/products/${product.detail._id}`)}
                       cover={
                         <img
                           alt={product.productName}
                           src={product.detail?.images?.[0]}
-                          className={styles.productImage}
+                          className={`${styles.productImage} ${styles.sameHeightCard}`}
                         />
                       }
                     >

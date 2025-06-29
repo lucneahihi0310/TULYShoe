@@ -16,7 +16,7 @@ const materialSchema = new mongoose.Schema({
         type: String,
         default: () => new Date().toISOString()
     }
-}, { collection: "materials" });
+});
 
-const material = mongoose.model('material', materialSchema);
+const material = mongoose.model('Material', materialSchema, 'materials');
 module.exports = material;

@@ -31,6 +31,7 @@ app.use('/orders', require('./routes/order.route'));
 app.use('/orderDetail', require('./routes/orderDetail.route'));
 app.use('/cartItem', require('./routes/cartItem.route'));
 app.use('/api/filters', require('./routes/filter.route'));
+app.use('/reviews', require('./routes/review.route'));
 
 app.use('/manager', require('./routes/category.route'));
 

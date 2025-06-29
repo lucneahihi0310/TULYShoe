@@ -1,4 +1,9 @@
 const mongoose = require("mongoose");
+const Category = require("./category.model");
+const Brand = require("./brand.model");
+const Material = require("./material.model");
+const Gender = require("./gender.model");
+const Form = require("./form.model");
 
 const productSchema = new mongoose.Schema({
     productName: { type: String, required: true },

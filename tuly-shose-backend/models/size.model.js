@@ -16,7 +16,7 @@ const sizeSchema = new mongoose.Schema({
         type: String,
         default: () => new Date().toISOString()
     }
-}, { collection: "sizes" });
+});
 
-const size = mongoose.model('size', sizeSchema);
+const size = mongoose.model('Size', sizeSchema, 'sizes');
 module.exports = size;

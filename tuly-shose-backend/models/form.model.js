@@ -16,7 +16,6 @@ const formSchema = new mongoose.Schema({
         type: String,
         default: () => new Date().toISOString()
     }
-}, { collection: "forms" });
+});
 
-const form = mongoose.model('form', formSchema);
-module.exports = form;
+module.exports = mongoose.model('Form', formSchema, 'forms');
