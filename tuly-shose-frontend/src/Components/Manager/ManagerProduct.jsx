@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
 
@@ -17,6 +17,7 @@ const ManagerProduct = () => {
     const [addCategory, setAddCategory] = useState(false);
     const [form] = Form.useForm();
     const [form2] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
 
     //show add category
     const showAddCategoryModal = () => {
@@ -490,14 +491,23 @@ const ManagerProduct = () => {
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
+                                    // message.success({
+                                    //     content: "Add product successfully!",
+                                    //     duration: 2
+                                    // })
+                                    // message.success("Add product successfully!");
+                                    messageApi.open({
+                                        type: 'success',
+                                        content: 'This is a success message',
+                                    });
                                 } catch (error) {
                                     console.log(error)
                                 }
                             }}
 
-                            // onFinish={(values) => {
-                            //     console.log(values)
-                            // }}
+                        // onFinish={(values) => {
+                        //     console.log(values)
+                        // }}
                         >
                             <Form.Item
                                 label="Product name"
