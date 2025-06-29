@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
   Button,
@@ -13,6 +13,7 @@ import {
   Tag,
   Spin,
   Modal,
+  notification,
 } from "antd";
 import {
   ShoppingCartOutlined,
@@ -21,14 +22,15 @@ import {
   RightOutlined,
 } from "@ant-design/icons";
 import styles from "../../CSS/ProductDetail.module.css";
+import { AuthContext } from "../API/AuthContext";
 
 const { Title, Paragraph, Text } = Typography;
 
 function ProductDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const carouselRef = useRef(null);
   const imageContainerRef = useRef(null);
+  const { user } = useContext(AuthContext);
 
   const [productDetail, setProductDetail] = useState(null);
   const [variants, setVariants] = useState([]);
@@ -37,7 +39,7 @@ function ProductDetail() {
   const [mainImage, setMainImage] = useState(null);
   const [isSizeGuideVisible, setIsSizeGuideVisible] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-
+  const [isVisible, setIsVisible] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [zoomStyle, setZoomStyle] = useState({
@@ -78,21 +80,35 @@ function ProductDetail() {
     };
     fetchData();
   }, [id]);
-
-  const handleColorClick = (colorId) => {
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+  const handleColorClick = async (colorId) => {
     setSelectedColor(colorId);
     const match = variants.find(
       (v) => v.color_id[0]._id === colorId && v.size_id._id === selectedSize
     );
-    if (match) navigate(`/product-detail/${match._id}`);
+    if (match) {
+      const res = await axios.get(
+        `http://localhost:9999/productDetail/${match._id}`
+      );
+      setProductDetail(res.data);
+      setMainImage(res.data.images[0]);
+    }
   };
 
-  const handleSizeClick = (sizeId) => {
+  const handleSizeClick = async (sizeId) => {
     setSelectedSize(sizeId);
     const match = variants.find(
       (v) => v.size_id._id === sizeId && v.color_id[0]._id === selectedColor
     );
-    if (match) navigate(`/product-detail/${match._id}`);
+    if (match) {
+      const res = await axios.get(
+        `http://localhost:9999/productDetail/${match._id}`
+      );
+      setProductDetail(res.data);
+      setMainImage(res.data.images[0]);
+    }
   };
 
   const handleMouseMove = (e) => {
@@ -110,6 +126,109 @@ function ProductDetail() {
   const handleMouseLeave = () => {
     setZoomStyle({ transform: "scale(1)", transformOrigin: "center center" });
   };
+  const handleAddToCart = async () => {
+    const cartItem = {
+      pdetail_id: productDetail._id,
+      quantity: 1,
+    };
+
+    const notifyAddSuccess = () => {
+      notification.success({
+        message: "Đã thêm vào giỏ hàng!",
+        description: `Sản phẩm "${productDetail.product_id.productName}" đã được thêm.`,
+        placement: "bottomLeft",
+        duration: 2,
+      });
+    };
+
+    if (user) {
+      try {
+        const res = await fetch("http://localhost:9999/cartItem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...cartItem, user_id: user._id }),
+        });
+
+        if (res.ok) {
+          window.dispatchEvent(new Event("cartUpdated"));
+          notifyAddSuccess();
+        } else {
+          console.error("Thêm thất bại:", await res.json());
+        }
+      } catch (err) {
+        console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      }
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+      const existingIndex = guestCart.findIndex(
+        (item) => item.pdetail_id === cartItem.pdetail_id
+      );
+
+      if (existingIndex >= 0) {
+        guestCart[existingIndex].quantity += 1;
+      } else {
+        guestCart.push(cartItem);
+      }
+      window.dispatchEvent(new Event("cartUpdated"));
+      localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+      notifyAddSuccess();
+    }
+  };
+  const formatVND = (price) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  const handleAddRelatedToCart = async (prod) => {
+    try {
+      const cartItem = {
+        pdetail_id: prod._id,
+        quantity: 1,
+      };
+
+      const notifyAddSuccess = () => {
+        notification.success({
+          message: "Đã thêm vào giỏ hàng!",
+          description: `Sản phẩm "${prod.product_id.productName}" đã được thêm.`,
+          placement: "bottomLeft",
+          duration: 2,
+        });
+      };
+
+      if (user && user._id) {
+        await axios.post("http://localhost:9999/cartItem", {
+          ...cartItem,
+          user_id: user._id,
+        });
+        window.dispatchEvent(new Event("cartUpdated"));
+        notifyAddSuccess();
+      } else {
+        const guestCart = JSON.parse(
+          localStorage.getItem("guest_cart") || "[]"
+        );
+
+        const existingIndex = guestCart.findIndex(
+          (item) => item.pdetail_id === cartItem.pdetail_id
+        );
+
+        if (existingIndex >= 0) {
+          guestCart[existingIndex].quantity += 1;
+        } else {
+          guestCart.push(cartItem);
+        }
+        window.dispatchEvent(new Event("cartUpdated"));
+        localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+        notifyAddSuccess();
+      }
+    } catch (err) {
+      console.error("Lỗi thêm sản phẩm liên quan vào giỏ hàng:", err);
+      notification.error({
+        message: "Thêm giỏ hàng thất bại!",
+        description: err.message || "Vui lòng thử lại sau.",
+        placement: "bottomLeft",
+      });
+    }
+  };
 
   const handlePrev = () => carouselRef.current?.prev();
   const handleNext = () => carouselRef.current?.next();
@@ -117,7 +236,7 @@ function ProductDetail() {
   if (!productDetail || !productDetail.product_id) return <Spin fullscreen />;
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
       <Row gutter={32} className={styles.main}>
         <Col xs={24} lg={12}>
           <div
@@ -167,10 +286,10 @@ function ProductDetail() {
             {productDetail.product_id.discount_percent > 0 ? (
               <>
                 <Text className={styles.salePrice}>
-                  {productDetail.price_after_discount.toLocaleString()}₫
+                  {formatVND(productDetail.price_after_discount)}
                 </Text>
                 <Text delete className={styles.originalPrice}>
-                  {productDetail.product_id.price.toLocaleString()}₫
+                  {formatVND(productDetail.product_id.price)}
                 </Text>
                 <Tag color="orange">
                   Giảm {productDetail.product_id.discount_percent}%
@@ -178,7 +297,7 @@ function ProductDetail() {
               </>
             ) : (
               <Text className={styles.salePrice}>
-                {productDetail.product_id.price.toLocaleString()}₫
+                {formatVND(productDetail.product_id.price)}
               </Text>
             )}
           </div>
@@ -265,6 +384,7 @@ function ProductDetail() {
               icon={<ShoppingCartOutlined />}
               size="large"
               className={styles.cartButton}
+              onClick={handleAddToCart}
             >
               Giỏ hàng
             </Button>
@@ -403,12 +523,12 @@ function ProductDetail() {
 
                           {prod.discount_id.percent_discount > 0 ? (
                             <div className={styles.priceContainer}>
-                              <Text delete>
-                                {prod.product_id.price.toLocaleString()}₫
+                              <Text className={styles.originalPrice} delete>
+                                {formatVND(prod.product_id.price)}
                               </Text>
                               <div className={styles.priceRow}>
                                 <Text strong className={styles.salePrice}>
-                                  {prod.price_after_discount.toLocaleString()}₫
+                                  {formatVND(prod.price_after_discount)}
                                 </Text>
                                 <Button
                                   type="text"
@@ -421,12 +541,13 @@ function ProductDetail() {
                             <div className={styles.priceContainer}>
                               <div className={styles.priceRow}>
                                 <Text strong className={styles.salePrice}>
-                                  {prod.product_id.price.toLocaleString()}₫
+                                  {formatVND(prod.product_id.price)}
                                 </Text>
                                 <Button
                                   type="text"
                                   className={styles.cartIconButton}
                                   icon={<ShoppingCartOutlined />}
+                                  onClick={() => handleAddRelatedToCart(prod)}
                                 />
                               </div>
                             </div>

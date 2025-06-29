@@ -1,5 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Layout, Menu, Typography, Space, Dropdown, Button, Grid } from "antd";
+import React, { useContext, useEffect, useState, useCallback } from "react";
+import {
+  Layout,
+  Menu,
+  Typography,
+  Space,
+  Dropdown,
+  Button,
+  Grid,
+  Badge,
+} from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   SearchOutlined,
@@ -15,6 +24,7 @@ const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
 const Header = () => {
+  const [cartCount, setCartCount] = useState(0);
   const slogans = [
     "Giày đẹp – Phong cách đỉnh!",
     "Phong cách bắt đầu từ đôi chân!",
@@ -26,6 +36,40 @@ const Header = () => {
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
+  const fetchCartCount = useCallback(async () => {
+    if (user) {
+      try {
+        const res = await fetch(
+          `http://localhost:9999/cartItem/user/${user._id}`
+        );
+        const data = await res.json();
+        const total = data.reduce((sum, item) => sum + item.quantity, 0);
+        setCartCount(total);
+      } catch (err) {
+        console.error("Lỗi khi lấy giỏ hàng:", err);
+      }
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+      const total = guestCart.reduce((sum, item) => sum + item.quantity, 0);
+      setCartCount(total);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchCartCount();
+
+    const handleCartUpdated = () => {
+      fetchCartCount();
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdated);
+    window.addEventListener("storage", handleCartUpdated);
+
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdated);
+      window.removeEventListener("storage", handleCartUpdated);
+    };
+  }, [fetchCartCount]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -98,7 +142,7 @@ const Header = () => {
             style={{
               cursor: "pointer",
               color: "#9ca3af",
-              textAlign: "center"
+              textAlign: "center",
             }}
             onClick={handleClickSlogan}
             title="Nhấn để đổi slogan"
@@ -172,7 +216,7 @@ const Header = () => {
           alignItems: "center",
           justifyContent: "space-between",
           boxShadow: "0 1px 2px rgb(0 0 0 / 0.05)",
-          borderBottom: "1px solid #e5e7eb"
+          borderBottom: "1px solid #e5e7eb",
         }}
       >
         <div style={{ flexShrink: 0 }}>
@@ -212,10 +256,12 @@ const Header = () => {
 
         <Space size="large" style={{ color: "black", fontSize: 25 }}>
           <SearchOutlined style={{ cursor: "pointer" }} />
-          <ShoppingCartOutlined
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/cart")}
-          />
+          <Badge count={cartCount || 0} showZero>
+            <ShoppingCartOutlined
+              style={{ fontSize: 25, cursor: "pointer" }}
+              onClick={() => navigate("/cart")}
+            />
+          </Badge>
         </Space>
       </AntHeader>
     </div>

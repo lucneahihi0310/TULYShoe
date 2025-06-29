@@ -14,7 +14,18 @@
 .main {
   margin-bottom: 64px;
 }
+.fadeIn {
+  animation: fadeInUp 1s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
 
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .imageContainer {
   border-radius: 12px;
   overflow: hidden;

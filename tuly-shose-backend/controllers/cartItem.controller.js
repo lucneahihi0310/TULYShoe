@@ -18,6 +18,19 @@ exports.getCartItemById = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy sản phẩm trong giỏ hàng", error: error.message });
     }
 };
+exports.getCartItemsByUserId = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const cartItems = await CartItem.find({ user_id: userId });
+
+        res.json(cartItems);
+    } catch (error) {
+        res.status(500).json({
+            message: "Lỗi khi lấy giỏ hàng theo user",
+            error: error.message,
+        });
+    }
+};
 
 exports.addCartItem = async (req, res) => {
     try {

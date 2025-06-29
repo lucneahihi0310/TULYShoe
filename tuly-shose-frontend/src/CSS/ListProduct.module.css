@@ -180,7 +180,7 @@
 }
 
 .addToCart:hover {
-  background: #4f46e5;
+  color: #da532a !important;
 }
 
 .pagination {

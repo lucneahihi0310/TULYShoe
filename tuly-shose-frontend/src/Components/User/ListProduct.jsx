@@ -29,7 +29,7 @@ function ListProduct() {
     material: "",
     gender: "",
     search: "",
-    sortBy: "default",
+    sortBy: "",
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -69,6 +69,7 @@ function ListProduct() {
     setLoading(true);
     const params = new URLSearchParams({
       ...filters,
+      sortBy: filters.sortBy || "default",
       page: pagination.currentPage,
       limit,
     });
@@ -126,6 +127,7 @@ function ListProduct() {
 
         if (res.ok) {
           notifyAddSuccess();
+          window.dispatchEvent(new Event("cartUpdated"));
         } else {
           console.error("Thêm thất bại:", await res.json());
         }
@@ -144,7 +146,7 @@ function ListProduct() {
       } else {
         guestCart.push(cartItem);
       }
-
+      window.dispatchEvent(new Event("cartUpdated"));
       localStorage.setItem("guest_cart", JSON.stringify(guestCart));
       notifyAddSuccess();
     }
@@ -226,11 +228,12 @@ function ListProduct() {
           </Col>
           <Col xs={24} md={4}>
             <Select
-              value={filters.sortBy}
+              placeholder="Sắp xếp"
+              value={filters.sortBy || undefined}
               onChange={(val) => handleFilterChange("sortBy", val)}
               style={{ width: "100%" }}
+              allowClear
             >
-              <Option value="default">Mặc định</Option>
               <Option value="price-asc">Giá tăng dần</Option>
               <Option value="price-desc">Giá giảm dần</Option>
             </Select>
@@ -257,10 +260,19 @@ function ListProduct() {
                 const hasDiscount = product.detail?.discount_percent > 0;
 
                 return (
-                  <Col xs={24} sm={12} md={8} lg={6} key={product._id} className={styles.sameHeightCol}>
+                  <Col
+                    xs={24}
+                    sm={12}
+                    md={8}
+                    lg={6}
+                    key={product._id}
+                    className={styles.sameHeightCol}
+                  >
                     <Card
                       hoverable
-                      onClick={() => navigate(`/products/${product.detail._id}`)}
+                      onClick={() =>
+                        navigate(`/products/${product.detail._id}`)
+                      }
                       cover={
                         <img
                           alt={product.productName}
@@ -309,7 +321,10 @@ function ListProduct() {
                               <Button
                                 icon={<i className="bi bi-bag-heart" />}
                                 className={styles.addToCart}
-                                onClick={() => handleAddToCart(product)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToCart(product);
+                                }}
                                 aria-label={`Add ${product.productName} to cart`}
                               />
                             </div>
