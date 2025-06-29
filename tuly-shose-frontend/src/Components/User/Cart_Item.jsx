@@ -3,7 +3,6 @@ import { Table, Button, InputNumber, Modal, notification } from "antd";
 import { AuthContext } from "../API/AuthContext";
 import styles from "../../CSS/CartItem.module.css";
 
-
 notification.config({
   placement: "bottomLeft",
 });
@@ -35,7 +34,37 @@ function CartItem() {
         setCartItems(mapped);
       } else {
         const guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-        setCartItems(guest);
+
+        // Gọi song song các API để lấy chi tiết từng sản phẩm
+        const details = await Promise.all(
+          guest.map(async (item) => {
+            try {
+              const res = await fetch(
+                `http://localhost:9999/productDetail/${item.pdetail_id}`
+              );
+              const data = await res.json();
+              return {
+                _id: item.pdetail_id, // dùng pdetail_id làm _id
+                quantity: item.quantity,
+                price_after_discount: data.price_after_discount,
+                image: data.images[0],
+                size_name: data.size_id?.size_name,
+                color_code: data.color_id[0]?.color_code,
+                productName: data.product_id?.productName,
+                title: data.product_id?.title,
+              };
+            } catch (err) {
+              console.error(
+                "Lỗi lấy chi tiết cho sản phẩm:",
+                item.pdetail_id,
+                err
+              );
+              return null;
+            }
+          })
+        );
+
+        setCartItems(details.filter(Boolean)); // bỏ các kết quả lỗi
       }
     } catch (e) {
       console.error(e);
@@ -72,6 +101,7 @@ function CartItem() {
           item._id === record._id ? { ...item, quantity: newQty } : item
         )
       );
+      window.dispatchEvent(new Event("cartUpdated"));
       notification.success({ message: "Cập nhật số lượng!" });
     }
   };
@@ -91,6 +121,7 @@ function CartItem() {
       setCartItems((prev) =>
         prev.filter((item) => item._id !== selectedRecord._id)
       );
+      window.dispatchEvent(new Event("cartUpdated"));
       notification.success({ message: "Đã xóa khỏi giỏ hàng!" });
       setIsModalVisible(false);
     }

@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
         console.error("Lỗi khi đồng bộ giỏ hàng:", err);
       }
     }
+    window.dispatchEvent(new Event("cartUpdated"));
     localStorage.removeItem("guest_cart");
   };
 

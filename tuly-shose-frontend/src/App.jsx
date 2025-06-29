@@ -14,11 +14,11 @@ import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
 
-
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
     if (!token) {
@@ -53,7 +53,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-
 function App() {
   return (
     <BrowserRouter>
@@ -71,14 +70,7 @@ function App() {
         />
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute allowedRoles={["user"]}>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<Order />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />

@@ -82,7 +82,7 @@ const HomePage = () => {
               <p className={styles.heroDescription}>
                 Discover premium quality shoes crafted for style, comfort, and elegance. Elevate your look with our exclusive collections.
               </p>
-              <Button type="primary" href="#collections" className={styles.shopButton}>
+              <Button type="primary" href="/products" className={styles.shopButton}>
                 Shop Now
               </Button>
             </div>
