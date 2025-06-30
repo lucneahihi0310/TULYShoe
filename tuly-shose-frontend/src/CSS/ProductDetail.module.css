@@ -466,3 +466,8 @@
   align-items: center;
   min-height: 60vh;
 }
+.priceColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

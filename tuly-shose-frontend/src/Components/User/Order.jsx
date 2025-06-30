@@ -1,198 +1,408 @@
-import React from "react";
-import { Input, Select, Checkbox, Radio, Button, Tooltip } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Input,
+  Checkbox,
+  Radio,
+  Button,
+  Tooltip,
+  Modal,
+  message,
+  InputNumber,
+} from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import styles from "../../CSS/Order.module.css";
+import { AuthContext } from "../API/AuthContext";
+import { useLocation } from "react-router-dom";
 
-const { Option } = Select;
+const Order = () => {
+  const { user } = useContext(AuthContext);
+  const location = useLocation();
+  const [shippingFee, setShippingFee] = useState(0);
+  const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
 
-function Order() {
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [orderNote, setOrderNote] = useState("");
+  const [orderItems, setOrderItems] = useState([]);
+  useEffect(() => {
+    const normalized = userInfo.address?.toLowerCase() || "";
+    if (normalized.includes("hà nội")) {
+      setShippingFee(0);
+    } else {
+      setShippingFee(30000);
+    }
+  }, [userInfo.address]);
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!user) return;
+      try {
+        const token =
+          localStorage.getItem("token") || sessionStorage.getItem("token");
+        const res = await fetch("http://localhost:9999/account/info", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setUserInfo({
+            fullName: `${data.first_name} ${data.last_name}`,
+            phone: data.phone,
+            email: data.email,
+            address: data.address,
+          });
+          console.log(data);
+        }
+      } catch (error) {
+        console.error("Lỗi lấy thông tin người dùng:", error);
+      }
+    };
+    fetchUserInfo();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (location.state?.fromCart && location.state.orderItems) {
+        const enrichedItems = await Promise.all(
+          location.state.orderItems.map(async (item) => {
+            try {
+              const res = await fetch(
+                `http://localhost:9999/productDetail/${item.pdetail_id}`
+              );
+              const data = await res.json();
+              return {
+                pdetail_id: item.pdetail_id,
+                quantity: item.quantity,
+                image: data.images[0],
+                size_name: data.size_id?.size_name,
+                color_code: data.color_id[0]?.color_code,
+                productName: data.product_id?.productName,
+                price_after_discount: data.price_after_discount,
+              };
+            } catch (err) {
+              console.error("Lỗi lấy chi tiết sản phẩm:", err);
+              return null;
+            }
+          })
+        );
+
+        setOrderItems(enrichedItems.filter(Boolean));
+      } else if (location.state?.fromDetail && location.state.orderItems) {
+        // Đã xử lý sẵn từ Detail
+        const item = location.state.orderItems[0];
+        const res = await fetch(
+          `http://localhost:9999/productDetail/${item.pdetail_id}`
+        );
+        const data = await res.json();
+        setOrderItems([
+          {
+            pdetail_id: item.pdetail_id,
+            quantity: 1,
+            image: data.images[0],
+            size_name: data.size_id?.size_name,
+            color_code: data.color_id[0]?.color_code,
+            productName: data.product_id?.productName,
+            price_after_discount: data.price_after_discount,
+          },
+        ]);
+      }
+    };
+
+    fetchData();
+  }, [location]);
+
+  const totalAmount = orderItems.reduce(
+    (sum, item) => sum + item.quantity * item.price_after_discount,
+    0
+  );
+
+  const estimatedDeliveryDate = () => {
+    const date = new Date();
+    const isHanoi = userInfo.address?.toLowerCase().includes("hà nội");
+    date.setDate(date.getDate() + (isHanoi ? 3 : 5));
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleOrderSubmit = async () => {
+    if (orderItems.length === 0) {
+      return message.warning("Không có sản phẩm để đặt hàng.");
+    }
+
+    if (paymentMethod === "cod") {
+      Modal.confirm({
+        title: "Xác nhận đặt hàng",
+        content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
+        okText: "Xác nhận",
+        icon: <QuestionCircleOutlined />,
+        cancelButtonProps: { style: { display: "none" } },
+        closable: true,
+        async onOk() {
+          try {
+            const res = await fetch("http://localhost:9999/orders", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization:
+                  localStorage.getItem("token") ||
+                  sessionStorage.getItem("token")
+                    ? `Bearer ${
+                        localStorage.getItem("token") ||
+                        sessionStorage.getItem("token")
+                      }`
+                    : "",
+              },
+              body: JSON.stringify({
+                user_id: user._id || null,
+                orderItems: orderItems.map((item) => ({
+                  pdetail_id: item.pdetail_id,
+                  quantity: item.quantity,
+                  price_after_discount: item.price_after_discount,
+                  productName: item.productName,
+                  size_name: item.size_name,
+                })),
+                userInfo,
+                paymentMethod,
+                orderNote,
+                shippingFee,
+              }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+              message.success("Đặt hàng thành công!");
+              window.dispatchEvent(new Event("cartUpdated"));
+
+              if (!user) {
+                localStorage.removeItem("guest_cart");
+                sessionStorage.removeItem("guest_cart");
+              }
+
+              navigate("/order-success");
+            } else {
+              message.error(data.message || "Đặt hàng thất bại");
+            }
+          } catch (error) {
+            console.error("Lỗi khi gửi đơn hàng:", error);
+            message.error("Lỗi kết nối đến server.");
+          }
+        },
+      });
+    } else {
+      Modal.confirm({
+        title: "Xác nhận đặt hàng",
+        content: "Bạn có chắc chắn muốn đặt hàng với phương thức VNPAY?",
+        okText: "Xác nhận",
+        icon: <QuestionCircleOutlined />,
+        cancelButtonProps: { style: { display: "none" } }, 
+        closable: true, 
+        async onOk() {
+          try {
+            const res = await fetch("http://localhost:9999/vnpay/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                user_id: user?._id || null,
+                orderItems: orderItems.map((item) => ({
+                  pdetail_id: item.pdetail_id,
+                  quantity: item.quantity,
+                  price_after_discount: item.price_after_discount,
+                  productName: item.productName,
+                  size_name: item.size_name,
+                })),
+                userInfo,
+                shippingFee,
+                amount: totalAmount,
+                paymentMethod: "online",
+              }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.paymentUrl) {
+              window.location.href = data.paymentUrl;
+              window.dispatchEvent(new Event("cartUpdated"));
+            } else {
+              message.error("Không thể tạo liên kết thanh toán.");
+            }
+          } catch (err) {
+            console.error("Lỗi khi gọi VNPay:", err);
+            message.error("Lỗi kết nối đến VNPay.");
+          }
+        },
+      });
+    }
+  };
+
   return (
     <main className={`${styles.main} ${styles.fadeIn}`}>
       <div className={styles.container}>
         <h2 className={styles.title}>Đặt hàng tại TULY Shoe</h2>
         <div className={styles.content}>
-          {/* Order Form */}
           <section className={styles.formSection}>
             <form className={styles.form}>
-              <div>
-                <h3 className={styles.sectionTitle}>Thông tin giao hàng</h3>
-                <Input placeholder="HỌ TÊN" className={styles.input} required />
-              </div>
-              <div>
-                <Input
-                  placeholder="Số điện thoại"
-                  className={styles.input}
-                  required
-                />
-              </div>
-              <div>
-                <Input placeholder="Email" className={styles.input} required />
-              </div>
-              <div>
-                <Input
-                  placeholder="Địa chỉ"
-                  className={styles.input}
-                  required
-                />
-              </div>
-              <div>
-                <Select
-                  placeholder="Tỉnh/ Thành Phố"
-                  className={styles.select}
-                  aria-label="Tỉnh/ Thành Phố"
-                  required
-                >
-                  <Option value="" disabled>
-                    Tỉnh/ Thành Phố
-                  </Option>
-                  <Option value="Hà Nội">Hà Nội</Option>
-                  <Option value="TP Hồ Chí Minh">TP Hồ Chí Minh</Option>
-                  <Option value="Đà Nẵng">Đà Nẵng</Option>
-                  <Option value="Hải Phòng">Hải Phòng</Option>
-                </Select>
-              </div>
-              <div className={styles.selectGroup}>
-                <Select
-                  placeholder="Quận/ Huyện"
-                  className={styles.select}
-                  aria-label="Quận/ Huyện"
-                  required
-                >
-                  <Option value="" disabled>
-                    Quận/ Huyện
-                  </Option>
-                  <Option value="Quận 1">Quận 1</Option>
-                  <Option value="Quận 3">Quận 3</Option>
-                  <Option value="Quận 5">Quận 5</Option>
-                  <Option value="Quận 10">Quận 10</Option>
-                </Select>
-                <Select
-                  placeholder="Phường/ Xã"
-                  className={styles.select}
-                  aria-label="Phường/ Xã"
-                  required
-                >
-                  <Option value="" disabled>
-                    Phường/ Xã
-                  </Option>
-                  <Option value="Phường Bến Nghé">Phường Bến Nghé</Option>
-                  <Option value="Phường Võ Thị Sáu">Phường Võ Thị Sáu</Option>
-                  <Option value="Phường 12">Phường 12</Option>
-                  <Option value="Phường 15">Phường 15</Option>
-                </Select>
-              </div>
-              <div>
-                <h3 className={styles.sectionTitle}>Phương thức giao hàng</h3>
-                <Checkbox defaultChecked className={styles.checkbox}>
-                  <div className={styles.checkboxContent}>
-                    <span>
-                      Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
-                      <Tooltip title="Giao hàng trong vòng 2 đến 5 ngày làm việc">
-                        <QuestionCircleOutlined
-                          className={styles.tooltipIcon}
-                        />
-                      </Tooltip>
-                    </span>
-                    <span className={styles.price}>0 VNĐ</span>
-                  </div>
-                </Checkbox>
-              </div>
-              <div>
-                <h3 className={styles.sectionTitle}>Phương thức thanh toán</h3>
-                <Radio.Group
-                  name="payment-method"
-                  className={styles.radioGroup}
-                >
-                  <Radio value="cod" className={styles.radio}>
-                    Thanh toán trực tiếp khi giao hàng
-                    <Tooltip title="Thanh toán khi nhận hàng">
-                      <QuestionCircleOutlined className={styles.tooltipIcon} />
-                    </Tooltip>
-                  </Radio>
-                  <Radio value="online" className={styles.radio}>
-                    Thanh toán trực tuyến
-                    <Tooltip title="Thanh toán qua cổng trực tuyến">
-                      <QuestionCircleOutlined className={styles.tooltipIcon} />
-                    </Tooltip>
-                  </Radio>
-                </Radio.Group>
-              </div>
+              <h3 className={styles.sectionTitle}>Thông tin giao hàng</h3>
+              <Input
+                placeholder="Họ tên"
+                className={styles.input}
+                value={userInfo.fullName}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, fullName: e.target.value }))
+                }
+              />
+
+              <Input
+                placeholder="Số điện thoại"
+                className={styles.input}
+                value={userInfo.phone}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, phone: e.target.value }))
+                }
+              />
+
+              <Input
+                placeholder="Email"
+                className={styles.input}
+                value={userInfo.email}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, email: e.target.value }))
+                }
+              />
+
+              <Input
+                placeholder="Địa chỉ"
+                className={styles.input}
+                value={userInfo.address}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, address: e.target.value }))
+                }
+              />
+
+              <h3 className={styles.sectionTitle}>Ghi chú đơn hàng</h3>
+              <Input.TextArea
+                rows={3}
+                className={styles.input}
+                placeholder="Giao buổi sáng, gọi trước khi đến..."
+                value={orderNote}
+                onChange={(e) => setOrderNote(e.target.value)}
+              />
+
+              <h3 className={styles.sectionTitle}>Phương thức thanh toán</h3>
+              <Radio.Group
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className={styles.radioGroup}
+              >
+                <Radio value="cod" className={styles.radio}>
+                  Thanh toán khi giao hàng (COD)
+                </Radio>
+                <Radio value="online" className={styles.radio}>
+                  Thanh toán trực tuyến
+                </Radio>
+              </Radio.Group>
             </form>
           </section>
 
-          {/* Order Summary */}
-          <aside className={styles.orderSummary} aria-label="Order summary">
-            <h3 className={styles.summaryTitle}>Order Summary</h3>
+          <aside className={styles.orderSummary}>
+            <h3 className={styles.summaryTitle}>Tóm tắt đơn hàng</h3>
             <div className={styles.summaryItems}>
-              {/* Product 1 */}
-              <div className={styles.product}>
-                <div className={styles.productInfo}>
-                  <img
-                    alt="Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus product image"
-                    className={styles.productImage}
-                    src="https://storage.googleapis.com/a1aa/image/48395c39-3135-4324-539c-fec50ad1d323.jpg"
-                    onError={(e) =>
-                      (e.target.src = "https://via.placeholder.com/80")
-                    }
-                  />
-                  <div>
-                    <p className={styles.productName}>
-                      Die-cut Insoles - Ananas Ortholite 7mm RF - White
-                      Asparagus
-                    </p>
-                    <p className={styles.productDetail}>Size: S</p>
-                    <p className={styles.productQuantity}>x 10</p>
+              {orderItems.map((item, idx) => (
+                <div className={styles.product} key={idx}>
+                  <div className={styles.productInfo}>
+                    <img src={item.image} className={styles.productImage} />
+                    <div>
+                      <p className={styles.productName}>{item.productName}</p>
+                      <p className={styles.productDetail}>
+                        Size: {item.size_name}
+                      </p>
+                      <div className={styles.colorDotWrapper}>
+                        <span>Màu:</span>
+                        <span
+                          style={{
+                            backgroundColor: item.color_code,
+                            display: "inline-block",
+                            width: "16px",
+                            height: "16px",
+                            borderRadius: "50%",
+                            marginLeft: "6px",
+                            border: "1px solid #ccc",
+                          }}
+                        />
+                      </div>
+                      <p className={styles.productPriceLine}>
+                        Giá: {item.price_after_discount.toLocaleString()} ₫
+                      </p>
+                      <div className={styles.productQtyWrapper}>
+                        <span>Số lượng:</span>
+                        <InputNumber
+                          min={1}
+                          max={99}
+                          value={item.quantity}
+                          disabled={!!location.state?.cartItems}
+                          onChange={(val) => {
+                            if (!location.state?.cartItems) {
+                              setOrderItems((prev) =>
+                                prev.map((itm, i) =>
+                                  i === idx ? { ...itm, quantity: val } : itm
+                                )
+                              );
+                            }
+                          }}
+                          className={styles.qtyInput}
+                          size="small"
+                          style={{ marginLeft: 8 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.productPrice}>
+                    {(
+                      item.price_after_discount * item.quantity
+                    ).toLocaleString()}{" "}
+                    ₫
                   </div>
                 </div>
-                <div className={styles.productPrice}>69.000 ₫</div>
-              </div>
-              {/* Product 2 */}
-              <div className={styles.product}>
-                <div className={styles.productInfo}>
-                  <img
-                    alt="Vintas Vivu - Low Top - Warm Sand product image"
-                    className={styles.productImage}
-                    src="https://storage.googleapis.com/a1aa/image/ffd3f636-496f-4687-5163-cb372a2185d7.jpg"
-                    onError={(e) =>
-                      (e.target.src = "https://via.placeholder.com/80")
-                    }
-                  />
-                  <div>
-                    <p className={styles.productName}>
-                      Vintas Vivu - Low Top - Warm Sand
-                    </p>
-                    <p className={styles.productDetail}>Size: 36.5</p>
-                    <p className={styles.productQuantity}>x 2</p>
-                  </div>
-                </div>
-                <div className={styles.productPrice}>620.000 ₫</div>
-              </div>
+              ))}
             </div>
             <hr className={styles.divider} />
             <div className={styles.summaryDetails}>
               <div className={styles.summaryRow}>
                 <span>Đơn hàng</span>
-                <span>1.930.000 ₫</span>
-              </div>
-              <div className={styles.summaryRowSecondary}>
-                <span>Giảm</span>
-                <span>-0 ₫</span>
+                <span>{totalAmount.toLocaleString()} ₫</span>
               </div>
               <div className={styles.summaryRowSecondary}>
                 <span>Phí vận chuyển</span>
-                <span>0 ₫</span>
+                <span>{shippingFee.toLocaleString()} ₫</span>
               </div>
+
               <div className={styles.summaryRowSecondary}>
-                <span>Phí thanh toán</span>
-                <span>0 ₫</span>
+                <span>Ngày giao dự kiến</span>
+                <span>
+                  {estimatedDeliveryDate()} (
+                  {userInfo.address?.toLowerCase().includes("hà nội")
+                    ? "3"
+                    : "5"}{" "}
+                  ngày)
+                </span>
               </div>
             </div>
             <hr className={styles.divider} />
             <div className={styles.total}>
               <span>TỔNG CỘNG</span>
-              <span>1.930.000 ₫</span>
+              <span>{(totalAmount + shippingFee).toLocaleString()} ₫</span>
             </div>
-            <Button className={styles.submitButton} aria-label="Complete order">
+
+            <Button className={styles.submitButton} onClick={handleOrderSubmit}>
               HOÀN TẤT ĐẶT HÀNG
             </Button>
           </aside>
@@ -200,6 +410,6 @@ function Order() {
       </div>
     </main>
   );
-}
+};
 
 export default Order;

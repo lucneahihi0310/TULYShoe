@@ -99,7 +99,19 @@ function ProductDetail() {
       navigate(`/products/${match._id}`);
     }
   };
+  const handleBuyNow = () => {
+    const orderItem = {
+      pdetail_id: productDetail._id,
+      quantity: 1,
+    };
 
+    navigate("/order", {
+      state: {
+        fromDetail: true,
+        orderItems: [orderItem],
+      },
+    });
+  };
   const handleSizeClick = async (sizeId) => {
     setSelectedSize(sizeId);
     const match = variants.find(
@@ -385,6 +397,7 @@ function ProductDetail() {
               icon={<ThunderboltOutlined />}
               size="large"
               className={styles.buyButton}
+              onClick={handleBuyNow}
             >
               Mua ngay
             </Button>
@@ -547,23 +560,26 @@ function ProductDetail() {
                             </Paragraph>
                             <div className={styles.priceContainer}>
                               <div className={styles.priceRow}>
-                                {prod.discount_id.percent_discount > 0 ? (
-                                  <>
-                                    <Text
-                                      delete
-                                      className={styles.originalPrice}
-                                    >
+                                <div className={styles.priceColumn}>
+                                  {prod.discount_id.percent_discount > 0 ? (
+                                    <>
+                                      <Text
+                                        className={styles.originalPrice}
+                                        delete
+                                      >
+                                        {formatVND(prod.product_id.price)}
+                                      </Text>
+                                      <Text className={styles.salePrice}>
+                                        {formatVND(prod.price_after_discount)}
+                                      </Text>
+                                    </>
+                                  ) : (
+                                    <Text className={styles.salePrice}>
                                       {formatVND(prod.product_id.price)}
                                     </Text>
-                                    <Text strong className={styles.salePrice}>
-                                      {formatVND(prod.price_after_discount)}
-                                    </Text>
-                                  </>
-                                ) : (
-                                  <Text strong className={styles.salePrice}>
-                                    {formatVND(prod.product_id.price)}
-                                  </Text>
-                                )}
+                                  )}
+                                </div>
+
                                 <Button
                                   type="text"
                                   className={styles.cartIconButton}

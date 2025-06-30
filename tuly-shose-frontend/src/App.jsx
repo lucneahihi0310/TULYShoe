@@ -13,6 +13,7 @@ import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
+import OrderSuccess from "./Components/User/OrderSuccess";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
@@ -72,6 +73,7 @@ function App() {
         <Route path="/products" element={<ListProduct />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route

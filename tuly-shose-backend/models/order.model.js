@@ -6,7 +6,13 @@ const orderShema = new mongoose.Schema({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Account",
-        required: true,
+        default: null
+    },
+    shipping_info: {
+        full_name: { type: String, required: true },
+        phone: { type: String, required: true },
+        email: { type: String, default: null },
+        address: { type: String, required: true }
     },
     order_date: { type: Date, required: true },
     order_status_id: {
@@ -14,19 +20,14 @@ const orderShema = new mongoose.Schema({
         ref: "OrderStatus",
         required: true,
     },
-    address_shipping_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
-        required: true,
-    },
     delivery_date: { type: Date, required: true },
-    order_note: { type: String },
+    order_note: { type: String, default: null },
     total_amount: { type: Number, required: true },
     payment_status: { type: String, required: true },
     accepted_by: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Account",
-        required: true,
+        default: null
     },
     create_at: { type: Date },
     update_at: { type: Date }

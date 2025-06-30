@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { Table, Button, InputNumber, Modal, notification } from "antd";
 import { AuthContext } from "../API/AuthContext";
 import styles from "../../CSS/CartItem.module.css";
-
+import { useNavigate } from "react-router-dom";
 notification.config({
   placement: "bottomLeft",
 });
@@ -12,7 +12,7 @@ function CartItem() {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
-
+  const navigate = useNavigate();
   const fetchCartItems = async () => {
     setLoading(true);
     try {
@@ -23,6 +23,7 @@ function CartItem() {
         const data = await res.json();
         const mapped = data.map((item) => ({
           _id: item._id,
+          pdetail_id: item.pdetail_id,
           quantity: item.quantity,
           price_after_discount: item.pdetail_id.price_after_discount,
           image: item.pdetail_id.images[0],
@@ -31,6 +32,7 @@ function CartItem() {
           productName: item.pdetail_id.product_id?.productName,
           title: item.pdetail_id.product_id?.title,
         }));
+        console.log(mapped);
         setCartItems(mapped);
       } else {
         const guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
@@ -44,7 +46,8 @@ function CartItem() {
               );
               const data = await res.json();
               return {
-                _id: item.pdetail_id, // dùng pdetail_id làm _id
+                _id: item.pdetail_id,
+                pdetail_id: item.pdetail_id,
                 quantity: item.quantity,
                 price_after_discount: data.price_after_discount,
                 image: data.images[0],
@@ -275,7 +278,23 @@ function CartItem() {
               </span>
             </div>
           </div>
-          <Button className={styles.checkoutButton}>Thanh toán</Button>
+          <Button
+            className={styles.checkoutButton}
+            onClick={() =>
+              navigate("/order", {
+                state: {
+                  fromCart: true,
+                  orderItems: cartItems.map((item) => ({
+                    pdetail_id: item.pdetail_id._id, // <-- Lấy đúng ID
+                    quantity: item.quantity,
+                  })),
+                },
+              })
+            }
+            disabled={cartItems.length === 0}
+          >
+            Thanh toán
+          </Button>
         </aside>
       </div>
 

@@ -250,7 +250,9 @@ function ListProduct() {
 
       <section className={styles.productGrid}>
         {loading ? (
-          <Spin />
+          <div className={styles.loadingContainer}>
+            <Spin size="large" />
+          </div>
         ) : (
           <Row gutter={[16, 16]} className={styles.flexRow}>
             {products.length === 0 ? (
