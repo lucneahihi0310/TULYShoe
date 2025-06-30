@@ -8,6 +8,7 @@ import {
   Button,
   Grid,
   Badge,
+  Drawer,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,15 +17,19 @@ import {
   LogoutOutlined,
   ProfileOutlined,
   UserOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../API/AuthContext";
+import { fetchData } from "../API/ApiService";
+import styles from "../../CSS/Header.module.css";
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
 const Header = () => {
   const [cartCount, setCartCount] = useState(0);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const slogans = [
     "Giày đẹp – Phong cách đỉnh!",
     "Phong cách bắt đầu từ đôi chân!",
@@ -36,13 +41,25 @@ const Header = () => {
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
+
+  const screens = Grid.useBreakpoint();
+
+  const navItems = [
+    { key: "products", label: "SẢN PHẨM" },
+    { key: "info", label: "THÔNG TIN" },
+    { key: "contact", label: "LIÊN HỆ" },
+    { key: "sale", label: "ĐANG SALE" },
+  ];
+
+  const handleMenuClick = ({ key }) => {
+    if (key === "products") navigate("/products");
+    setIsDrawerOpen(false);
+  };
+
   const fetchCartCount = useCallback(async () => {
     if (user) {
       try {
-        const res = await fetch(
-          `http://localhost:9999/cartItem/user/${user._id}`
-        );
-        const data = await res.json();
+        const data = await fetchData(`cartItem/user/${user._id}`, true);
         const total = data.reduce((sum, item) => sum + item.quantity, 0);
         setCartCount(total);
       } catch (err) {
@@ -57,14 +74,9 @@ const Header = () => {
 
   useEffect(() => {
     fetchCartCount();
-
-    const handleCartUpdated = () => {
-      fetchCartCount();
-    };
-
+    const handleCartUpdated = () => fetchCartCount();
     window.addEventListener("cartUpdated", handleCartUpdated);
     window.addEventListener("storage", handleCartUpdated);
-
     return () => {
       window.removeEventListener("cartUpdated", handleCartUpdated);
       window.removeEventListener("storage", handleCartUpdated);
@@ -78,21 +90,8 @@ const Header = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleClickSlogan = () => {
-    setCurrentSloganIndex((prevIndex) => (prevIndex + 1) % slogans.length);
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 1 && hour < 10) return "Chào buổi sáng";
-    if (hour >= 10 && hour < 13) return "Chào buổi trưa";
-    if (hour >= 13 && hour < 18) return "Chào buổi chiều";
-    return "Chào buổi tối";
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("expires_at");
     sessionStorage.removeItem("token");
     window.dispatchEvent(
       new StorageEvent("storage", { key: "token", newValue: null })
@@ -116,76 +115,36 @@ const Header = () => {
     },
   ];
 
-  const screens = Grid.useBreakpoint();
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 10) return "Chào buổi sáng";
+    if (hour < 13) return "Chào buổi trưa";
+    if (hour < 18) return "Chào buổi chiều";
+    return "Chào buổi tối";
+  };
 
   return (
     <div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
       {/* Top bar */}
-      <div
-        style={{
-          backgroundColor: "#D9D9D9",
-          fontSize: 10,
-          fontStyle: "italic",
-          fontWeight: 400,
-          userSelect: "none",
-          display: "flex",
-          justifyContent: "center", // Căn giữa toàn bộ nội dung
-          alignItems: "center",
-          height: 30,
-          padding: "0 16px",
-          position: "relative", // Để đặt greeting ở góc phải
-        }}
-      >
-        {/* Slogan ở giữa */}
-        {screens.md && (
-          <div
-            style={{
-              cursor: "pointer",
-              color: "#9ca3af",
-              textAlign: "center",
-            }}
-            onClick={handleClickSlogan}
-            title="Nhấn để đổi slogan"
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentSloganIndex}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.4 }}
-              >
-                <Text strong style={{ fontWeight: "700" }}>
-                  {slogans[currentSloganIndex]}
-                </Text>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        )}
-
-        {/* Greeting hoặc nút đăng nhập ở góc phải */}
-        <div
-          style={{
-            position: "absolute",
-            right: 16, // Đặt ở góc phải
-            fontSize: 12,
-          }}
-        >
-          {user ? (
-            <Dropdown
-              menu={{ items: menuItems }}
-              placement="bottomRight"
-              trigger={["hover"]}
+      <div className={styles.topBar}>
+        <div onClick={() => setCurrentSloganIndex((i) => (i + 1) % slogans.length)}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSloganIndex}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.4 }}
+              className={styles.slogan}
             >
-              <Text
-                style={{
-                  color: "#4b5563",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  fontFamily: "Segoe UI, Roboto, sans-serif",
-                  cursor: "pointer",
-                }}
-              >
+              <Text strong>{slogans[currentSloganIndex]}</Text>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <div className={styles.greeting}>
+          {user ? (
+            <Dropdown menu={{ items: menuItems }} trigger={["hover"]}>
+              <Text className={styles.greetingText}>
                 {getGreeting()} {user.last_name}!
               </Text>
             </Dropdown>
@@ -193,12 +152,7 @@ const Header = () => {
             <Button
               icon={<UserOutlined />}
               size="small"
-              style={{
-                backgroundColor: "#D9D9D9",
-                borderColor: "#D9D9D9",
-                fontWeight: 600,
-                color: "#4b5563",
-              }}
+              className={styles.loginButton}
               onClick={() => navigate("/login")}
             >
               Đăng nhập
@@ -208,62 +162,42 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <AntHeader
-        style={{
-          backgroundColor: "white",
-          padding: "8px 64px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 1px 2px rgb(0 0 0 / 0.05)",
-          borderBottom: "1px solid #e5e7eb",
-        }}
-      >
-        <div style={{ flexShrink: 0 }}>
-          <img
-            src="../../image/logo_den.png"
-            alt="Tuly Shoe logo"
-            style={{ height: 50, width: "auto", cursor: "pointer" }}
-            onClick={() => navigate("/")}
-          />
+      <AntHeader className={styles.mainHeader}>
+        <div className={styles.logo} onClick={() => navigate("/")}>
+          <img src="../../image/logo_den.png" alt="Logo" />
         </div>
 
-        <Menu
-          mode="horizontal"
-          selectable={false}
-          style={{
-            fontWeight: 800,
-            fontStyle: "italic",
-            fontSize: 14,
-            borderBottom: "none",
-            flex: 1,
-            justifyContent: "center",
-            backgroundColor: "white",
-          }}
-          items={[
-            { key: "nike", label: "NIKE" },
-            { key: "adidas", label: "ADIDAS" },
-            { key: "products", label: "SẢN PHẨM" },
-            { key: "bestseller", label: "BÁN CHẠY" },
-          ]}
-          onClick={({ key }) => {
-            if (key === "products") {
-              navigate("/products");
-            }
-          }}
-          overflowedIndicator={null}
-        />
+        {screens.md ? (
+          <Menu
+            mode="horizontal"
+            className={styles.menu}
+            selectable={false}
+            items={navItems}
+            onClick={handleMenuClick}
+          />
+        ) : (
+          <MenuOutlined className={styles.menuIcon} onClick={() => setIsDrawerOpen(true)} />
+        )}
 
-        <Space size="large" style={{ color: "black", fontSize: 25 }}>
-          <SearchOutlined style={{ cursor: "pointer" }} />
-          <Badge count={cartCount || 0} showZero>
+        <Space size="large">
+          <SearchOutlined className={styles.icon} />
+          <Badge count={cartCount} showZero>
             <ShoppingCartOutlined
-              style={{ fontSize: 25, cursor: "pointer" }}
+              className={styles.icon}
               onClick={() => navigate("/cart")}
             />
           </Badge>
         </Space>
       </AntHeader>
+
+      <Drawer
+        title="Danh mục"
+        placement="left"
+        open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      >
+        <Menu mode="vertical" items={navItems} onClick={handleMenuClick} />
+      </Drawer>
     </div>
   );
 };

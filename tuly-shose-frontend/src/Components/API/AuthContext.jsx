@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-
+import { fetchData, postData } from "../API/ApiService";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -9,13 +9,7 @@ export const AuthProvider = ({ children }) => {
     const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
     for (let item of guestCart) {
       try {
-        await fetch("http://localhost:9999/cartItem", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ...item, user_id: userId }),
-        });
+        await postData("cartItem", { ...item, user_id: userId }, true);
       } catch (err) {
         console.error("Lỗi khi đồng bộ giỏ hàng:", err);
       }
@@ -25,46 +19,36 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchUser = async () => {
-    let token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
     const expiresAt = localStorage.getItem("expires_at");
 
-    // Kiểm tra token trong localStorage và thời hạn
-    if (token && localStorage.getItem("token") && expiresAt) {
-      const currentTime = Date.now();
-      if (currentTime > parseInt(expiresAt)) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("expires_at");
-        localStorage.removeItem("rememberedEmail");
-        setUser(null);
-        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
-        return;
-      }
+    if (token && expiresAt && Date.now() > parseInt(expiresAt)) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("expires_at");
+      localStorage.removeItem("rememberedEmail");
+      setUser(null);
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "token", newValue: null })
+      );
+      return;
     }
 
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:9999/account/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setUser(data);
-        await syncGuestCart(data._id); // ✅ Đồng bộ khi user xác thực thành công
-      } else {
-        setUser(null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("expires_at");
-        sessionStorage.removeItem("token");
-        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
-      }
+      const data = await fetchData("account/user", true);
+      setUser(data);
+      await syncGuestCart(data._id);
     } catch (err) {
       console.error("Lỗi khi lấy thông tin user:", err);
       setUser(null);
       localStorage.removeItem("token");
       localStorage.removeItem("expires_at");
       sessionStorage.removeItem("token");
-      window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "token", newValue: null })
+      );
     }
   };
 
@@ -72,16 +56,18 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
 
     const handleStorageChange = () => {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       const expiresAt = localStorage.getItem("expires_at");
-      if (!token) {
-        setUser(null);
-      } else if (localStorage.getItem("token") && expiresAt && Date.now() > parseInt(expiresAt)) {
+
+      if (!token || (expiresAt && Date.now() > parseInt(expiresAt))) {
         localStorage.removeItem("token");
         localStorage.removeItem("expires_at");
         localStorage.removeItem("rememberedEmail");
         setUser(null);
-        window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+        window.dispatchEvent(
+          new StorageEvent("storage", { key: "token", newValue: null })
+        );
       } else {
         fetchUser();
       }

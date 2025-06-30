@@ -14,7 +14,7 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
 import styles from "../../CSS/Order.module.css";
 import { AuthContext } from "../API/AuthContext";
 import { useLocation } from "react-router-dom";
-
+import { fetchData, postData } from "../API/ApiService";
 const Order = () => {
   const { user } = useContext(AuthContext);
   const location = useLocation();
@@ -42,23 +42,13 @@ const Order = () => {
     const fetchUserInfo = async () => {
       if (!user) return;
       try {
-        const token =
-          localStorage.getItem("token") || sessionStorage.getItem("token");
-        const res = await fetch("http://localhost:9999/account/info", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const data = await fetchData("account/info", true);
+        setUserInfo({
+          fullName: `${data.first_name} ${data.last_name}`,
+          phone: data.phone,
+          email: data.email,
+          address: data.address,
         });
-        const data = await res.json();
-        if (res.ok) {
-          setUserInfo({
-            fullName: `${data.first_name} ${data.last_name}`,
-            phone: data.phone,
-            email: data.email,
-            address: data.address,
-          });
-          console.log(data);
-        }
       } catch (error) {
         console.error("Lỗi lấy thông tin người dùng:", error);
       }
@@ -67,15 +57,12 @@ const Order = () => {
   }, [user]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDataOrderItems = async () => {
       if (location.state?.fromCart && location.state.orderItems) {
         const enrichedItems = await Promise.all(
           location.state.orderItems.map(async (item) => {
             try {
-              const res = await fetch(
-                `http://localhost:9999/productDetail/${item.pdetail_id}`
-              );
-              const data = await res.json();
+              const data = await fetchData(`productDetail/${item.pdetail_id}`);
               return {
                 pdetail_id: item.pdetail_id,
                 quantity: item.quantity,
@@ -91,30 +78,29 @@ const Order = () => {
             }
           })
         );
-
         setOrderItems(enrichedItems.filter(Boolean));
       } else if (location.state?.fromDetail && location.state.orderItems) {
-        // Đã xử lý sẵn từ Detail
         const item = location.state.orderItems[0];
-        const res = await fetch(
-          `http://localhost:9999/productDetail/${item.pdetail_id}`
-        );
-        const data = await res.json();
-        setOrderItems([
-          {
-            pdetail_id: item.pdetail_id,
-            quantity: 1,
-            image: data.images[0],
-            size_name: data.size_id?.size_name,
-            color_code: data.color_id[0]?.color_code,
-            productName: data.product_id?.productName,
-            price_after_discount: data.price_after_discount,
-          },
-        ]);
+        try {
+          const data = await fetchData(`productDetail/${item.pdetail_id}`);
+          setOrderItems([
+            {
+              pdetail_id: item.pdetail_id,
+              quantity: 1,
+              image: data.images[0],
+              size_name: data.size_id?.size_name,
+              color_code: data.color_id[0]?.color_code,
+              productName: data.product_id?.productName,
+              price_after_discount: data.price_after_discount,
+            },
+          ]);
+        } catch (err) {
+          console.error("Lỗi lấy chi tiết sản phẩm:", err);
+        }
       }
     };
 
-    fetchData();
+    fetchDataOrderItems();
   }, [location]);
 
   const totalAmount = orderItems.reduce(
@@ -132,117 +118,98 @@ const Order = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const handleOrderSubmit = async () => {
-    if (orderItems.length === 0) {
-      return message.warning("Không có sản phẩm để đặt hàng.");
-    }
 
-    if (paymentMethod === "cod") {
-      Modal.confirm({
-        title: "Xác nhận đặt hàng",
-        content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
-        okText: "Xác nhận",
-        icon: <QuestionCircleOutlined />,
-        cancelButtonProps: { style: { display: "none" } },
-        closable: true,
-        async onOk() {
-          try {
-            const res = await fetch("http://localhost:9999/orders", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization:
-                  localStorage.getItem("token") ||
-                  sessionStorage.getItem("token")
-                    ? `Bearer ${
-                        localStorage.getItem("token") ||
-                        sessionStorage.getItem("token")
-                      }`
-                    : "",
-              },
-              body: JSON.stringify({
-                user_id: user._id || null,
-                orderItems: orderItems.map((item) => ({
-                  pdetail_id: item.pdetail_id,
-                  quantity: item.quantity,
-                  price_after_discount: item.price_after_discount,
-                  productName: item.productName,
-                  size_name: item.size_name,
-                })),
-                userInfo,
-                paymentMethod,
-                orderNote,
-                shippingFee,
-              }),
-            });
+const handleOrderSubmit = async () => {
+  if (orderItems.length === 0) {
+    return message.warning("Không có sản phẩm để đặt hàng.");
+  }
 
-            const data = await res.json();
-            if (res.ok) {
-              message.success("Đặt hàng thành công!");
-              window.dispatchEvent(new Event("cartUpdated"));
-
-              if (!user) {
-                localStorage.removeItem("guest_cart");
-                sessionStorage.removeItem("guest_cart");
-              }
-
-              navigate("/order-success");
-            } else {
-              message.error(data.message || "Đặt hàng thất bại");
-            }
-          } catch (error) {
-            console.error("Lỗi khi gửi đơn hàng:", error);
-            message.error("Lỗi kết nối đến server.");
-          }
-        },
-      });
-    } else {
-      Modal.confirm({
-        title: "Xác nhận đặt hàng",
-        content: "Bạn có chắc chắn muốn đặt hàng với phương thức VNPAY?",
-        okText: "Xác nhận",
-        icon: <QuestionCircleOutlined />,
-        cancelButtonProps: { style: { display: "none" } }, 
-        closable: true, 
-        async onOk() {
-          try {
-            const res = await fetch("http://localhost:9999/vnpay/create", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                user_id: user?._id || null,
-                orderItems: orderItems.map((item) => ({
-                  pdetail_id: item.pdetail_id,
-                  quantity: item.quantity,
-                  price_after_discount: item.price_after_discount,
-                  productName: item.productName,
-                  size_name: item.size_name,
-                })),
-                userInfo,
-                shippingFee,
-                amount: totalAmount,
-                paymentMethod: "online",
-              }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok && data.paymentUrl) {
-              window.location.href = data.paymentUrl;
-              window.dispatchEvent(new Event("cartUpdated"));
-            } else {
-              message.error("Không thể tạo liên kết thanh toán.");
-            }
-          } catch (err) {
-            console.error("Lỗi khi gọi VNPay:", err);
-            message.error("Lỗi kết nối đến VNPay.");
-          }
-        },
-      });
-    }
+  const payload = {
+    user_id: user?._id || null,
+    orderItems: orderItems.map((item) => ({
+      pdetail_id: item.pdetail_id,
+      quantity: item.quantity,
+      price_after_discount: item.price_after_discount,
+      productName: item.productName,
+      size_name: item.size_name,
+    })),
+    userInfo,
+    paymentMethod,
+    orderNote,
+    shippingFee,
   };
+
+  if (paymentMethod === "cod") {
+    Modal.confirm({
+      title: "Xác nhận đặt hàng",
+      content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
+      okText: "Xác nhận",
+      icon: <QuestionCircleOutlined />,
+      cancelButtonProps: { style: { display: "none" } },
+      closable: true,
+      async onOk() {
+        try {
+          const data = await postData("orders", payload, true);
+
+          if (data?.order_code) {
+            message.success("Đặt hàng thành công!");
+            window.dispatchEvent(new Event("cartUpdated"));
+
+            if (!user) {
+              localStorage.removeItem("guest_cart");
+              sessionStorage.removeItem("guest_cart");
+            }
+
+            navigate("/order-success");
+          } else {
+            message.error(data?.message || "Đặt hàng thất bại");
+          }
+        } catch (error) {
+          console.error("Lỗi khi gửi đơn hàng:", error);
+          message.error("Lỗi kết nối đến server.");
+        }
+      },
+    });
+  } else {
+    Modal.confirm({
+      title: "Xác nhận đặt hàng",
+      content: "Bạn có chắc chắn muốn thanh toán với VNPay?",
+      okText: "Xác nhận",
+      icon: <QuestionCircleOutlined />,
+      cancelButtonProps: { style: { display: "none" } },
+      closable: true,
+      async onOk() {
+        try {
+          const data = await postData(
+            "vnpay/create",
+            {
+              ...payload,
+              amount: totalAmount,
+              paymentMethod: "online",
+            },
+            true
+          );
+
+          if (data?.paymentUrl) {
+            window.dispatchEvent(new Event("cartUpdated"));
+
+            if (!user) {
+              localStorage.removeItem("guest_cart");
+              sessionStorage.removeItem("guest_cart");
+            }
+
+            window.location.href = data.paymentUrl;
+          } else {
+            message.error(data?.message || "Không thể tạo liên kết thanh toán.");
+          }
+        } catch (err) {
+          console.error("Lỗi khi gọi VNPay:", err);
+          message.error("Lỗi kết nối đến VNPay.");
+        }
+      },
+    });
+  }
+};
 
   return (
     <main className={`${styles.main} ${styles.fadeIn}`}>

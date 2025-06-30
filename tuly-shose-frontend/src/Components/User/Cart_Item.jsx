@@ -3,9 +3,14 @@ import { Table, Button, InputNumber, Modal, notification } from "antd";
 import { AuthContext } from "../API/AuthContext";
 import styles from "../../CSS/CartItem.module.css";
 import { useNavigate } from "react-router-dom";
-notification.config({
-  placement: "bottomLeft",
-});
+import {
+  fetchData,
+  updateData,
+  deleteData as deleteAPI,
+} from "../API/ApiService";
+
+notification.config({ placement: "bottomLeft" });
+
 function CartItem() {
   const { user } = useContext(AuthContext);
   const [cartItems, setCartItems] = useState([]);
@@ -13,14 +18,12 @@ function CartItem() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const navigate = useNavigate();
+
   const fetchCartItems = async () => {
     setLoading(true);
     try {
       if (user) {
-        const res = await fetch(
-          `https://tulyshoe.onrender.com/cartItem/user/${user._id}`
-        );
-        const data = await res.json();
+        const data = await fetchData(`cartItem/user/${user._id}`, true);
         const mapped = data.map((item) => ({
           _id: item._id,
           pdetail_id: item.pdetail_id,
@@ -32,19 +35,13 @@ function CartItem() {
           productName: item.pdetail_id.product_id?.productName,
           title: item.pdetail_id.product_id?.title,
         }));
-        console.log(mapped);
         setCartItems(mapped);
       } else {
         const guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-
-        // Gọi song song các API để lấy chi tiết từng sản phẩm
         const details = await Promise.all(
           guest.map(async (item) => {
             try {
-              const res = await fetch(
-                `https://tulyshoe.onrender.com/productDetail/${item.pdetail_id}`
-              );
-              const data = await res.json();
+              const data = await fetchData(`productDetail/${item.pdetail_id}`);
               return {
                 _id: item.pdetail_id,
                 pdetail_id: item.pdetail_id,
@@ -57,20 +54,15 @@ function CartItem() {
                 title: data.product_id?.title,
               };
             } catch (err) {
-              console.error(
-                "Lỗi lấy chi tiết cho sản phẩm:",
-                item.pdetail_id,
-                err
-              );
+              console.error("Lỗi lấy chi tiết:", item.pdetail_id, err);
               return null;
             }
           })
         );
-
-        setCartItems(details.filter(Boolean)); // bỏ các kết quả lỗi
+        setCartItems(details.filter(Boolean));
       }
     } catch (e) {
-      console.error(e);
+      console.error("Lỗi khi lấy giỏ hàng:", e);
     } finally {
       setLoading(false);
     }
@@ -86,11 +78,7 @@ function CartItem() {
       setIsModalVisible(true);
     } else {
       if (user) {
-        await fetch(`https://tulyshoe.onrender.com/cartItem/${record._id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quantity: newQty }),
-        });
+        await updateData("cartItem", record._id, { quantity: newQty }, true);
       } else {
         let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         guest = guest.map((item) =>
@@ -112,9 +100,7 @@ function CartItem() {
   const handleDelete = async () => {
     if (selectedRecord) {
       if (user) {
-        await fetch(`https://tulyshoe.onrender.com/cartItem/${selectedRecord._id}`, {
-          method: "DELETE",
-        });
+        await deleteAPI("cartItem", selectedRecord._id, true);
       } else {
         let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         guest = guest.filter((item) => item.pdetail_id !== selectedRecord._id);
@@ -137,11 +123,7 @@ function CartItem() {
       key: "product",
       render: (record) => (
         <div className={styles.productContainer}>
-          <img
-            src={record.image}
-            alt={record.productName}
-            className={styles.productImage}
-          />
+          <img src={record.image} alt={record.productName} className={styles.productImage} />
           <div>
             <h3 className={styles.productName}>{record.productName}</h3>
             <p className={styles.productDescription}>{record.title}</p>
@@ -252,29 +234,29 @@ function CartItem() {
             <div className={styles.summaryItem}>
               <span>Tạm tính</span>
               <span>
-                {new Intl.NumberFormat("vi-VN", {
+                {subtotal.toLocaleString("vi-VN", {
                   style: "currency",
                   currency: "VND",
-                }).format(subtotal)}
+                })}
               </span>
             </div>
             <div className={styles.summaryItem}>
               <span>Phí Ship</span>
               <span>
-                {new Intl.NumberFormat("vi-VN", {
+                {shipping.toLocaleString("vi-VN", {
                   style: "currency",
                   currency: "VND",
-                }).format(shipping)}
+                })}
               </span>
             </div>
             <hr className={styles.divider} />
             <div className={styles.total}>
               <span>Tổng</span>
               <span>
-                {new Intl.NumberFormat("vi-VN", {
+                {total.toLocaleString("vi-VN", {
                   style: "currency",
                   currency: "VND",
-                }).format(total)}
+                })}
               </span>
             </div>
           </div>
@@ -285,7 +267,7 @@ function CartItem() {
                 state: {
                   fromCart: true,
                   orderItems: cartItems.map((item) => ({
-                    pdetail_id: item.pdetail_id._id, // <-- Lấy đúng ID
+                    pdetail_id: item.pdetail_id._id || item.pdetail_id,
                     quantity: item.quantity,
                   })),
                 },

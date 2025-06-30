@@ -15,7 +15,7 @@ import {
 } from "antd";
 import styles from "../../CSS/ListProduct.module.css";
 import { AuthContext } from "../API/AuthContext";
-
+import { fetchData, postData } from "../API/ApiService";
 const { Option } = Select;
 const { Title, Paragraph } = Typography;
 function ListProduct() {
@@ -55,36 +55,43 @@ function ListProduct() {
     }).format(price);
 
   const fetchFilters = async () => {
-    const res = await fetch("https://tulyshoe.onrender.com/api/filters");
-    const data = await res.json();
-    setFilterOptions({
-      categories: data.categories,
-      brands: data.brands,
-      materials: data.materials,
-      genders: data.genders,
-    });
+    try {
+      const data = await fetchData("api/filters");
+      setFilterOptions({
+        categories: data.categories,
+        brands: data.brands,
+        materials: data.materials,
+        genders: data.genders,
+      });
+    } catch (err) {
+      console.error("Lỗi khi lấy bộ lọc:", err);
+    }
   };
 
   const fetchProducts = async () => {
     setLoading(true);
-    const params = new URLSearchParams({
-      ...filters,
-      sortBy: filters.sortBy || "default",
-      page: pagination.currentPage,
-      limit,
-    });
-    const res = await fetch(
-      `https://tulyshoe.onrender.com/products/listproducts?${params.toString()}`
-    );
-    const data = await res.json();
-    setProducts(data.data);
-    setPagination((prev) => ({
-      ...prev,
-      totalPages: data.pagination.totalPages,
-    }));
-    setLoading(false);
-  };
+    try {
+      const params = new URLSearchParams({
+        ...filters,
+        sortBy: filters.sortBy || "default",
+        page: pagination.currentPage,
+        limit,
+      });
 
+      const data = await fetchData(
+        `products/listproducts?${params.toString()}`
+      );
+      setProducts(data.data);
+      setPagination((prev) => ({
+        ...prev,
+        totalPages: data.pagination.totalPages,
+      }));
+    } catch (err) {
+      console.error("Lỗi khi lấy sản phẩm:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     fetchFilters();
   }, []);
@@ -119,20 +126,11 @@ function ListProduct() {
     if (user) {
       // Đã đăng nhập
       try {
-        const res = await fetch("https://tulyshoe.onrender.com/cartItem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...cartItem, user_id: user._id }),
-        });
-
-        if (res.ok) {
-          notifyAddSuccess();
-          window.dispatchEvent(new Event("cartUpdated"));
-        } else {
-          console.error("Thêm thất bại:", await res.json());
-        }
+        await postData("cartItem", { ...cartItem, user_id: user._id });
+        notifyAddSuccess();
+        window.dispatchEvent(new Event("cartUpdated"));
       } catch (err) {
-        console.error("Lỗi khi thêm vào giỏ hàng:", err);
+        console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
       }
     } else {
       // Guest
@@ -146,8 +144,9 @@ function ListProduct() {
       } else {
         guestCart.push(cartItem);
       }
-      window.dispatchEvent(new Event("cartUpdated"));
+
       localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+      window.dispatchEvent(new Event("cartUpdated"));
       notifyAddSuccess();
     }
   };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import styles from "../../CSS/LoginRegister.module.css";
-
+import { postData } from "../API/ApiService";
 const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
   const [email, setEmail] = useState("");
@@ -31,20 +31,15 @@ const LoginRegister = () => {
   const [resetValidationErrors, setResetValidationErrors] = useState({});
 
   const navigate = useNavigate();
-  const API_URL = "http://localhost:9999/account";
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     const expiresAt = localStorage.getItem("expires_at");
-    if (token && expiresAt) {
-      const currentTime = Date.now();
-      if (currentTime > parseInt(expiresAt)) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("expires_at");
-        window.dispatchEvent(
-          new StorageEvent("storage", { key: "token", newValue: null })
-        );
-      }
+    if (token && expiresAt && Date.now() > +expiresAt) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("expires_at");
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "token", newValue: null })
+      );
     }
     if (token && !expiresAt) {
       localStorage.removeItem("token");
@@ -52,9 +47,7 @@ const LoginRegister = () => {
         new StorageEvent("storage", { key: "token", newValue: null })
       );
     }
-    if (token && expiresAt && parseInt(expiresAt) > Date.now()) {
-      navigate("/");
-    }
+    if (token && expiresAt && +expiresAt > Date.now()) navigate("/");
   }, [navigate]);
 
   const handleLogin = async (e) => {
@@ -63,34 +56,23 @@ const LoginRegister = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (remember) {
-          const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("expires_at", expiresAt.toString());
-        } else {
-          sessionStorage.setItem("token", data.token);
-          localStorage.removeItem("token");
-          localStorage.removeItem("expires_at");
-        }
-        window.dispatchEvent(
-          new StorageEvent("storage", { key: "token", newValue: data.token })
-        );
-        navigate("/");
+      const data = await postData("account/login", { email, password }); // ← postData
+      // lưu token
+      if (remember) {
+        const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("expires_at", expiresAt.toString());
       } else {
-        setErrorMessage(data.message || "Email hoặc mật khẩu không đúng!");
+        sessionStorage.setItem("token", data.token);
+        localStorage.removeItem("token");
+        localStorage.removeItem("expires_at");
       }
-    } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-      setErrorMessage("Không thể kết nối đến server. Vui lòng thử lại!");
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "token", newValue: data.token })
+      );
+      navigate("/");
+    } catch (err) {
+      setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
     } finally {
       setIsSubmitting(false);
     }
@@ -143,49 +125,21 @@ const LoginRegister = () => {
     return Object.keys(validationErrors).length === 0;
   };
 
+  
   const handleRegister = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage("");
-
-    const isValid = await validateFields();
-    if (!isValid) {
-      setIsSubmitting(false);
-      return;
-    }
-
-    const data = {
-      first_name,
-      last_name,
-      email,
-      password,
-      phone,
-      dob,
-      gender,
-      address,
-    };
+    if (!(await validateFields())) return;
+    setIsSubmitting(true); setErrorMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      await postData("account/register", {
+        first_name, last_name, email, password, phone, dob, gender, address,
       });
-
-      const responseData = await response.json();
-
-      if (response.ok) {
-        setShowSuccessModal(true);
-        setCurrentForm("login");
-      } else {
-        setErrorMessage(responseData.message || "Đăng ký thất bại!");
-      }
-    } catch (error) {
-      console.error("Lỗi đăng ký:", error);
-      setErrorMessage("Không thể kết nối đến server. Vui lòng thử lại!");
-    } finally {
-      setIsSubmitting(false);
-    }
+      setShowSuccessModal(true);
+      setCurrentForm("login");
+    } catch (err) {
+      setErrorMessage(err.message || "Đăng ký thất bại!");
+    } finally { setIsSubmitting(false); }
   };
 
   const validateResetPassword = () => {
@@ -217,70 +171,34 @@ const LoginRegister = () => {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!email.trim()) {
-      setErrorMessage("Email không được để trống!");
-      return;
-    }
+    if (!email.trim()) return setErrorMessage("Email không được để trống!");
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setPopupContent({
-          title: "Yêu cầu thành công",
-          message: data.message || "Yêu cầu đặt lại mật khẩu đã được gửi.",
-        });
-        setPopupVisible(true);
-        setCurrentForm("resetPassword");
-      } else {
-        setErrorMessage(
-          data.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!"
-        );
-      }
-    } catch (error) {
-      console.error("Lỗi quên mật khẩu:", error);
-      setErrorMessage("Không thể kết nối đến server. Vui lòng thử lại!");
-    } finally {
-      setIsSubmitting(false);
-    }
+      const data = await postData("account/forgot-password", { email: email.trim() });
+      setPopupContent({ title: "Yêu cầu thành công", message: data.message });
+      setPopupVisible(true);
+      setCurrentForm("resetPassword");
+    } catch (err) {
+      setErrorMessage(err.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!");
+    } finally { setIsSubmitting(false); }
   };
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    const isValid = validateResetPassword();
-    if (!isValid) return;
+    if (!validateResetPassword()) return;
 
     try {
-      const response = await fetch(`${API_URL}/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          resetToken: resetToken.toUpperCase(),
-          newPassword,
-        }),
+      const data = await postData("account/reset-password", {
+        email: email.trim(),
+        resetToken: resetToken.toUpperCase(),
+        newPassword,
       });
-
-      const data = await response.json();
-      if (response.ok) {
-        setPopupContent({
-          title: "Đổi mật khẩu thành công",
-          message: data.message || "Mật khẩu đã được thay đổi thành công.",
-        });
-        setPopupVisible(true);
-        setCurrentForm("login");
-      } else {
-        setErrorMessage(data.message || "Lỗi khi đổi mật khẩu!");
-      }
-    } catch (error) {
-      console.error("Lỗi đặt lại mật khẩu:", error);
-      setErrorMessage("Không thể kết nối đến server. Vui lòng thử lại!");
+      setPopupContent({ title: "Đổi mật khẩu thành công", message: data.message });
+      setPopupVisible(true);
+      setCurrentForm("login");
+    } catch (err) {
+      setErrorMessage(err.message || "Lỗi khi đổi mật khẩu!");
     }
   };
 
@@ -313,14 +231,18 @@ const LoginRegister = () => {
           <div className={styles.tabs}>
             <Button
               variant="outline-danger"
-              className={`${styles.tabButton} ${currentForm === "login" ? styles.activeTab : ""}`}
+              className={`${styles.tabButton} ${
+                currentForm === "login" ? styles.activeTab : ""
+              }`}
               onClick={() => setCurrentForm("login")}
             >
               <i className="bi bi-box-arrow-in-right"> Đăng nhập</i>
             </Button>
             <Button
               variant="outline-warning"
-              className={`${styles.tabButton} ${currentForm === "register" ? styles.activeTab : ""}`}
+              className={`${styles.tabButton} ${
+                currentForm === "register" ? styles.activeTab : ""
+              }`}
               onClick={() => setCurrentForm("register")}
             >
               <i className="bi bi-person-plus-fill"> Đăng ký</i>
@@ -365,7 +287,9 @@ const LoginRegister = () => {
                     />
                   </InputGroup.Text>
                 </InputGroup>
-                {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
+                {errorMessage && (
+                  <p className={styles.errorMessage}>{errorMessage}</p>
+                )}
                 <Form.Group
                   className="mb-3"
                   style={{
@@ -632,7 +556,9 @@ const LoginRegister = () => {
                   </Form.Control.Feedback>
                 </InputGroup>
 
-                {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
+                {errorMessage && (
+                  <p className={styles.errorMessage}>{errorMessage}</p>
+                )}
 
                 <Button
                   style={{ marginBottom: "5px" }}
@@ -792,7 +718,9 @@ const LoginRegister = () => {
                     <Form.Check
                       type="checkbox"
                       checked={showConfirmNewPassword}
-                      onChange={(e) => setShowConfirmNewPassword(e.target.checked)}
+                      onChange={(e) =>
+                        setShowConfirmNewPassword(e.target.checked)
+                      }
                     />
                   </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">

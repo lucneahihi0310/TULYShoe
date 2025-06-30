@@ -1,0 +1,80 @@
+/* Top Bar */
+.topBar {
+  background-color: #d9d9d9;
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 400;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  padding: 0 5vw;
+  position: relative;
+}
+
+/* Slogan */
+.slogan {
+  color: #9ca3af;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* Greeting */
+.greeting {
+  position: absolute;
+  right: 1vw;
+  font-size: 12px;
+}
+
+/* Ẩn greeting ở màn nhỏ */
+@media (max-width: 768px) {
+  .greeting {
+    display: none;
+  }
+}
+
+/* Main Header */
+.mainHeader {
+  background-color: white !important;
+  padding: 8px 5vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Logo */
+.logo img {
+  height: 45px;
+  width: auto;
+  cursor: pointer;
+}
+
+/* Menu */
+.menu {
+  font-weight: 800;
+  font-style: italic;
+  font-size: 14px;
+  border-bottom: none;
+  flex: 1;
+  justify-content: center;
+  background-color: white;
+}
+
+/* Icon */
+.icon {
+  font-size: 22px;
+  color: black;
+  cursor: pointer;
+}
+
+/* Login button */
+.loginButton {
+  background-color: #d9d9d9 !important;
+  border: none !important;
+  font-weight: 600;
+  color: #4b5563 !important;
+}

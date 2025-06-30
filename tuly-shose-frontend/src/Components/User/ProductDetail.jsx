@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Button,
   Row,
@@ -23,7 +22,7 @@ import {
 } from "@ant-design/icons";
 import styles from "../../CSS/ProductDetail.module.css";
 import { AuthContext } from "../API/AuthContext";
-
+import { fetchData, postData } from "../API/ApiService";
 const { Title, Paragraph, Text } = Typography;
 
 function ProductDetail() {
@@ -50,40 +49,34 @@ function ProductDetail() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDataAsync = async () => {
       try {
-        setLoading(true); // Bắt đầu loading
-        const resDetail = await axios.get(
-          `http://localhost:9999/productDetail/${id}`
-        );
-        setProductDetail(resDetail.data);
-        setMainImage(resDetail.data.images[0]);
+        setLoading(true);
+        const resDetail = await fetchData(`productDetail/${id}`);
+        setProductDetail(resDetail);
+        setMainImage(resDetail.images[0]);
 
-        const resVariants = await axios.get(
-          `http://localhost:9999/productDetail/product/${resDetail.data.product_id._id}`
+        const resVariants = await fetchData(
+          `productDetail/product/${resDetail.product_id._id}`
         );
-        setVariants(resVariants.data);
+        setVariants(resVariants);
 
-        const resReviews = await axios.get(
-          `http://localhost:9999/reviews/detail/${id}`
-        );
-        setReviews(resReviews.data);
+        const resReviews = await fetchData(`reviews/detail/${id}`);
+        setReviews(resReviews);
 
-        const resRelated = await axios.get(
-          `http://localhost:9999/productDetail/related/${id}`
-        );
-        setRelated(resRelated.data);
+        const resRelated = await fetchData(`productDetail/related/${id}`);
+        setRelated(resRelated);
 
-        setSelectedColor(resDetail.data.color_id[0]._id);
-        setSelectedSize(resDetail.data.size_id._id);
+        setSelectedColor(resDetail.color_id[0]._id);
+        setSelectedSize(resDetail.size_id._id);
       } catch (err) {
-        console.error(err);
+        console.error("Lỗi khi tải dữ liệu ProductDetail:", err);
       } finally {
-        setLoading(false); // Kết thúc loading
-        window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll lên đầu trang
+        setLoading(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
-    fetchData();
+    fetchDataAsync();
   }, [id]);
 
   useEffect(() => {
@@ -155,20 +148,11 @@ function ProductDetail() {
 
     if (user) {
       try {
-        const res = await fetch("http://localhost:9999/cartItem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...cartItem, user_id: user._id }),
-        });
-
-        if (res.ok) {
-          window.dispatchEvent(new Event("cartUpdated"));
-          notifyAddSuccess();
-        } else {
-          console.error("Thêm thất bại:", await res.json());
-        }
+        await postData("cartItem", { ...cartItem, user_id: user._id });
+        window.dispatchEvent(new Event("cartUpdated"));
+        notifyAddSuccess();
       } catch (err) {
-        console.error("Lỗi khi thêm vào giỏ hàng:", err);
+        console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
       }
     } else {
       const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
@@ -194,33 +178,29 @@ function ProductDetail() {
     }).format(price);
 
   const handleAddRelatedToCart = async (prod) => {
+    const cartItem = {
+      pdetail_id: prod._id,
+      quantity: 1,
+    };
+
+    const notifyAddSuccess = () => {
+      notification.success({
+        message: "Đã thêm vào giỏ hàng!",
+        description: `Sản phẩm "${prod.product_id.productName}" đã được thêm.`,
+        placement: "bottomLeft",
+        duration: 2,
+      });
+    };
+
     try {
-      const cartItem = {
-        pdetail_id: prod._id,
-        quantity: 1,
-      };
-
-      const notifyAddSuccess = () => {
-        notification.success({
-          message: "Đã thêm vào giỏ hàng!",
-          description: `Sản phẩm "${prod.product_id.productName}" đã được thêm.`,
-          placement: "bottomLeft",
-          duration: 2,
-        });
-      };
-
       if (user && user._id) {
-        await axios.post("http://localhost:9999/cartItem", {
-          ...cartItem,
-          user_id: user._id,
-        });
+        await postData("cartItem", { ...cartItem, user_id: user._id });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
       } else {
         const guestCart = JSON.parse(
           localStorage.getItem("guest_cart") || "[]"
         );
-
         const existingIndex = guestCart.findIndex(
           (item) => item.pdetail_id === cartItem.pdetail_id
         );
