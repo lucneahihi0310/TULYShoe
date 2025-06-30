@@ -9,21 +9,12 @@ const cors = require('cors');
 const { cleanExpiredTokens } = require('./config/cronJobs');
 
 
-const allowedOrigins = [
-    'http://localhost:5173',
-    'https://tuly-frontend.onrender.com'
-];
-
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: ["http://localhost:5173", "https://tulyshoe-front.onrender.com"],
+        credentials: true,
+    })
+);
 app.use(morgan('dev'));
 
 app.get('/', async (req, res) => {

@@ -55,7 +55,7 @@ function ListProduct() {
     }).format(price);
 
   const fetchFilters = async () => {
-    const res = await fetch("http://localhost:9999/api/filters");
+    const res = await fetch("https://tulyshoe.onrender.com/api/filters");
     const data = await res.json();
     setFilterOptions({
       categories: data.categories,
@@ -74,7 +74,7 @@ function ListProduct() {
       limit,
     });
     const res = await fetch(
-      `http://localhost:9999/products/listproducts?${params.toString()}`
+      `https://tulyshoe.onrender.com/products/listproducts?${params.toString()}`
     );
     const data = await res.json();
     setProducts(data.data);
@@ -119,7 +119,7 @@ function ListProduct() {
     if (user) {
       // Đã đăng nhập
       try {
-        const res = await fetch("http://localhost:9999/cartItem", {
+        const res = await fetch("https://tulyshoe.onrender.com/cartItem", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...cartItem, user_id: user._id }),
