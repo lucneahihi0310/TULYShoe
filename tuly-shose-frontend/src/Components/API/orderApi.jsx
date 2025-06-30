@@ -1,3 +1,5 @@
+import { getToken } from "./authApi";
+
 const API_URL = 'http://localhost:9999/orders';
 
 export const fetchOrders = async () => {
@@ -12,4 +14,24 @@ export const fetchOrders = async () => {
     console.error('Error fetching orders:', error);
     return [];
   }
+};
+
+export const confirmOrder = async (orderId, staffId) => {
+    try {
+        const response = await fetch(`http://localhost:9999/orders/confirm/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: JSON.stringify({ staffId })
+        });
+
+        if (!response.ok) throw new Error('Xác nhận đơn hàng thất bại');
+
+        return await response.json();
+    } catch (error) {
+        console.error('Lỗi xác nhận đơn hàng:', error);
+        throw error;
+    }
 };

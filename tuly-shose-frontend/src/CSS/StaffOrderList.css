@@ -293,3 +293,87 @@ body, html {
   border-radius: 4px;
   display: inline-block;
 }
+/* Flex box cho cột hành động */
+.order-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* Khoảng cách giữa các nút */
+    height: 100%;
+    min-height: 104px;
+}
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #3498db;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px; 
+}
+/* Nút icon đơn giản, không border, không nền */
+
+
+.btn-icon:hover {
+    color: #1e70bf;
+}
+
+.order-table td {
+    vertical-align: middle; /* Cực kỳ quan trọng để canh giữa nội dung trong td */
+}
+.order-table th:last-child,
+.order-table td:last-child {
+    width: 120px; 
+    min-width: 120px;
+}
+/* Ép các nút SweetAlert2 nằm ngang, căn giữa, không wrap */
+.custom-swal-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important; /* Quan trọng: Ép không được xuống hàng */
+}
+
+/* Style nút xác nhận */
+.custom-swal-confirm {
+    background-color: #3085d6 !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    height: 40px !important;
+    width: 100px !important;
+}
+
+.custom-swal-confirm:hover {
+    background-color: #2563c4 !important;
+}
+
+/* Style nút hủy */
+.custom-swal-cancel {
+    background-color: #d33 !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    height: 40px !important;
+    width: 100px !important;
+}
+
+.custom-swal-cancel:hover {
+    background-color: #a72828 !important;
+}
+.order-title{
+  display: flex;
+justify-content: center;
+align-items: center;
+}
+
