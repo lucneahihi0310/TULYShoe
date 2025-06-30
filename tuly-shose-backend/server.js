@@ -27,7 +27,7 @@ app.use('/manager', require('./routes/category.route'));
 app.use('/inventory', require('./routes/inventory.routes'));
 app.use('/orders', require('./routes/order.routes'));
 app.use('/schedules', require('./routes/workSchedule.route'));
-
+app.use('/notifications', require('./routes/notification.router'))
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
     error.status = 404;

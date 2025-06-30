@@ -1,0 +1,275 @@
+/* Container */
+.notification-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 24px;
+}
+
+/* Login message */
+.login-message {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+/* Header */
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.notification-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
+}
+
+.mark-all-btn {
+  border: 1px solid #000;
+  color: #000;
+  background-color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.mark-all-btn:hover,
+.mark-all-btn:active {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Controls row */
+.notification-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.unread-count {
+  font-style: italic;
+  color: #dc2626;
+  font-weight: 600;
+  margin: 0;
+}
+
+.unread-number {
+  font-weight: bold;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  border: 1px solid #d1d5db;
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.pagination-btn:hover {
+  background-color: #d1d5db;
+}
+
+.pagination-btn.active {
+  background-color: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.pagination-btn.active:hover {
+  background-color: #1e40af;
+}
+
+/* Notifications list */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Notification card */
+.notification-card {
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: #fff;
+}
+
+.notification-card.unread {
+  background-color: #fefce8;
+  border-color: #fde047;
+}
+
+/* Type badge */
+.type-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.type-badge.info {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.type-badge.warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.type-badge.error {
+  background-color: #fecaca;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.type-badge.success {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.type-badge.default {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+/* Notification content */
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-message {
+  color: #1f2937;
+  margin: 0 0 4px 0;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+.notification-message.unread-message {
+  font-weight: 600;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Mark as read button */
+.mark-read-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #000;
+  color: #000;
+  background-color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.mark-read-btn:hover,
+.mark-read-btn:active {
+  background-color: #000;
+  color: #fff;
+}
+
+.check-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+}
+
+.empty-state p {
+  color: #6b7280;
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .notification-container {
+    padding: 16px;
+  }
+
+  .notification-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .notification-controls {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .pagination-container {
+    justify-content: center;
+  }
+
+  .notification-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .type-badge {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification-title {
+    font-size: 24px;
+  }
+
+  .mark-all-btn,
+  .mark-read-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
