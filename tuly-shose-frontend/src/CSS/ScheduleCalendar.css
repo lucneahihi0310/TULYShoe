@@ -1,0 +1,167 @@
+/* Header */
+.header-bar {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header-bar h3 {
+  margin: 0;
+  font-weight: bold;
+}
+
+/* Filter và Nút chuyển tuần */
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.filter-left {
+  display: flex;
+  gap: 20px;
+}
+
+.filter-left .form-group {
+  margin-bottom: 0;
+}
+
+.filter-right button {
+  margin-left: 10px;
+}
+
+/* Calendar size */
+.rbc-calendar {
+  min-height: 500px;
+}
+
+.rbc-time-view {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rbc-time-header-content {
+  border-bottom: 1px solid #ddd;
+}
+
+.rbc-time-slot {
+  min-height: 40px;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Màu theo trạng thái */
+.rbc-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.rbc-event.chua-bat-dau {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+}
+
+.rbc-event.dang-lam {
+  background-color: #cce5ff !important;
+  color: #004085 !important;
+}
+
+.rbc-event.hoan-thanh {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+.rbc-event .view-icon {
+  cursor: pointer;
+  margin-left: 8px;
+  color: #007bff;
+}
+
+.rbc-event .view-icon:hover {
+  color: #0056b3;
+}
+
+/* Modal */
+.modal-content {
+  border-radius: 10px;
+}
+
+.modal-header {
+  background-color: #f8f9fa;
+}
+
+.modal-body {
+  font-size: 16px;
+}
+
+.modal-body p {
+  margin-bottom: 10px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-footer button {
+  margin-left: 10px;
+}
+
+/* Toast notification */
+.Toastify__toast--success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.Toastify__toast--error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.Toastify__toast--warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.button-group{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+.button-group button{
+    width: 150px;
+    gap: 10px;
+    border: 1px solid black;
+    color: black;
+    transition: all 0.3s ease;
+}
+.button-group button:hover {
+    background-color: black; 
+    color: white; 
+    cursor: pointer;
+}
+/* Tùy chỉnh phần header ngày */
+.rbc-header {
+    color: rgb(17, 17, 17);           /* Màu chữ */
+    text-align: center;     /* Căn giữa chữ */
+    vertical-align: middle;
+    height: 50px;           /* Chiều cao header */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d1d1d1;
+
+}
+
+.custom-event {
+  display: flex;
+  justify-content: space-between; /* Đẩy icon sang phải */
+  align-items: center; /* Căn giữa theo chiều dọc */
+}
