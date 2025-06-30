@@ -118,98 +118,98 @@ const Order = () => {
     return `${day}/${month}/${year}`;
   };
 
+  const handleOrderSubmit = async () => {
+    if (orderItems.length === 0) {
+      return message.warning("Không có sản phẩm để đặt hàng.");
+    }
 
-const handleOrderSubmit = async () => {
-  if (orderItems.length === 0) {
-    return message.warning("Không có sản phẩm để đặt hàng.");
-  }
+    const payload = {
+      user_id: user?._id || null,
+      orderItems: orderItems.map((item) => ({
+        pdetail_id: item.pdetail_id,
+        quantity: item.quantity,
+        price_after_discount: item.price_after_discount,
+        productName: item.productName,
+        size_name: item.size_name,
+      })),
+      userInfo,
+      paymentMethod,
+      orderNote,
+      shippingFee,
+    };
 
-  const payload = {
-    user_id: user?._id || null,
-    orderItems: orderItems.map((item) => ({
-      pdetail_id: item.pdetail_id,
-      quantity: item.quantity,
-      price_after_discount: item.price_after_discount,
-      productName: item.productName,
-      size_name: item.size_name,
-    })),
-    userInfo,
-    paymentMethod,
-    orderNote,
-    shippingFee,
+    if (paymentMethod === "cod") {
+      Modal.confirm({
+        title: "Xác nhận đặt hàng",
+        content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
+        okText: "Xác nhận",
+        icon: <QuestionCircleOutlined />,
+        cancelButtonProps: { style: { display: "none" } },
+        closable: true,
+        async onOk() {
+          try {
+            const data = await postData("orders", payload, true);
+
+            if (data?.order_code) {
+              message.success("Đặt hàng thành công!");
+
+              if (!user) {
+                localStorage.removeItem("guest_cart");
+                sessionStorage.removeItem("guest_cart");
+              }
+              window.dispatchEvent(new Event("cartUpdated"));
+              navigate("/order-success");
+            } else {
+              message.error(data?.message || "Đặt hàng thất bại");
+            }
+          } catch (error) {
+            console.error("Lỗi khi gửi đơn hàng:", error);
+            message.error("Lỗi kết nối đến server.");
+          }
+        },
+      });
+    } else {
+      Modal.confirm({
+        title: "Xác nhận đặt hàng",
+        content: "Bạn có chắc chắn muốn thanh toán với VNPay?",
+        okText: "Xác nhận",
+        icon: <QuestionCircleOutlined />,
+        cancelButtonProps: { style: { display: "none" } },
+        closable: true,
+        async onOk() {
+          try {
+            const data = await postData(
+              "vnpay/create",
+              {
+                ...payload,
+                amount: totalAmount,
+                paymentMethod: "online",
+              },
+              true
+            );
+
+            if (data?.paymentUrl) {
+              window.dispatchEvent(new Event("cartUpdated"));
+
+              if (!user) {
+                localStorage.removeItem("guest_cart");
+                sessionStorage.removeItem("guest_cart");
+              }
+
+              window.location.href = data.paymentUrl;
+            } else {
+              message.error(
+                data?.message || "Không thể tạo liên kết thanh toán."
+              );
+            }
+          } catch (err) {
+            console.error("Lỗi khi gọi VNPay:", err);
+            message.error("Lỗi kết nối đến VNPay.");
+          }
+        },
+      });
+    }
   };
-
-  if (paymentMethod === "cod") {
-    Modal.confirm({
-      title: "Xác nhận đặt hàng",
-      content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
-      okText: "Xác nhận",
-      icon: <QuestionCircleOutlined />,
-      cancelButtonProps: { style: { display: "none" } },
-      closable: true,
-      async onOk() {
-        try {
-          const data = await postData("orders", payload, true);
-
-          if (data?.order_code) {
-            message.success("Đặt hàng thành công!");
-            window.dispatchEvent(new Event("cartUpdated"));
-
-            if (!user) {
-              localStorage.removeItem("guest_cart");
-              sessionStorage.removeItem("guest_cart");
-            }
-
-            navigate("/order-success");
-          } else {
-            message.error(data?.message || "Đặt hàng thất bại");
-          }
-        } catch (error) {
-          console.error("Lỗi khi gửi đơn hàng:", error);
-          message.error("Lỗi kết nối đến server.");
-        }
-      },
-    });
-  } else {
-    Modal.confirm({
-      title: "Xác nhận đặt hàng",
-      content: "Bạn có chắc chắn muốn thanh toán với VNPay?",
-      okText: "Xác nhận",
-      icon: <QuestionCircleOutlined />,
-      cancelButtonProps: { style: { display: "none" } },
-      closable: true,
-      async onOk() {
-        try {
-          const data = await postData(
-            "vnpay/create",
-            {
-              ...payload,
-              amount: totalAmount,
-              paymentMethod: "online",
-            },
-            true
-          );
-
-          if (data?.paymentUrl) {
-            window.dispatchEvent(new Event("cartUpdated"));
-
-            if (!user) {
-              localStorage.removeItem("guest_cart");
-              sessionStorage.removeItem("guest_cart");
-            }
-
-            window.location.href = data.paymentUrl;
-          } else {
-            message.error(data?.message || "Không thể tạo liên kết thanh toán.");
-          }
-        } catch (err) {
-          console.error("Lỗi khi gọi VNPay:", err);
-          message.error("Lỗi kết nối đến VNPay.");
-        }
-      },
-    });
-  }
-};
 
   return (
     <main className={`${styles.main} ${styles.fadeIn}`}>
@@ -315,7 +315,7 @@ const handleOrderSubmit = async () => {
                           min={1}
                           max={99}
                           value={item.quantity}
-                          disabled={!!location.state?.cartItems}
+                          disabled={!!location.state?.fromCart}
                           onChange={(val) => {
                             if (!location.state?.cartItems) {
                               setOrderItems((prev) =>
