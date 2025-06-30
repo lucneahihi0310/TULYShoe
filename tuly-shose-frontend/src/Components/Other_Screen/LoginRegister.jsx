@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import "../../CSS/LoginRegister.css";
+import styles from "../../CSS/LoginRegister.module.css";
 
 const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Thêm state để hiển thị mật khẩu
   const [first_name, setFirst_name] = useState("");
   const [last_name, setLast_name] = useState("");
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
+  const [address, setAddress] = useState("");
   const [remember, setRemember] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Thêm state cho confirm password
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false); // Thêm state cho new password
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false); // Thêm state cho confirm new password
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [popupVisible, setPopupVisible] = useState(false);
@@ -30,7 +35,24 @@ const LoginRegister = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const expiresAt = localStorage.getItem("expires_at");
+    if (token && expiresAt) {
+      const currentTime = Date.now();
+      if (currentTime > parseInt(expiresAt)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("expires_at");
+        window.dispatchEvent(
+          new StorageEvent("storage", { key: "token", newValue: null })
+        );
+      }
+    }
+    if (token && !expiresAt) {
+      localStorage.removeItem("token");
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "token", newValue: null })
+      );
+    }
+    if (token && expiresAt && parseInt(expiresAt) > Date.now()) {
       navigate("/");
     }
   }, [navigate]);
@@ -50,13 +72,18 @@ const LoginRegister = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
-        window.dispatchEvent(new Event("storage"));
         if (remember) {
-          localStorage.setItem("rememberedEmail", email);
+          const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("expires_at", expiresAt.toString());
         } else {
-          localStorage.removeItem("rememberedEmail");
+          sessionStorage.setItem("token", data.token);
+          localStorage.removeItem("token");
+          localStorage.removeItem("expires_at");
         }
+        window.dispatchEvent(
+          new StorageEvent("storage", { key: "token", newValue: data.token })
+        );
         navigate("/");
       } else {
         setErrorMessage(data.message || "Email hoặc mật khẩu không đúng!");
@@ -79,6 +106,7 @@ const LoginRegister = () => {
     if (!first_name) validationErrors.first_name = "Họ không được để trống!";
     if (!last_name) validationErrors.last_name = "Tên không được để trống!";
     if (!gender) validationErrors.gender = "Giới tính không được để trống!";
+    if (!address) validationErrors.address = "Địa chỉ không được để trống!";
 
     if (!email) {
       validationErrors.email = "Email không được để trống!";
@@ -101,7 +129,8 @@ const LoginRegister = () => {
     if (!password) {
       validationErrors.password = "Mật khẩu không được để trống!";
     } else if (!passwordRegex.test(password)) {
-      validationErrors.password = "Mật khẩu phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
+      validationErrors.password =
+        "Mật khẩu phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
     }
 
     if (!confirmPassword) {
@@ -133,6 +162,7 @@ const LoginRegister = () => {
       phone,
       dob,
       gender,
+      address,
     };
 
     try {
@@ -169,13 +199,16 @@ const LoginRegister = () => {
     if (!newPassword) {
       resetValidationErrors.newPassword = "Mật khẩu mới không được để trống!";
     } else if (!passwordRegex.test(newPassword)) {
-      resetValidationErrors.newPassword = "Mật khẩu mới phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
+      resetValidationErrors.newPassword =
+        "Mật khẩu mới phải có ít nhất 8 ký tự, 1 chữ hoa và 1 số!";
     }
 
     if (!confirmNewPassword) {
-      resetValidationErrors.confirmNewPassword = "Vui lòng xác nhận mật khẩu mới!";
+      resetValidationErrors.confirmNewPassword =
+        "Vui lòng xác nhận mật khẩu mới!";
     } else if (newPassword !== confirmNewPassword) {
-      resetValidationErrors.confirmNewPassword = "Mật khẩu xác nhận không khớp!";
+      resetValidationErrors.confirmNewPassword =
+        "Mật khẩu xác nhận không khớp!";
     }
 
     setResetValidationErrors(resetValidationErrors);
@@ -191,7 +224,7 @@ const LoginRegister = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:9999/api/forgot-password", {
+      const response = await fetch(`${API_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
@@ -206,7 +239,9 @@ const LoginRegister = () => {
         setPopupVisible(true);
         setCurrentForm("resetPassword");
       } else {
-        setErrorMessage(data.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!");
+        setErrorMessage(
+          data.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!"
+        );
       }
     } catch (error) {
       console.error("Lỗi quên mật khẩu:", error);
@@ -222,10 +257,14 @@ const LoginRegister = () => {
     if (!isValid) return;
 
     try {
-      const response = await fetch("http://localhost:9999/api/reset-password", {
+      const response = await fetch(`${API_URL}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), resetToken, newPassword }),
+        body: JSON.stringify({
+          email: email.trim(),
+          resetToken: resetToken.toUpperCase(),
+          newPassword,
+        }),
       });
 
       const data = await response.json();
@@ -248,42 +287,47 @@ const LoginRegister = () => {
   const handleCancel = () => {
     setEmail("");
     setPassword("");
+    setShowPassword(false); // Reset trạng thái hiển thị mật khẩu
     setFirst_name("");
     setLast_name("");
     setPhone("");
     setDob("");
     setGender("");
+    setAddress("");
     setConfirmPassword("");
+    setShowConfirmPassword(false); // Reset trạng thái hiển thị confirm password
     setResetToken("");
     setNewPassword("");
+    setShowNewPassword(false); // Reset trạng thái hiển thị new password
     setConfirmNewPassword("");
+    setShowConfirmNewPassword(false); // Reset trạng thái hiển thị confirm new password
     setErrorMessage("");
     setValidationErrors({});
     setCurrentForm("login");
   };
 
   return (
-    <div className="login-register-container">
+    <div className={styles.loginRegisterContainer}>
       <Card className="text-center border-0">
         <Card.Body>
-          <div className="tabs mb-4">
+          <div className={styles.tabs}>
             <Button
               variant="outline-danger"
-              className={`me-2 ${currentForm === "login" ? "active-tab" : ""}`}
+              className={`${styles.tabButton} ${currentForm === "login" ? styles.activeTab : ""}`}
               onClick={() => setCurrentForm("login")}
             >
               <i className="bi bi-box-arrow-in-right"> Đăng nhập</i>
             </Button>
             <Button
               variant="outline-warning"
-              className={currentForm === "register" ? "active-tab" : ""}
+              className={`${styles.tabButton} ${currentForm === "register" ? styles.activeTab : ""}`}
               onClick={() => setCurrentForm("register")}
             >
               <i className="bi bi-person-plus-fill"> Đăng ký</i>
             </Button>
           </div>
 
-          <div className="form-container">
+          <div className={styles.formContainer}>
             {currentForm === "login" && (
               <Form onSubmit={handleLogin}>
                 <h2>Đăng nhập</h2>
@@ -304,7 +348,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Mật khẩu"
                     value={password}
                     onChange={(e) => {
@@ -313,8 +357,15 @@ const LoginRegister = () => {
                     }}
                     required
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                 </InputGroup>
-                {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
                 <Form.Group
                   className="mb-3"
                   style={{
@@ -331,10 +382,12 @@ const LoginRegister = () => {
                     onChange={(e) => setRemember(e.target.checked)}
                     style={{ marginRight: "10px" }}
                   />
-                  <Form.Check.Label htmlFor="remember">Ghi nhớ</Form.Check.Label>
+                  <Form.Check.Label htmlFor="remember">
+                    Ghi nhớ
+                  </Form.Check.Label>
                 </Form.Group>
 
-                <div className="forgot-password">
+                <div className={styles.forgotPassword}>
                   <Button
                     style={{
                       textDecoration: "none",
@@ -349,7 +402,11 @@ const LoginRegister = () => {
                     <i className="bi bi-question-circle"> Quên mật khẩu?</i>
                   </Button>
                 </div>
-                <Button type="submit" className="btn-danger w-100" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="btn-danger w-100"
+                  disabled={isSubmitting}
+                >
                   <i className="bi bi-box-arrow-in-right"> Đăng nhập</i>
                 </Button>
               </Form>
@@ -404,6 +461,28 @@ const LoginRegister = () => {
                 </InputGroup>
                 <InputGroup className="mb-3">
                   <InputGroup.Text>
+                    <i className="bi bi-house"></i>
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    placeholder="* Địa chỉ"
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setErrorMessage("");
+                      setValidationErrors((prevErrors) => ({
+                        ...prevErrors,
+                        address: "",
+                      }));
+                    }}
+                    isInvalid={!!validationErrors.address}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validationErrors.address}
+                  </Form.Control.Feedback>
+                </InputGroup>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text>
                     <i className="bi bi-envelope"></i>
                   </InputGroup.Text>
                   <Form.Control
@@ -429,7 +508,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="* Mật khẩu"
                     value={password}
                     onChange={(e) => {
@@ -442,6 +521,13 @@ const LoginRegister = () => {
                     }}
                     isInvalid={!!validationErrors.password}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.password}
                   </Form.Control.Feedback>
@@ -451,7 +537,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock-fill"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="* Xác nhận mật khẩu"
                     value={confirmPassword}
                     onChange={(e) => {
@@ -464,6 +550,13 @@ const LoginRegister = () => {
                     }}
                     isInvalid={!!validationErrors.confirmPassword}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showConfirmPassword}
+                      onChange={(e) => setShowConfirmPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.confirmPassword}
                   </Form.Control.Feedback>
@@ -539,12 +632,20 @@ const LoginRegister = () => {
                   </Form.Control.Feedback>
                 </InputGroup>
 
-                {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
 
-                <Button style={{ marginBottom: "5px" }} variant="secondary" onClick={handleCancel}>
+                <Button
+                  style={{ marginBottom: "5px" }}
+                  variant="secondary"
+                  onClick={handleCancel}
+                >
                   <i className="bi bi-x-circle"> Hủy</i>
                 </Button>
-                <Button type="submit" className="btn-warning w-100" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="btn-warning w-100"
+                  disabled={isSubmitting}
+                >
                   <i className="bi bi-person-plus-fill"> Đăng ký</i>
                 </Button>
               </Form>
@@ -559,17 +660,25 @@ const LoginRegister = () => {
                 <Modal.Title>Tạo tài khoản thành công</Modal.Title>
               </Modal.Header>
               <Modal.Body>
-                <p>Tài khoản của bạn đã được tạo thành công. Vui lòng đăng nhập để trải nghiệm!</p>
+                <p>
+                  Tài khoản của bạn đã được tạo thành công. Vui lòng đăng nhập
+                  để trải nghiệm!
+                </p>
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowSuccessModal(false)}
+                >
                   Đóng
                 </Button>
               </Modal.Footer>
             </Modal>
             {currentForm === "forgotPassword" && (
               <Form onSubmit={handleForgotPassword}>
-                {errorMessage && <div className="text-danger">{errorMessage}</div>}
+                {errorMessage && (
+                  <div className={styles.errorMessage}>{errorMessage}</div>
+                )}
                 <h2 className="mb-4">Quên mật khẩu</h2>
                 <InputGroup className="mb-3">
                   <InputGroup.Text>
@@ -606,7 +715,9 @@ const LoginRegister = () => {
             )}
             {currentForm === "resetPassword" && (
               <Form onSubmit={handleResetPassword}>
-                {errorMessage && <div className="text-danger">{errorMessage}</div>}
+                {errorMessage && (
+                  <div className={styles.errorMessage}>{errorMessage}</div>
+                )}
                 <h2 className="mb-4">Đặt lại mật khẩu</h2>
                 <InputGroup className="mb-3">
                   <InputGroup.Text>
@@ -616,7 +727,7 @@ const LoginRegister = () => {
                     type="text"
                     value={resetToken}
                     onChange={(e) => {
-                      setResetToken(e.target.value);
+                      setResetToken(e.target.value.toUpperCase());
                       setErrorMessage("");
                       setResetValidationErrors((prevErrors) => ({
                         ...prevErrors,
@@ -635,7 +746,7 @@ const LoginRegister = () => {
                     <i className="bi bi-key"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => {
                       setNewPassword(e.target.value);
@@ -648,6 +759,13 @@ const LoginRegister = () => {
                     placeholder="Nhập mật khẩu mới"
                     isInvalid={!!resetValidationErrors.newPassword}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showNewPassword}
+                      onChange={(e) => setShowNewPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {resetValidationErrors.newPassword}
                   </Form.Control.Feedback>
@@ -657,7 +775,7 @@ const LoginRegister = () => {
                     <i className="bi bi-lock-fill"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showConfirmNewPassword ? "text" : "password"}
                     value={confirmNewPassword}
                     onChange={(e) => {
                       setConfirmNewPassword(e.target.value);
@@ -670,6 +788,13 @@ const LoginRegister = () => {
                     placeholder="Xác nhận mật khẩu mới"
                     isInvalid={!!resetValidationErrors.confirmNewPassword}
                   />
+                  <InputGroup.Text>
+                    <Form.Check
+                      type="checkbox"
+                      checked={showConfirmNewPassword}
+                      onChange={(e) => setShowConfirmNewPassword(e.target.checked)}
+                    />
+                  </InputGroup.Text>
                   <Form.Control.Feedback type="invalid">
                     {resetValidationErrors.confirmNewPassword}
                   </Form.Control.Feedback>

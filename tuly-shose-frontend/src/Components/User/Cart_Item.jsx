@@ -1,202 +1,183 @@
-import React from "react";
-import {
-  Button,
-  InputNumber,
-  Input,
-  Select,
-  Typography,
-  Row,
-  Col,
-  Divider,
-  Carousel,
-} from "antd";
-import { HeartOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useNavigate } from 'react-router-dom';
-import styles from "../../CSS/CartItem.module.css";
+import React, { useEffect, useState } from 'react';
+import { Table, Button, InputNumber } from 'antd';
+import styles from '../../CSS/CartItem.module.css';
 
-const { Title, Text } = Typography;
+const cartData = [
+  {
+    key: '1',
+    product: {
+      name: 'Black Runner Sneakers',
+      description: "Men's Running Shoe",
+      size: '42',
+      image: 'https://storage.googleapis.com/a1aa/image/91177bfd-d842-4f47-4d6b-4100b356cb39.jpg',
+    },
+    price: 120.00,
+    quantity: 2,
+    total: 240.00,
+  },
+  {
+    key: '2',
+    product: {
+      name: 'Gray Slip-On Casuals',
+      description: 'Unisex Casual Shoe',
+      size: '39',
+      image: 'https://storage.googleapis.com/a1aa/image/b2a6dc4e-2448-4bbb-f90e-b856b310d8cc.jpg',
+    },
+    price: 85.00,
+    quantity: 1,
+    total: 85.00,
+  },
+  {
+    key: '3',
+    product: {
+      name: 'White High-Top Sneakers',
+      description: "Men's Basketball Shoe",
+      size: '44',
+      image: 'https://storage.googleapis.com/a1aa/image/7fafa32f-4080-43e1-364d-fb07d3b1ccb9.jpg',
+    },
+    price: 150.00,
+    quantity: 1,
+    total: 150.00,
+  },
+  {
+    key: '4',
+    product: {
+      name: 'Black Leather Loafers',
+      description: "Men's Formal Shoe",
+      size: '43',
+      image: 'https://storage.googleapis.com/a1aa/image/c1809157-e43e-4a05-1ff1-05abb9a73dd9.jpg',
+    },
+    price: 180.00,
+    quantity: 1,
+    total: 180.00,
+  },
+  {
+    key: '5',
+    product: {
+      name: 'White Canvas Slip-Ons',
+      description: 'Unisex Casual Shoe',
+      size: '40',
+      image: 'https://storage.googleapis.com/a1aa/image/8434eade-2ea2-429b-99dc-0aa9fc314921.jpg',
+    },
+    price: 75.00,
+    quantity: 3,
+    total: 225.00,
+  },
+];
 
-
-const CartItem = ({ image, title, price, size, quantity, total, inStock }) => (
-  <div className={styles.cartItem}>
-    <img src={image} alt={title} className={styles.itemImage} />
-    <div className={styles.itemDetails}>
-      <Text strong className={styles.itemTitle}>
-        {title}
-      </Text>
-      <Text type="secondary" className={styles.itemPrice}>
-        Giá: {price}
-      </Text>
-      <div className={styles.itemOptions}>
+const columns = [
+  {
+    title: 'Product',
+    dataIndex: 'product',
+    key: 'product',
+    render: (product) => (
+      <div className={styles.productContainer}>
+        <img
+          src={product.image}
+          alt={product.name}
+          className={styles.productImage}
+        />
         <div>
-          <Text strong>Size</Text>
-          <Select defaultValue={size} className={styles.select}>
-            <Select.Option value={size}>{size}</Select.Option>
-          </Select>
-        </div>
-        <div>
-          <Text strong>Số lượng</Text>
-          <InputNumber
-            min={1}
-            max={99}
-            value={quantity}
-            // onChange={setQuantity}
-            className={styles.inputNumber}
-          />
+          <h3 className={styles.productName}>{product.name}</h3>
+          <p className={styles.productDescription}>{product.description}</p>
+          <p className={styles.productSize}>Size: {product.size}</p>
         </div>
       </div>
-    </div>
-    <div className={styles.itemActions}>
-      <Text strong className={styles.itemTotal}>
-        {total}
-      </Text>
-      <Text className={styles.inStock}>{inStock}</Text>
-      <Button
-        icon={<DeleteOutlined />}
-        className={styles.actionButton}
-        danger
+    ),
+  },
+  {
+    title: 'Price',
+    dataIndex: 'price',
+    key: 'price',
+    align: 'center',
+    render: (price) => `$${price.toFixed(2)}`,
+  },
+  {
+    title: 'Quantity',
+    dataIndex: 'quantity',
+    key: 'quantity',
+    align: 'center',
+    render: (quantity, record) => (
+      <InputNumber
+        min={1}
+        defaultValue={quantity}
+        className={styles.quantityInput}
+        aria-label={`Quantity for ${record.product.name}`}
       />
-    </div>
-  </div>
-);
+    ),
+  },
+  {
+    title: 'Total',
+    dataIndex: 'total',
+    key: 'total',
+    align: 'center',
+    render: (total) => `$${total.toFixed(2)}`,
+  },
+  {
+    title: 'Remove',
+    key: 'remove',
+    align: 'center',
+    render: (_, record) => (
+      <Button
+        type="text"
+        icon={<i className={`fas fa-trash-alt ${styles.removeIcon}`}></i>}
+        aria-label={`Remove ${record.product.name} from cart`}
+      />
+    ),
+  },
+];
 
-const CartPage = () => {
-  const suggestedItems = [
-    {
-      image:
-        "https://storage.googleapis.com/a1aa/image/0cebac6f-6e3b-4eba-3d70-6f295c9a4b84.jpg",
-      title: "Die-cut Insoles - Ortholite 7mm RF White Asparagus",
-      price: "69.000 VND",
-    },
-    {
-      image:
-        "https://storage.googleapis.com/a1aa/image/beee7d8a-8d4d-4d06-371c-851df362953b.jpg",
-      title: "Crew Socks - Ananas Typo Snow White",
-      price: "95.000 VND",
-    },
-  ];
+const CartItem = () => {
+  const [isVisible, setIsVisible] = useState(false);
 
-  const cartItems = [
-    {
-      image:
-        "https://storage.googleapis.com/a1aa/image/0cebac6f-6e3b-4eba-3d70-6f295c9a4b84.jpg",
-      title: "Die-cut Insoles -  Ortholite 7mm RF - White Asparagus",
-      price: "69.000 VND",
-      size: "S",
-      quantity: 10,
-      total: "690.000 VND",
-      inStock: "Còn hàng",
-    },
-    {
-      image:
-        "https://storage.googleapis.com/a1aa/image/5205b619-72b1-44d0-a969-8104e3895e09.jpg",
-      title: "Vintas Vivu - Low Top - Warm Sand",
-      price: "620.000 VND",
-      size: "36.5",
-      quantity: 2,
-      total: "1.240.000 VND",
-      inStock: "Còn hàng",
-    },
-  ];
-const navigate = useNavigate();
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
   return (
-    <div className={styles.container}>
-      <Row gutter={[32, 32]}>
-        <Col xs={24} lg={16}>
-          {/* Suggested Items */}
-          <section className={styles.section}>
-            <Title level={5} className={styles.sectionTitle}>
-              BẠN CÓ CẦN THÊM?
-            </Title>
-            <Carousel arrows>
-              {suggestedItems.map((item, index) => (
-                <div key={index} className={styles.suggestedItem}>
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className={styles.suggestedImage}
-                  />
-                  <div className={styles.suggestedDetails}>
-                    <Text strong className={styles.suggestedTitle}>
-                      {item.title}
-                    </Text>
-                    <Text className={styles.suggestedPrice}>{item.price}</Text>
-                    <Button type="primary" className={styles.addButton}>
-                      THÊM
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </Carousel>
-          </section>
-
-          {/* Cart Items */}
-          <section
-            style={{ borderBottom: "1px solid #000" }}
-            className={styles.section}
-          >
-            <Title level={5} className={styles.sectionTitle}>
-              GIỎ HÀNG
-            </Title>
-            {cartItems.map((item, index) => (
-              <React.Fragment key={index}>
-                <CartItem {...item} />
-                {index < cartItems.length - 1 && (
-                  <Divider className={styles.customdivider} />
-                )}
-              </React.Fragment>
-            ))}
-          </section>
-          <div className={styles.cartActions}>
-            <Button danger className={styles.actionButton}>
-              XÓA HẾT
-            </Button>
-            <Button onClick={() => navigate("/products")} className={styles.actionButton}>QUAY LẠI MUA HÀNG</Button>
+    <main className={`${styles.main} ${isVisible ? styles.fadeIn : ''}`}>
+      <h2 className={styles.title}>Your Cart</h2>
+      <div className={styles.cartContainer}>
+        <section className={styles.cartSection}>
+          <Table
+            dataSource={cartData}
+            columns={columns}
+            pagination={false}
+            className={styles.cartTable}
+            rowClassName={styles.tableRow}
+          />
+        </section>
+        <aside className={styles.orderSummary}>
+          <h3 className={styles.summaryTitle}>Order Summary</h3>
+          <div className={styles.summaryContent}>
+            <div className={styles.summaryItem}>
+              <span>Subtotal</span>
+              <span>$880.00</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <span>Shipping</span>
+              <span>$25.00</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <span>Tax (8%)</span>
+              <span>$70.40</span>
+            </div>
+            <hr className={styles.divider} />
+            <div className={styles.total}>
+              <span>Total</span>
+              <span>$975.40</span>
+            </div>
           </div>
-        </Col>
-
-        {/* Order Summary */}
-        <Col xs={24} lg={8}>
-          <section className={styles.orderSummary}>
-            <Title level={5} className={styles.sectionTitle}>
-              ĐƠN HÀNG
-            </Title>
-            <div className={styles.promoSection}>
-              <Text strong className={styles.promoLabel}>
-                NHẬP MÃ KHUYẾN MÃI
-              </Text>
-              <div className={styles.promoInput}>
-                <Input placeholder="Mã khuyến mãi" />
-                <Button type="primary">ÁP DỤNG</Button>
-              </div>
-            </div>
-            <Divider className={styles.customdivider} />
-            <div className={styles.summaryItem}>
-              <Text>Đơn hàng</Text>
-              <Text>1.930.000 VND</Text>
-            </div>
-            <div className={styles.summaryItem}>
-              <Text type="secondary">Giảm</Text>
-              <Text type="secondary">0 VND</Text>
-            </div>
-            <Divider className={styles.customdivider} />
-            <div className={styles.summaryTotal}>
-              <Text strong>TẠM TÍNH</Text>
-              <Text strong>1.930.000 VND</Text>
-            </div>
-            <Button
-              onClick={() => navigate("/order")}
-              type="primary"
-              block
-              className={styles.checkoutButton}
-            >
-              TIẾP TỤC THANH TOÁN
-            </Button>
-          </section>
-        </Col>
-      </Row>
-    </div>
+          <Button
+            className={styles.checkoutButton}
+            aria-label="Proceed to checkout"
+          >
+            Proceed to Checkout
+          </Button>
+        </aside>
+      </div>
+    </main>
   );
 };
 
-export default CartPage;
+export default CartItem;

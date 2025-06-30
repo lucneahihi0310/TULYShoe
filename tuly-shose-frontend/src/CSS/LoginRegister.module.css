@@ -1,0 +1,158 @@
+.loginRegisterContainer {
+  max-width: 500px;
+  width: 90%;
+  margin: 20px auto;
+  padding: 20px;
+  /* background-color: #f9f9f9; */
+  border: 2px solid #ddd;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 10px;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+  color: #555;
+  transition: all 0.3s;
+}
+
+.activeTab {
+  font-weight: bold;
+  color: #000;
+  border-bottom: 3px solid #000;
+}
+
+.formContainer h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  /* margin: 10px 0; */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+  font-size: 1rem;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+.forgotPassword {
+  display: block;
+  margin: 10px 0;
+  text-align: center;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.terms {
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+}
+
+.terms label a {
+  color: #dd1b1b;
+  text-decoration: none;
+}
+
+.terms input {
+  margin-right: 10px;
+}
+
+.errorMessage {
+  color: #dd1b1b;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .loginRegisterContainer {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tabButton {
+    font-size: 16px;
+    padding: 8px;
+  }
+
+  .formContainer h2 {
+    font-size: 1.5rem;
+  }
+
+  input,
+  select {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .forgotPassword {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .loginRegisterContainer {
+    width: 100%;
+    padding: 10px;
+    margin: 10px auto;
+  }
+
+  .formContainer h2 {
+    font-size: 1.3rem;
+  }
+
+  input,
+  select {
+    font-size: 0.85rem;
+    padding: 7px;
+  }
+
+  button {
+    font-size: 13px;
+    padding: 7px;
+  }
+}

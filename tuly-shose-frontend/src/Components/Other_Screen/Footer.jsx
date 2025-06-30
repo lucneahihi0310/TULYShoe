@@ -9,8 +9,7 @@ const Footer = () => {
       style={{
         backgroundColor: "#000",
         color: "#fff",
-        padding: "40px 64px",
-        marginTop: 40,
+        padding: "40px 64px"
       }}
     >
       <Row gutter={[32, 32]}>
