@@ -16,3 +16,12 @@ services:
         value: kubinduong2002@gmail.com
       - key: EMAIL_PASS
         value: wubr bysj fvrk rvju
+
+  - type: static
+    name: tuly-frontend
+    rootDir: tuly-shose-frontend
+    buildCommand: npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://tulyshoe.onrender.com

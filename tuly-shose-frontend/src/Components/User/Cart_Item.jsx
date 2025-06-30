@@ -18,7 +18,7 @@ function CartItem() {
     try {
       if (user) {
         const res = await fetch(
-          `http://localhost:9999/cartItem/user/${user._id}`
+          `https://tulyshoe.onrender.com/cartItem/user/${user._id}`
         );
         const data = await res.json();
         const mapped = data.map((item) => ({
@@ -42,7 +42,7 @@ function CartItem() {
           guest.map(async (item) => {
             try {
               const res = await fetch(
-                `http://localhost:9999/productDetail/${item.pdetail_id}`
+                `https://tulyshoe.onrender.com/productDetail/${item.pdetail_id}`
               );
               const data = await res.json();
               return {
@@ -86,7 +86,7 @@ function CartItem() {
       setIsModalVisible(true);
     } else {
       if (user) {
-        await fetch(`http://localhost:9999/cartItem/${record._id}`, {
+        await fetch(`https://tulyshoe.onrender.com/cartItem/${record._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantity: newQty }),
@@ -112,7 +112,7 @@ function CartItem() {
   const handleDelete = async () => {
     if (selectedRecord) {
       if (user) {
-        await fetch(`http://localhost:9999/cartItem/${selectedRecord._id}`, {
+        await fetch(`https://tulyshoe.onrender.com/cartItem/${selectedRecord._id}`, {
           method: "DELETE",
         });
       } else {
