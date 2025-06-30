@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
 const vnp_TmnCode = "IQGVN28J";
 const vnp_HashSecret = "2OM8RGUD4LTEEVIG2CLEVHEA2BFEPTOK";
 const vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const vnp_ReturnUrl = "http://localhost:9999/vnpay/return"; // Update this to your actual return URL
-const vnp_IpnUrl = "http://localhost:9999/vnpay/ipn"; // Update this to your actual IPN URL
+const vnp_ReturnUrl = "https://tulyshoe.onrender.com/vnpay/return";
+const vnp_IpnUrl = "https://tulyshoe.onrender.com/vnpay/ipn"; 
 
 // Helper function to sort object keys alphabetically
 function sortObject(obj) {
