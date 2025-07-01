@@ -39,6 +39,15 @@ app.use("/vnpay", require("./routes/vnpay.route"));
 
 app.use('/manager', require('./routes/category.route'));
 
+
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.send(`User-agent: *
+Allow: /
+
+Sitemap: https://tulyshoe.onrender.com/sitemap.xml`);
+});
+app.use('/sitemap.xml', require('./routes/sitemap.route'));
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
     error.status = 404;
