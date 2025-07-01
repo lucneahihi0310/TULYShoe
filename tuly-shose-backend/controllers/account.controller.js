@@ -258,3 +258,89 @@ exports.resetPassword = async (req, res, next) => {
         res.status(500).json({ message: "Đặt lại mật khẩu thất bại!" });
     }
 };
+
+exports.getProfile = async (req, res) => {
+    try {
+        const account = await User.findById(req.params.id)
+            .select('-password -resetToken -resetTokenExpiration')
+            .populate('address_shipping_id', 'address');
+
+        if (!account) return res.status(404).json({ message: 'Account not found' });
+
+        // Trả về thêm address_id
+        const result = {
+            ...account._doc,
+            address: account.address_shipping_id ? account.address_shipping_id.address : null,
+            address_id: account.address_shipping_id ? account.address_shipping_id._id : null // Thêm ID địa chỉ
+        };
+
+        delete result.address_shipping_id;
+
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const { first_name, last_name, dob, gender, phone, avatar_image,address  } = req.body;
+
+        const updatedAccount = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                first_name,
+                last_name,
+                dob,
+                gender,
+                phone,
+                avatar_image,
+                address ,
+                update_at: new Date()
+            },
+            { new: true, runValidators: true }
+        ).select('-password -resetToken -resetTokenExpiration');
+
+        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
+
+        res.status(200).json({ message: 'Profile updated successfully', account: updatedAccount });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.changePassword = async (req, res) => {
+    try {
+        console.log('Request Params:', req.params);
+        console.log('Request Body:', req.body);
+
+        const { oldPassword, newPassword } = req.body;
+
+        const account = await User.findById(req.params.id);
+        if (!account) {
+            console.log('Account not found');
+            return res.status(404).json({ message: 'Account not found' });
+        }
+
+        console.log('Account found:', account);
+
+        const isMatch = await bcrypt.compare(oldPassword, account.password);
+        if (!isMatch) {
+            console.log('Old password is incorrect');
+            return res.status(400).json({ message: 'Old password is incorrect' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        account.password = await bcrypt.hash(newPassword, salt);
+        account.update_at = new Date();
+
+        await account.save();
+
+        console.log('Password changed successfully');
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (err) {
+        console.error('Server error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
