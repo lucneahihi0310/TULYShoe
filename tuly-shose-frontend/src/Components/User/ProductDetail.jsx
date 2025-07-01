@@ -52,16 +52,18 @@ function ProductDetail() {
     const fetchDataAsync = async () => {
       try {
         setLoading(true);
+
         const resDetail = await fetchData(`productDetail/${id}`);
         setProductDetail(resDetail);
         setMainImage(resDetail.images[0]);
-
+        console.log("resDetail:", resDetail);
+        console.log("resDetail._id:", resDetail._id);
         const resVariants = await fetchData(
           `productDetail/product/${resDetail.product_id._id}`
         );
         setVariants(resVariants);
 
-        const resReviews = await fetchData(`reviews/detail/${id}`);
+        const resReviews = await fetchData(`reviews/detail/${resDetail._id}`);
         setReviews(resReviews);
 
         const resRelated = await fetchData(`productDetail/related/${id}`);
@@ -76,6 +78,7 @@ function ProductDetail() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
+
     fetchDataAsync();
   }, [id]);
 
