@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&subset=vietnamese&display=swap');
 
 .main {
-  font-family: 'Poppins', sans-serif;
+  /* font-family: 'Poppins', sans-serif; */
   background-color: #fff;
   color: #1f2937;
   overflow-x: hidden;
