@@ -79,3 +79,22 @@ export const fetchStaffProfile = async (staffId) => {
     throw error;
   }
 };
+
+export const uploadImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  const res = await fetch("http://localhost:9999/upload", {
+    method: "POST",
+    headers: {
+    },
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error("Upload ảnh thất bại");
+
+  const data = await res.json();
+  return data.url;
+};
