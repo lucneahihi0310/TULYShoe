@@ -1,6 +1,2 @@
-/* index.css */
-.ant-message {
-  z-index: 11000 !important;
-  pointer-events: all !important;
-  position: fixed !important;
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap&subset=vietnamese');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&subset=vietnamese&display=swap');

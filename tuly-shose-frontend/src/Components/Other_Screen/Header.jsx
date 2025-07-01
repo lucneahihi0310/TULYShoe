@@ -127,7 +127,9 @@ const Header = () => {
     <div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
       {/* Top bar */}
       <div className={styles.topBar}>
-        <div onClick={() => setCurrentSloganIndex((i) => (i + 1) % slogans.length)}>
+        <div
+          onClick={() => setCurrentSloganIndex((i) => (i + 1) % slogans.length)}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSloganIndex}
@@ -176,7 +178,10 @@ const Header = () => {
             onClick={handleMenuClick}
           />
         ) : (
-          <MenuOutlined className={styles.menuIcon} onClick={() => setIsDrawerOpen(true)} />
+          <MenuOutlined
+            className={styles.menuIcon}
+            onClick={() => setIsDrawerOpen(true)}
+          />
         )}
 
         <Space size="large">
@@ -196,7 +201,46 @@ const Header = () => {
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
       >
-        <Menu mode="vertical" items={navItems} onClick={handleMenuClick} />
+        <Menu
+          mode="vertical"
+          onClick={handleMenuClick}
+          items={[
+            ...navItems,
+            { type: "divider" },
+            ...(!user
+              ? [
+                  {
+                    key: "login",
+                    label: "Đăng nhập",
+                    icon: <UserOutlined />,
+                    onClick: () => {
+                      setIsDrawerOpen(false);
+                      navigate("/login");
+                    },
+                  },
+                ]
+              : [
+                  {
+                    key: "profile",
+                    label: "Thông tin cá nhân",
+                    icon: <ProfileOutlined />,
+                    onClick: () => {
+                      setIsDrawerOpen(false);
+                      navigate("/profile");
+                    },
+                  },
+                  {
+                    key: "logout",
+                    label: "Đăng xuất",
+                    icon: <LogoutOutlined />,
+                    onClick: () => {
+                      setIsDrawerOpen(false);
+                      handleLogout();
+                    },
+                  },
+                ]),
+          ]}
+        />
       </Drawer>
     </div>
   );
