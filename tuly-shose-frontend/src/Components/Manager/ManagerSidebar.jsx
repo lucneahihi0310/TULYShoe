@@ -15,7 +15,7 @@ const ManagerSidebar = () => {
     ];
 
     return (
-        <div className="sidebar" style={{ borderRadius: "20px" }}>
+        <div style={{ borderRadius: "20px" }}>
             {menu.map((item) => (
                 <div
                     key={item.key}

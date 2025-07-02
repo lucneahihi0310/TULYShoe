@@ -37,6 +37,11 @@ app.use('/manager', require('./routes/size.route'));
 
 app.use('/manager', require('./routes/product.route'));
 
+app.use('/manager', require('./routes/product_detail.route'));
+
+//-----------------------------------------------------------
+
+
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
     error.status = 404;
