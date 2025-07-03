@@ -49,8 +49,6 @@ app.use('/materials', require('./routes/material.route'));
 
 app.use('/sizes', require('./routes/size.route'));
 
-app.use('/products', require('./routes/product.route'));
-
 app.use('/product_details', require('./routes/product_detail.route'));
 
 app.use('/manager', require('./routes/category.route'));

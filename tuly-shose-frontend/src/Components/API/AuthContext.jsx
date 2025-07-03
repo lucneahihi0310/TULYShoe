@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
     const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
     for (let item of guestCart) {
       try {
-        await postData("cartItem", { ...item, user_id: userId }, true);
+        await postData("cartItem/customers", { ...item, user_id: userId }, true);
       } catch (err) {
         console.error("Lỗi khi đồng bộ giỏ hàng:", err);
       }

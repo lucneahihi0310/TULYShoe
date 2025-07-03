@@ -23,7 +23,7 @@ function CartItem() {
     setLoading(true);
     try {
       if (user) {
-        const data = await fetchData(`cartItem/user/${user._id}`, true);
+        const data = await fetchData(`cartItem/customers/user/${user._id}`, true);
         const mapped = data.map((item) => ({
           _id: item._id,
           pdetail_id: item.pdetail_id,
@@ -41,7 +41,7 @@ function CartItem() {
         const details = await Promise.all(
           guest.map(async (item) => {
             try {
-              const data = await fetchData(`productDetail/${item.pdetail_id}`);
+              const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
               return {
                 _id: item.pdetail_id,
                 pdetail_id: item.pdetail_id,
@@ -78,7 +78,7 @@ function CartItem() {
       setIsModalVisible(true);
     } else {
       if (user) {
-        await updateData("cartItem", record._id, { quantity: newQty }, true);
+        await updateData("/cartItem/customers", record._id, { quantity: newQty }, true);
       } else {
         let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         guest = guest.map((item) =>
@@ -100,7 +100,7 @@ function CartItem() {
   const handleDelete = async () => {
     if (selectedRecord) {
       if (user) {
-        await deleteAPI("cartItem", selectedRecord._id, true);
+        await deleteAPI("/cartItem/customers", selectedRecord._id, true);
       } else {
         let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         guest = guest.filter((item) => item.pdetail_id !== selectedRecord._id);

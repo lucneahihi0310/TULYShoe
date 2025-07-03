@@ -59,7 +59,7 @@ const Header = () => {
   const fetchCartCount = useCallback(async () => {
     if (user) {
       try {
-        const data = await fetchData(`cartItem/user/${user._id}`, true);
+        const data = await fetchData(`cartItem/customers/user/${user._id}`, true);
         const total = data.reduce((sum, item) => sum + item.quantity, 0);
         setCartCount(total);
       } catch (err) {
