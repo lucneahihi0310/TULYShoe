@@ -2,11 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const connectDB = require('./config/db');
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 const morgan = require('morgan');
 const cors = require('cors');
 const { cleanExpiredTokens } = require('./config/cronJobs');
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
 
 app.use(
@@ -52,7 +53,12 @@ app.use('/products', require('./routes/product.route'));
 
 app.use('/product_details', require('./routes/product_detail.route'));
 
-
+app.use('/manager', require('./routes/category.route'));
+app.use('/staff/inventory', require('./routes/inventory.routes'));
+app.use('/staff/orders', require('./routes/order.routes'));
+app.use('/staff/schedules', require('./routes/workSchedule.route'));
+app.use('/staff/notifications', require('./routes/notification.router'))
+app.use('/upload', require('./routes/upload'))
 
 app.get('/robots.txt', (req, res) => {
     res.type('text/plain');
@@ -71,8 +77,12 @@ app.use((req, res, next) => {
 app.use(require('./middlewares/errorHandler'));
 
 const PORT = process.env.PORT || 9999;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    connectDB();
-    cleanExpiredTokens(); // Start cron job to clean expired reset tokens
+
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        cleanExpiredTokens(); // Cronjob chỉ chạy khi server đã kết nối DB
+    });
+}).catch((error) => {
+    console.error('MongoDB connection failed:', error);
 });

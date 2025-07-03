@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const middleware = require('../middlewares/auth.middleware');
-const { listAll, login, register, getUser, addAccount, forgotPassword, resetPassword, getFullUserInfo } = require('../controllers/account.controller');
+const { listAll, login, register, getUser, addAccount, forgotPassword, resetPassword, getFullUserInfo, getProfile, updateProfile, changePassword } = require('../controllers/account.controller');
+
 
 const timlog = (req, res, next) => {
     console.log(`Time: ${new Date().toLocaleString()}`);
@@ -17,5 +18,7 @@ router.post('/add', middleware, addAccount);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/info', middleware, getFullUserInfo);
-
+router.get('/profile/:id',middleware, getProfile);
+router.put('/profile/:id',middleware, updateProfile);
+router.put('/profile/:id/change-password',middleware, changePassword);
 module.exports = router;
