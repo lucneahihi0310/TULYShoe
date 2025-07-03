@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:9999/notifications';
+const API_URL = 'http://localhost:9999/notifications/staff';
 
 // Lấy tất cả thông báo của user
 export const fetchNotifications = async (userId) => {

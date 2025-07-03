@@ -1,6 +1,6 @@
 import { getToken } from "./authApi";
 
-const API_URL = 'http://localhost:9999/orders';
+const API_URL = 'http://localhost:9999/orders/staff';
 
 export const fetchOrders = async () => {
   try {

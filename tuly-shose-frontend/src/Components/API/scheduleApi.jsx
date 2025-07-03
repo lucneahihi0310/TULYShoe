@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:9999';
+const API_BASE_URL = 'http://localhost:9999/staff';
 
 export const fetchSchedulesByStaff = async (staffId) => {
   try {

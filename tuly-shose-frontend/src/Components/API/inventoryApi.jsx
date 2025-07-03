@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:9999";
+const BASE_URL = "http://localhost:9999/staff";
 
 // Lấy danh sách tồn kho
 export const fetchInventory = async () => {

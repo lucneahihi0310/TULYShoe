@@ -24,10 +24,10 @@ app.get('/', async (req, res) => {
 app.use('/account', require('./routes/account.route'));
 app.use('/address', require('./routes/address_shipping.route'));
 app.use('/manager', require('./routes/category.route'));
-app.use('/inventory', require('./routes/inventory.routes'));
-app.use('/orders', require('./routes/order.routes'));
-app.use('/schedules', require('./routes/workSchedule.route'));
-app.use('/notifications', require('./routes/notification.router'))
+app.use('/staff/inventory', require('./routes/inventory.routes'));
+app.use('/staff/orders', require('./routes/order.routes'));
+app.use('/staff/schedules', require('./routes/workSchedule.route'));
+app.use('/staff/notifications', require('./routes/notification.router'))
 app.use('/upload', require('./routes/upload'))
 app.use((req, res, next) => {
     const error = new Error('Path does not exist or is invalid!');
