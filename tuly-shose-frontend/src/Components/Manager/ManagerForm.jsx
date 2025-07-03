@@ -3,7 +3,7 @@ import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popcon
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
 
-const ManagerCategory = () => {
+const ManagerForm = () => {
     const [categories, setCategories] = useState([]);
     const [edittingRow, setEdittingRow] = useState(null);
     const [filterCategoryName, setFilterCategoryName] = useState("");
@@ -29,8 +29,8 @@ const ManagerCategory = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
-                category_name: record.category_name,
+            await axios.put(`http://localhost:9999/manager/forms/edit/${edittingRow}`, {
+                form_name: record.form_name,
                 is_active: record.status
             });
             setEdittingRow(null);
@@ -49,7 +49,7 @@ const ManagerCategory = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/categories/delete/${id}`);
+        await axios.delete(`http://localhost:9999/manager/forms/delete/${id}`);
         fetchCategories();
     };
 
@@ -58,12 +58,12 @@ const ManagerCategory = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/categories`);
+        const res = await axios.get(`http://localhost:9999/manager/forms`);
         setCategories(res.data);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
-        const findCategoryByName = c.category_name.toLowerCase().includes(filterCategoryName.toLowerCase());
+        const findCategoryByName = c.form_name.toLowerCase().includes(filterCategoryName.toLowerCase());
         const findCategoryByStatus = filterCategoryStatus === undefined || c.status === filterCategoryStatus;
         return findCategoryByName && findCategoryByStatus;
     })
@@ -76,25 +76,25 @@ const ManagerCategory = () => {
             key: '_id'
         },
         {
-            title: 'Category name',
-            dataIndex: 'category_name',
-            key: 'category_name',
+            title: 'Form name',
+            dataIndex: 'form_name',
+            key: 'form_name',
             render: (value, record) => {
                 if (record._id == edittingRow) {
                     return (
                         <Form.Item
-                            name="category_name"
+                            name="form_name"
                             rules={[
-                                { required: true, message: "Please enter category name" },
+                                { required: true, message: "Please enter form name" },
                                 {
                                     validator: (_, value) => {
                                         const isDuplicate = categories.some(
                                             (cat) =>
-                                                cat.category_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                                cat.form_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
                                                 cat._id !== edittingRow
                                         );
                                         return isDuplicate
-                                            ? Promise.reject("This category name already exists!")
+                                            ? Promise.reject("This form name already exists!")
                                             : Promise.resolve();
                                     }
                                 }
@@ -189,14 +189,14 @@ const ManagerCategory = () => {
                             onClick={() => {
                                 setEdittingRow(record._id);
                                 form.setFieldsValue({
-                                    category_name: record.category_name,
+                                    form_name: record.form_name,
                                     status: record.status
                                 })
                             }}>
                             Edit
                         </Button>
                         <Popconfirm
-                            title="Are you sure to delete this category?"
+                            title="Are you sure to delete this form?"
                             onConfirm={() => {
                                 handleDeleteCategory(record._id)
                             }}
@@ -222,11 +222,11 @@ const ManagerCategory = () => {
             <Row gutter={16} style={{ padding: '10px' }}>
                 <Col span={4}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <h4>Categories</h4>
+                        <h4>Forms</h4>
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search category..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
+                    <Input placeholder="Search form..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
                 </Col>
                 <Col span={2} offset={1}>
                     <Select
@@ -247,10 +247,10 @@ const ManagerCategory = () => {
                         onClick={() => {
                             showAddCategoryModal();
                         }}>
-                        Add New Category
+                        Add New Form
                     </Button>
                     <Modal
-                        title="Add new category"
+                        title="Add new form"
                         closable={{ 'aria-label': 'Custom Close Button' }}
                         open={addCategory}
                         onCancel={() => {
@@ -268,8 +268,8 @@ const ManagerCategory = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/categories/create', {
-                                        category_name: values.category_name,
+                                    await axios.post('http://localhost:9999/manager/forms/create', {
+                                        form_name: values.form_name,
                                         is_active: values.is_active
                                     });
                                     form2.resetFields();
@@ -280,19 +280,19 @@ const ManagerCategory = () => {
                                 }
                             }}>
                             <Form.Item
-                                label="Category name"
-                                name="category_name"
+                                label="Form name"
+                                name="form_name"
                                 rules={[
-                                    { required: true, message: "Please enter category name" },
+                                    { required: true, message: "Please enter form name" },
                                     {
                                         validator: (_, value) => {
                                             const isDuplicate = categories.some(
                                                 (cat) =>
-                                                    cat.category_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                                    cat.form_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
                                                     cat._id !== edittingRow
                                             );
                                             return isDuplicate
-                                                ? Promise.reject("This category name already exists!")
+                                                ? Promise.reject("This form name already exists!")
                                                 : Promise.resolve();
                                         }
                                     }
@@ -335,4 +335,4 @@ const ManagerCategory = () => {
     );
 };
 
-export default ManagerCategory;
+export default ManagerForm;

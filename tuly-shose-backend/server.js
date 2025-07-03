@@ -15,7 +15,6 @@ app.use(
         credentials: true,
     })
 );
-app.use(morgan('dev'));
 
 app.get('/', async (req, res) => {
     try {
@@ -37,7 +36,24 @@ app.use('/reviews', require('./routes/review.route'));
 app.use("/vnpay", require("./routes/vnpay.route"));
 
 
-app.use('/manager', require('./routes/category.route'));
+app.use('/categories', require('./routes/category.route'));
+
+app.use('/brands', require('./routes/brand.route'));
+
+app.use('/colors', require('./routes/color.route'));
+
+app.use('/forms', require('./routes/form.route'));
+
+app.use('/materials', require('./routes/material.route'));
+
+app.use('/sizes', require('./routes/size.route'));
+
+app.use('/products', require('./routes/product.route'));
+
+app.use('/product_details', require('./routes/product_detail.route'));
+
+//-----------------------------------------------------------
+
 
 
 app.get('/robots.txt', (req, res) => {

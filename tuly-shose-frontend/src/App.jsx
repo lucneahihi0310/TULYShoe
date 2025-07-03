@@ -7,13 +7,12 @@ import HomePage from "./Components/User/HomePage";
 import ProductDetail from "./Components/User/ProductDetail";
 import ListProduct from "./Components/User/ListProduct";
 import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
-import ManagerProduct from "./Components/Manager/ManagerProduct";
-import ManagerCategory from "./Components/Manager/ManagerCategory";
 import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import OrderSuccess from "./Components/User/OrderSuccess";
+import ManagerDashboard from "./Components/Manager/ManagerDashboard";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
@@ -76,22 +75,20 @@ function App() {
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+
         <Route
-          path="/manager/product"
+          path="/manager"
+          element={<Navigate to="/manager/brands" replace />}
+        />
+        <Route
+          path="/manager/:section"
           element={
             <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerProduct />
+              <ManagerDashboard />
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/manager/category"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerCategory />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/dashboard"
           element={<Navigate to="/dashboard/feedbacks" replace />}
