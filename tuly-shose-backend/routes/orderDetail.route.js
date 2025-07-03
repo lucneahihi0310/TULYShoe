@@ -9,7 +9,7 @@ const timlog = (req, res, next) => {
 }
 
 router.use(timlog);
-router.get('/', getAllOrderDetails);
-router.get('/:id', getOrderDetailById);
+router.get('customers/', getAllOrderDetails);
+router.get('/customers/:id', getOrderDetailById);
 
 module.exports = router;

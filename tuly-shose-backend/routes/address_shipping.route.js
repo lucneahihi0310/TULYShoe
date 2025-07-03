@@ -10,10 +10,10 @@ const timlog = (req, res, next) => {
 router.use(timlog);
 router.use(express.json());
 
-router.get('/', middleware, getAllAddress);
-router.get('/:id', middleware, getAddressById);
-router.post('/', addAddress);
-router.put('/:id', middleware, updateAddress);
-router.delete('/:id', middleware, deleteAddress);
+router.get('/customers/', middleware, getAllAddress);
+router.get('/customers/:id', middleware, getAddressById);
+router.post('/customers/', addAddress);
+router.put('/customers/:id', middleware, updateAddress);
+router.delete('/customers/:id', middleware, deleteAddress);
 
 module.exports = router;

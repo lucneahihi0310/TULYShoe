@@ -90,7 +90,7 @@ exports.getFilteredProducts = async (req, res) => {
       { $unwind: { path: '$detail', preserveNullAndEmptyArrays: true } },
       { $match: { detail: { $ne: null } } },
 
-      // ✅ Add sort_price field để chuẩn hóa logic sắp xếp
+      //  Add sort_price field để chuẩn hóa logic sắp xếp
       {
         $addFields: {
           sort_price: {

@@ -9,12 +9,12 @@ const timlog = (req, res, next) => {
 }
 
 router.use(timlog);
-router.get('/', getAllCartItems);
-router.get('/:id', getCartItemById);
-router.get('/user/:userId', getCartItemsByUserId);
-router.post('/', addCartItem);
-router.put('/:id', updateCartItemQuantity);
-router.delete('/:id', deleteCartItem);
+router.get('/customers/', getAllCartItems);
+router.get('/customers/:id', getCartItemById);
+router.get('/customers/user/:userId', getCartItemsByUserId);
+router.post('/customers/', addCartItem);
+router.put('/customers/:id', updateCartItemQuantity);
+router.delete('/customers/:id', deleteCartItem);
 
 
 module.exports = router;

@@ -52,8 +52,6 @@ app.use('/products', require('./routes/product.route'));
 
 app.use('/product_details', require('./routes/product_detail.route'));
 
-//-----------------------------------------------------------
-
 
 
 app.get('/robots.txt', (req, res) => {
