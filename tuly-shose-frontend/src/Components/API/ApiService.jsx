@@ -1,3 +1,7 @@
+import axios from "axios";
+import axiosRetry from "axios-retry";
+
+// Địa chỉ API chính
 const BASE_URL =
   import.meta.env.VITE_API_URL ||
   (window.location.hostname === "localhost"
@@ -10,102 +14,104 @@ const BASE_URL =
 const getToken = () =>
   localStorage.getItem("token") || sessionStorage.getItem("token");
 
-/**
- * Fetch GET
- */
+// Loading controller (tùy chọn nếu bạn dùng Context hay state quản lý loading)
+let setGlobalLoading = null; // được gán từ bên ngoài
+
+export const setLoadingCallback = (callbackFn) => {
+  setGlobalLoading = callbackFn;
+};
+
+// Tạo một instance axios
+const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000, //  10 giây timeout
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Retry nếu lỗi mạng hoặc lỗi server >= 500
+axiosRetry(axiosInstance, {
+  retries: 3, // thử lại tối đa 3 lần
+  retryDelay: (retryCount) => retryCount * 1000, // delay 1s, 2s, 3s
+  retryCondition: (error) =>
+    axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+    error.response?.status >= 500,
+});
+
+// Tự động thêm token
+axiosInstance.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (setGlobalLoading) setGlobalLoading(true);
+  return config;
+});
+
+// Tắt loading khi response xong
+axiosInstance.interceptors.response.use(
+  (response) => {
+    if (setGlobalLoading) setGlobalLoading(false);
+    return response;
+  },
+  (error) => {
+    if (setGlobalLoading) setGlobalLoading(false);
+    return Promise.reject(error);
+  }
+);
+
+// GET
 export const fetchData = async (endpoint, includeAuth = false) => {
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (includeAuth) {
-      const token = getToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${BASE_URL}/${endpoint}`, { headers });
-    if (!response.ok)
-      throw new Error(`Failed to fetch: ${response.statusText}`);
-    return await response.json();
+    const config = includeAuth
+      ? { headers: { Authorization: `Bearer ${getToken()}` } }
+      : {};
+    const response = await axiosInstance.get(endpoint, config);
+    return response.data;
   } catch (error) {
     console.error(`Error fetching data from ${endpoint}:`, error);
     throw error;
   }
 };
 
-/**
- * POST
- */
+// POST
 export const postData = async (endpoint, data, includeAuth = false) => {
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (includeAuth) {
-      const token = getToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${BASE_URL}/${endpoint}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
-    });
-
-    const resData = await response.json();
-
-    // ✅ CHỈ THROW khi lỗi server (status >= 500) hoặc 400
-    if (!response.ok && response.status >= 400) {
-      throw new Error(resData?.message || "Request failed.");
-    }
-
-    return resData;
+    const config = includeAuth
+      ? { headers: { Authorization: `Bearer ${getToken()}` } }
+      : {};
+    const response = await axiosInstance.post(endpoint, data, config);
+    return response.data;
   } catch (error) {
     console.error(`Error posting data to ${endpoint}:`, error);
     throw error;
   }
 };
 
-
-/**
- * PUT
- */
+// PUT
 export const updateData = async (endpoint, id, data, includeAuth = false) => {
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (includeAuth) {
-      const token = getToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${BASE_URL}/${endpoint}/${id}`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify(data),
-    });
-    if (!response.ok)
-      throw new Error(`Failed to update data: ${response.statusText}`);
-    return await response.json();
+    const config = includeAuth
+      ? { headers: { Authorization: `Bearer ${getToken()}` } }
+      : {};
+    const response = await axiosInstance.put(`${endpoint}/${id}`, data, config);
+    return response.data;
   } catch (error) {
     console.error(`Error updating data at ${endpoint}/${id}:`, error);
     throw error;
   }
 };
 
-/**
- * DELETE
- */
+// DELETE
 export const deleteData = async (endpoint, id, includeAuth = false) => {
   try {
-    const headers = {};
-    if (includeAuth) {
-      const token = getToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${BASE_URL}/${endpoint}/${id}`, {
-      method: "DELETE",
-      headers,
-    });
-    if (!response.ok)
-      throw new Error(`Failed to delete data: ${response.statusText}`);
-    return await response.json();
+    const config = includeAuth
+      ? { headers: { Authorization: `Bearer ${getToken()}` } }
+      : {};
+    const response = await axiosInstance.delete(`${endpoint}/${id}`, config);
+    return response.data;
   } catch (error) {
     console.error(`Error deleting data at ${endpoint}/${id}:`, error);
     throw error;
