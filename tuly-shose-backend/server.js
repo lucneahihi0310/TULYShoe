@@ -23,21 +23,21 @@ app.get('/', async (req, res) => {
 
 app.use('/account', require('./routes/account.route'));
 
-app.use('/manager', require('./routes/category.route'));
+app.use('/categories', require('./routes/category.route'));
 
-app.use('/manager', require('./routes/brand.route'));
+app.use('/brands', require('./routes/brand.route'));
 
-app.use('/manager', require('./routes/color.route'));
+app.use('/colors', require('./routes/color.route'));
 
-app.use('/manager', require('./routes/form.route'));
+app.use('/forms', require('./routes/form.route'));
 
-app.use('/manager', require('./routes/material.route'));
+app.use('/materials', require('./routes/material.route'));
 
-app.use('/manager', require('./routes/size.route'));
+app.use('/sizes', require('./routes/size.route'));
 
-app.use('/manager', require('./routes/product.route'));
+app.use('/products', require('./routes/product.route'));
 
-app.use('/manager', require('./routes/product_detail.route'));
+app.use('/product_details', require('./routes/product_detail.route'));
 
 //-----------------------------------------------------------
 

@@ -9,9 +9,9 @@ const timelog = (req, res, next) => {
 router.use(timelog);
 router.use(express.json());
 //định nghĩa các router dưới đây :
-router.get('/brands', list_brand);
-router.post('/brands/create', create_brand);
-router.put('/brands/edit/:id', edit_brand);
-router.delete('/brands/delete/:id', delete_brand);
+router.get('/manager/list_brand', list_brand);
+router.post('/manager/create_brand', create_brand);
+router.put('/manager/edit_brand/:id', edit_brand);
+router.delete('/manager/delete_brand/:id', delete_brand);
 
 module.exports = router;
