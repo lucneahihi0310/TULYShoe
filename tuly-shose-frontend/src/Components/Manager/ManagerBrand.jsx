@@ -60,10 +60,10 @@ const ManagerBrand = () => {
     }, [])
     const fetchCategories = async () => {
         const res = await fetchData('/brands/manager/list_brand');
-        setCategories(res.data);
-        console.log('a');
+        setCategories(res);
+        console.log(res);
     }
-    const searchCategory = categories.filter((c) => {
+    const searchCategory = categories.filter(c => {
         const findCategoryByName = c.brand_name.toLowerCase().includes(filterCategoryName.toLowerCase());
         const findCategoryByStatus = filterCategoryStatus === undefined || c.status === filterCategoryStatus;
         return findCategoryByName && findCategoryByStatus;
