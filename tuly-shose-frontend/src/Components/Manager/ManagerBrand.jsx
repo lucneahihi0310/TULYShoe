@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData } from "../API/ApiService";
 
 const ManagerBrand = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,10 @@ const ManagerBrand = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/brands/edit/${edittingRow}`, {
-                brand_name: record.brand_name,
-                is_active: record.status
-            });
+            // await axios.put(`http://localhost:9999/manager/brands/edit/${edittingRow}`, {
+            //     brand_name: record.brand_name,
+            //     is_active: record.status
+            // });
             setEdittingRow(null);
             fetchCategories();
         }
@@ -49,7 +50,7 @@ const ManagerBrand = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/brands/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/brands/delete/${id}`);
         fetchCategories();
     };
 
@@ -58,7 +59,7 @@ const ManagerBrand = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/brands`);
+        const res = await fetchData('/brands/manager/list_brand');
         setCategories(res.data);
         console.log('a');
     }
@@ -284,10 +285,10 @@ const ManagerBrand = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/brands/create', {
-                                        brand_name: values.brand_name,
-                                        is_active: values.is_active
-                                    });
+                                    // await axios.post('http://localhost:9999/manager/brands/create', {
+                                    //     brand_name: values.brand_name,
+                                    //     is_active: values.is_active
+                                    // });
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
