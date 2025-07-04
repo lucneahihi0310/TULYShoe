@@ -54,6 +54,7 @@ const ManagerBrand = () => {
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
         // await axios.delete(`http://localhost:9999/manager/brands/delete/${id}`);
+        await deleteData('/brands/manager/delete_brand', id, true)
         fetchCategories();
     };
 
