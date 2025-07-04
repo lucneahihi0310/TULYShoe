@@ -64,8 +64,9 @@ const ManagerCategory = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/categories`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/categories`);
+        const res = await fetchData('/categories/manager/list_category');
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
