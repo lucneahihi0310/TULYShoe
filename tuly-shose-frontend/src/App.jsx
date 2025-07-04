@@ -14,6 +14,7 @@ import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import OrderSuccess from "./Components/User/OrderSuccess";
 import ManagerDashboard from "./Components/Manager/ManagerDashboard";
 import ListProductByOnSale from "./Components/User/ListProductByOnSale";
+import OrderDetail from "./Components/User/OrderDetail";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
@@ -57,7 +58,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   return (
     <BrowserRouter>
-      <Header />
+      {/* <Header /> */}
       <Routes>
         <Route
           path="/login"
@@ -74,6 +75,7 @@ function App() {
         <Route path="/productsbyonsale" element={<ListProductByOnSale />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/orderdetail/:orderCode" element={<OrderDetail />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />

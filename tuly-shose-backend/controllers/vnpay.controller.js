@@ -20,7 +20,7 @@ const vnp_TmnCode = "IQGVN28J";
 const vnp_HashSecret = "2OM8RGUD4LTEEVIG2CLEVHEA2BFEPTOK";
 const vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 const vnp_ReturnUrl = "https://tulyshoe.onrender.com/vnpay/return";
-const vnp_IpnUrl = "https://tulyshoe.onrender.com/vnpay/ipn"; 
+const vnp_IpnUrl = "https://tulyshoe.onrender.com/vnpay/ipn";
 
 // Helper function to sort object keys alphabetically
 function sortObject(obj) {
@@ -43,7 +43,8 @@ function createSecureHash(data) {
 
 exports.createPayment = async (req, res) => {
   try {
-    const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, amount } = req.body;
+    const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, isFromCart } = req.body;
+
 
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ." });
@@ -76,7 +77,7 @@ exports.createPayment = async (req, res) => {
       delivery_date: deliveryDate,
       order_status_id: new mongoose.Types.ObjectId(DEFAULT_ORDER_STATUS_ID),
       total_amount: totalAmount,
-      payment_status: paymentMethod,
+      payment_status: paymentMethod === "online" ? "Thanh toán trực tuyến qua VNPAY" : "Thanh toán khi nhận hàng (COD)",
       order_note: orderNote,
       create_at: now,
       update_at: now,
@@ -98,7 +99,7 @@ exports.createPayment = async (req, res) => {
 
     await OrderDetail.insertMany(orderDetails);
 
-    if (user_id) {
+    if (user_id && isFromCart) {
       await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
     }
 
@@ -181,16 +182,16 @@ exports.createPayment = async (req, res) => {
               </thead>
               <tbody>
                 ${orderItems
-                  .map(
-                    (item) => `
+            .map(
+              (item) => `
                   <tr>
                     <td style="padding: 8px;">${item.productName} (Size: ${item.size_name})</td>
                     <td align="center" style="padding: 8px;">${item.quantity}</td>
                     <td align="right" style="padding: 8px;">${(item.price_after_discount * item.quantity).toLocaleString()} ₫</td>
                   </tr>
                 `
-                  )
-                  .join("")}
+            )
+            .join("")}
               </tbody>
             </table>
           </div>

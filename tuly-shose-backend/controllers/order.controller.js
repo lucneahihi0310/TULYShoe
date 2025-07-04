@@ -1,5 +1,9 @@
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/oderDetail.model");
+const ProductDetail = require("../models/productDetail.model");
+const Product = require("../models/product.model");
+const Color = require("../models/color.model");
+const Size = require("../models/size.model");
 const CartItem = require("../models/cartItem.model");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
@@ -18,9 +22,78 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+exports.getOrderByOrderCode = async (req, res) => {
+  try {
+    const { orderCode } = req.params;
+
+    // 1. Lấy đơn hàng
+    const order = await Order.findOne({ order_code: orderCode }).populate("order_status_id");
+    if (!order) {
+      return res.status(404).json({ message: "Mã đơn hàng sai hoặc không tồn tại." });
+    }
+
+    // 2. Lấy danh sách OrderDetail
+    const orderDetails = await OrderDetail.find({ order_id: order._id });
+
+    // 3. Duyệt từng OrderDetail để lấy thông tin sản phẩm chi tiết
+    const detailedProducts = [];
+
+    for (const item of orderDetails) {
+      const productDetail = await ProductDetail.findById(item.productdetail_id)
+        .populate("product_id")
+        .populate("color_id")
+        .populate("size_id");
+
+      if (!productDetail) continue;
+
+      detailedProducts.push({
+        product_name: productDetail.product_id.productName,
+        image: productDetail.images[0],
+        color: productDetail.color_id.color_code,
+        size: productDetail.size_id.size_name,
+        quantity: item.quantity,
+        price: item.price_at_order,
+        total_price: item.price_at_order * item.quantity,
+      });
+    }
+
+    // 4. Tính tổng tiền hàng
+    const subTotal = detailedProducts.reduce((sum, item) => sum + item.total_price, 0);
+
+    // 5. Tính phí vận chuyển: 0đ nếu trong Hà Nội
+    const shippingAddress = order.shipping_info?.address || "";
+    const isHanoi = shippingAddress.toLowerCase().includes("hà nội");
+    const shippingFee = isHanoi ? 0 : 30000;
+
+    // 6. Tổng cộng
+    const totalAmount = subTotal + shippingFee;
+
+    return res.json({
+      order: {
+        order_code: order.order_code,
+        order_date: order.order_date,
+        delivery_date: order.delivery_date,
+        payment_status: order.payment_status,
+        order_status: order.order_status_id?.order_status_name || "Chưa xác định",
+        shipping_info: order.shipping_info,
+        order_note: order.order_note,
+      },
+      products: detailedProducts,
+      summary: {
+        sub_total: subTotal,
+        shipping_fee: shippingFee,
+        total_amount: totalAmount,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi server khi lấy chi tiết đơn hàng." });
+  }
+};
+
 exports.createOrder = async (req, res) => {
   try {
-    const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id } = req.body;
+    const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, isFromCart } = req.body;
 
     if (!orderItems || orderItems.length === 0)
       return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ." });
@@ -74,7 +147,7 @@ exports.createOrder = async (req, res) => {
     await OrderDetail.insertMany(orderDetails);
 
 
-    if (user_id) {
+    if (user_id && isFromCart) {
       await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
     }
 
@@ -168,63 +241,63 @@ exports.createOrder = async (req, res) => {
 };
 
 exports.getAllOrders = async (req, res) => {
-    try {
-        const orders = await orderModel.find()
-            .populate('order_status_id')
-            .populate('address_shipping_id')
-            .populate('accepted_by')
-            .populate('user_id');
+  try {
+    const orders = await orderModel.find()
+      .populate('order_status_id')
+      .populate('address_shipping_id')
+      .populate('accepted_by')
+      .populate('user_id');
 
-        const formattedOrders = orders.map(order => ({
-            _id: order._id,
-            userName: order.user_id ? `${order.user_id.first_name} ${order.user_id.last_name}` : 'Unknown',
-            order_code: order.order_code,
-            order_date: order.order_date,
-            order_status: order.order_status_id ? order.order_status_id.order_status_name : 'Không có trạng thái',
-            address_shipping: order.address_shipping_id ? order.address_shipping_id.address : 'Không có địa chỉ',
-            delivery_date: order.delivery_date,
-            order_note: order.order_note,
-            total_amount: order.total_amount,
-            payment_status: order.payment_status,
-            accepted_by: order.accepted_by ? `${order.accepted_by.first_name} ${order.accepted_by.last_name}` : null,
-            create_at: order.create_at,
-            update_at: order.update_at
-        }));
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      userName: order.user_id ? `${order.user_id.first_name} ${order.user_id.last_name}` : 'Unknown',
+      order_code: order.order_code,
+      order_date: order.order_date,
+      order_status: order.order_status_id ? order.order_status_id.order_status_name : 'Không có trạng thái',
+      address_shipping: order.address_shipping_id ? order.address_shipping_id.address : 'Không có địa chỉ',
+      delivery_date: order.delivery_date,
+      order_note: order.order_note,
+      total_amount: order.total_amount,
+      payment_status: order.payment_status,
+      accepted_by: order.accepted_by ? `${order.accepted_by.first_name} ${order.accepted_by.last_name}` : null,
+      create_at: order.create_at,
+      update_at: order.update_at
+    }));
 
-        res.status(200).json({
-            success: true,
-            formattedOrders
-        });
-    } catch (error) {
-        console.error('Error: ', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
+    res.status(200).json({
+      success: true,
+      formattedOrders
+    });
+  } catch (error) {
+    console.error('Error: ', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 exports.confirmOrder = async (req, res) => {
-    try {
-        const { orderId } = req.params;
-        const { staffId } = req.body;
+  try {
+    const { orderId } = req.params;
+    const { staffId } = req.body;
 
-        // Kiểm tra staff tồn tại
-        const staff = await User.findById(staffId);
-        if (!staff) return res.status(404).json({ message: 'Nhân viên không tồn tại' });
+    // Kiểm tra staff tồn tại
+    const staff = await User.findById(staffId);
+    if (!staff) return res.status(404).json({ message: 'Nhân viên không tồn tại' });
 
-        // Tìm đơn hàng
-        const order = await orderModel.findById(orderId);
-        if (!order) return res.status(404).json({ message: 'Đơn hàng không tồn tại' });
+    // Tìm đơn hàng
+    const order = await orderModel.findById(orderId);
+    if (!order) return res.status(404).json({ message: 'Đơn hàng không tồn tại' });
 
-        // Kiểm tra nếu đơn hàng đã xác nhận
-        if (order.accepted_by) return res.status(400).json({ message: 'Đơn hàng đã được xác nhận trước đó' });
+    // Kiểm tra nếu đơn hàng đã xác nhận
+    if (order.accepted_by) return res.status(400).json({ message: 'Đơn hàng đã được xác nhận trước đó' });
 
-        // Xác nhận đơn hàng
-        order.accepted_by = staffId;
-        order.update_at = Date.now();
-        await order.save();
+    // Xác nhận đơn hàng
+    order.accepted_by = staffId;
+    order.update_at = Date.now();
+    await order.save();
 
-        res.status(200).json({ message: 'Xác nhận đơn hàng thành công', order });
-    } catch (error) {
-        console.error('Lỗi xác nhận đơn hàng:', error);
-        res.status(500).json({ message: 'Lỗi server' });
-    }
+    res.status(200).json({ message: 'Xác nhận đơn hàng thành công', order });
+  } catch (error) {
+    console.error('Lỗi xác nhận đơn hàng:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
 };

@@ -62,7 +62,9 @@ const Order = () => {
         const enrichedItems = await Promise.all(
           location.state.orderItems.map(async (item) => {
             try {
-              const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
+              const data = await fetchData(
+                `productDetail/customers/${item.pdetail_id}`
+              );
               return {
                 pdetail_id: item.pdetail_id,
                 quantity: item.quantity,
@@ -82,7 +84,9 @@ const Order = () => {
       } else if (location.state?.fromDetail && location.state.orderItems) {
         const item = location.state.orderItems[0];
         try {
-          const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
+          const data = await fetchData(
+            `productDetail/customers/${item.pdetail_id}`
+          );
           setOrderItems([
             {
               pdetail_id: item.pdetail_id,
@@ -136,6 +140,7 @@ const Order = () => {
       paymentMethod,
       orderNote,
       shippingFee,
+      isFromCart: location.state?.fromCart === true,
     };
 
     if (paymentMethod === "cod") {
@@ -153,7 +158,7 @@ const Order = () => {
             if (data?.order_code) {
               message.success("Đặt hàng thành công!");
 
-              if (!user) {
+              if (!user && location.state?.fromCart) {
                 localStorage.removeItem("guest_cart");
                 sessionStorage.removeItem("guest_cart");
               }
@@ -191,7 +196,7 @@ const Order = () => {
             if (data?.paymentUrl) {
               window.dispatchEvent(new Event("cartUpdated"));
 
-              if (!user) {
+              if (!user && location.state?.fromCart) {
                 localStorage.removeItem("guest_cart");
                 sessionStorage.removeItem("guest_cart");
               }
