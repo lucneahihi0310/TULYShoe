@@ -56,7 +56,7 @@ function ListProduct() {
 
   const fetchFilters = async () => {
     try {
-      const data = await fetchData("api/filters");
+      const data = await fetchData("/api/filters/customers");
       setFilterOptions({
         categories: data.categories,
         brands: data.brands,
@@ -79,7 +79,7 @@ function ListProduct() {
       });
 
       const data = await fetchData(
-        `products/listproducts?${params.toString()}`
+        `/products/customers/listproducts?${params.toString()}`
       );
       setProducts(data.data);
       setPagination((prev) => ({
@@ -126,7 +126,7 @@ function ListProduct() {
     if (user) {
       // Đã đăng nhập
       try {
-        await postData("cartItem", { ...cartItem, user_id: user._id });
+        await postData("/cartItem/customers", { ...cartItem, user_id: user._id });
         notifyAddSuccess();
         window.dispatchEvent(new Event("cartUpdated"));
       } catch (err) {

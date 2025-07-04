@@ -10,6 +10,6 @@ const timlog = (req, res, next) => {
 
 router.use(timlog);
 router.use(express.json());
-router.post('/customers/', createOrder);
+router.post('/customers', createOrder);
 
 module.exports = router;
