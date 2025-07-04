@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
-import { fetchData } from "../API/ApiService";
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerBrand = () => {
     const [categories, setCategories] = useState([]);
@@ -289,6 +289,11 @@ const ManagerBrand = () => {
                                     //     brand_name: values.brand_name,
                                     //     is_active: values.is_active
                                     // });
+                                    await postData('/brands/manager/create_brand', {
+                                        brand_name: values.brand_name,
+                                        is_active: values.is_active
+                                    }, true)
+
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
