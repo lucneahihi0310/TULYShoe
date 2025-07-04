@@ -264,6 +264,7 @@ exports.ipn = async (req, res) => {
   }
 };
 
+
 exports.return = async (req, res) => {
   try {
     let vnpParams = req.query;
@@ -278,17 +279,15 @@ exports.return = async (req, res) => {
       const vnpResponseCode = vnpParams["vnp_ResponseCode"];
 
       if (vnpResponseCode === "00") {
-        // Redirect to success page
         return res.redirect(`https://tulyshoe-front.onrender.com/order-success?order_code=${orderCode}`);
       } else {
-        // Redirect to failure page or show error
-        return res.redirect("http://localhost:5173/order-failure");
+        return res.redirect("https://tulyshoe-front.onrender.com/order-failure");
       }
     } else {
-      return res.redirect("http://localhost:5173/order-failure?error=checksum_failed");
+      return res.redirect("https://tulyshoe-front.onrender.com/order-failure?error=checksum_failed");
     }
   } catch (err) {
     console.error("Lỗi khi xử lý return URL:", err);
-    return res.redirect("http://localhost:5173/order-failure?error=server_error");
+    return res.redirect("https://tulyshoe-front.onrender.com/order-failure?error=server_error");
   }
 };
