@@ -275,10 +275,14 @@ const ManagerCategory = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/categories/create', {
+                                    // await axios.post('http://localhost:9999/manager/categories/create', {
+                                    //     category_name: values.category_name,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/categories/manager/create_category', {
                                         category_name: values.category_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
