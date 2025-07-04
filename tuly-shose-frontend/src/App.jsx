@@ -13,6 +13,7 @@ import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import OrderSuccess from "./Components/User/OrderSuccess";
 import ManagerDashboard from "./Components/Manager/ManagerDashboard";
+import ListProductByOnSale from "./Components/User/ListProductByOnSale";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
@@ -70,6 +71,7 @@ function App() {
         />
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
+        <Route path="/productsbyonsale" element={<ListProductByOnSale />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<Order />} />
         <Route path="/order-success" element={<OrderSuccess />} />

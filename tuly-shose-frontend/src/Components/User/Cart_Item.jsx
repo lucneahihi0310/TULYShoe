@@ -241,7 +241,7 @@ function CartItem() {
               </span>
             </div>
             <div className={styles.summaryItem}>
-              <span>Phí Ship</span>
+              <span>Phí Ship (tạm tính)</span>
               <span>
                 {shipping.toLocaleString("vi-VN", {
                   style: "currency",

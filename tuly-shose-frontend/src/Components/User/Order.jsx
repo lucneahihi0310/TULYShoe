@@ -62,7 +62,7 @@ const Order = () => {
         const enrichedItems = await Promise.all(
           location.state.orderItems.map(async (item) => {
             try {
-              const data = await fetchData(`productDetail/${item.pdetail_id}`);
+              const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
               return {
                 pdetail_id: item.pdetail_id,
                 quantity: item.quantity,
@@ -82,7 +82,7 @@ const Order = () => {
       } else if (location.state?.fromDetail && location.state.orderItems) {
         const item = location.state.orderItems[0];
         try {
-          const data = await fetchData(`productDetail/${item.pdetail_id}`);
+          const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
           setOrderItems([
             {
               pdetail_id: item.pdetail_id,
@@ -148,7 +148,7 @@ const Order = () => {
         closable: true,
         async onOk() {
           try {
-            const data = await postData("orders", payload, true);
+            const data = await postData("/orders/customers", payload, true);
 
             if (data?.order_code) {
               message.success("Đặt hàng thành công!");

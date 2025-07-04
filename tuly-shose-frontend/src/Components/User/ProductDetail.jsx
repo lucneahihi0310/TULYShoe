@@ -53,20 +53,20 @@ function ProductDetail() {
       try {
         setLoading(true);
 
-        const resDetail = await fetchData(`productDetail/${id}`);
+        const resDetail = await fetchData(`productDetail/customers/${id}`);
         setProductDetail(resDetail);
         setMainImage(resDetail.images[0]);
         console.log("resDetail:", resDetail);
         console.log("resDetail._id:", resDetail._id);
         const resVariants = await fetchData(
-          `productDetail/product/${resDetail.product_id._id}`
+          `productDetail/customers/product/${resDetail.product_id._id}`
         );
         setVariants(resVariants);
 
-        const resReviews = await fetchData(`reviews/detail/${resDetail._id}`);
+        const resReviews = await fetchData(`reviews/customers/detail/${resDetail._id}`);
         setReviews(resReviews);
 
-        const resRelated = await fetchData(`productDetail/related/${id}`);
+        const resRelated = await fetchData(`productDetail/customers/related/${id}`);
         setRelated(resRelated);
 
         setSelectedColor(resDetail.color_id[0]._id);
@@ -151,7 +151,7 @@ function ProductDetail() {
 
     if (user) {
       try {
-        await postData("cartItem", { ...cartItem, user_id: user._id });
+        await postData("/cartItem/customers", { ...cartItem, user_id: user._id });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
       } catch (err) {
@@ -197,7 +197,7 @@ function ProductDetail() {
 
     try {
       if (user && user._id) {
-        await postData("cartItem", { ...cartItem, user_id: user._id });
+        await postData("/cartItem/customers", { ...cartItem, user_id: user._id });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
       } else {

@@ -10,7 +10,7 @@ import {
   Badge,
   Drawer,
 } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   SearchOutlined,
   ShoppingCartOutlined,
@@ -37,7 +37,7 @@ const Header = () => {
     "Thời trang từ từng bước chân!",
     "Mỗi bước đi là một phong cách!",
   ];
-
+  const location = useLocation();
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
@@ -46,20 +46,35 @@ const Header = () => {
 
   const navItems = [
     { key: "products", label: "SẢN PHẨM" },
+    { key: "sale", label: "ĐANG SALE" },
     { key: "info", label: "THÔNG TIN" },
     { key: "contact", label: "LIÊN HỆ" },
-    { key: "sale", label: "ĐANG SALE" },
   ];
 
   const handleMenuClick = ({ key }) => {
-    if (key === "products") navigate("/products");
+    if (key === "products") {
+      navigate("/products");
+    } else if (key === "sale") {
+      navigate("/productsbyonsale");
+    }
     setIsDrawerOpen(false);
   };
+
+  const selectedKey = (() => {
+    if (location.pathname.startsWith("/productsbyonsale")) return "sale";
+    if (location.pathname.startsWith("/products")) return "products";
+    if (location.pathname.startsWith("/about")) return "info";
+    if (location.pathname.startsWith("/contact")) return "contact";
+    return "";
+  })();
 
   const fetchCartCount = useCallback(async () => {
     if (user) {
       try {
-        const data = await fetchData(`cartItem/customers/user/${user._id}`, true);
+        const data = await fetchData(
+          `cartItem/customers/user/${user._id}`,
+          true
+        );
         const total = data.reduce((sum, item) => sum + item.quantity, 0);
         setCartCount(total);
       } catch (err) {
@@ -173,6 +188,7 @@ const Header = () => {
           <Menu
             mode="horizontal"
             className={styles.menu}
+            selectedKeys={[selectedKey]}
             selectable={false}
             items={navItems}
             onClick={handleMenuClick}
@@ -204,6 +220,7 @@ const Header = () => {
         <Menu
           mode="vertical"
           onClick={handleMenuClick}
+          selectedKeys={[selectedKey]}
           items={[
             ...navItems,
             { type: "divider" },
