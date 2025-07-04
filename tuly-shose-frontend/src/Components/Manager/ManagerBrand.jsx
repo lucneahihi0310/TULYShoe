@@ -29,11 +29,14 @@ const ManagerBrand = () => {
         try {
             const record = await form.validateFields();
             console.log("Edit:", record);
-
             // await axios.put(`http://localhost:9999/manager/brands/edit/${edittingRow}`, {
             //     brand_name: record.brand_name,
             //     is_active: record.status
             // });
+            await updateData('/brands/manager/edit_brand', edittingRow, {
+                brand_name: record.brand_name,
+                is_active: record.status
+            }, true)
             setEdittingRow(null);
             fetchCategories();
         }
