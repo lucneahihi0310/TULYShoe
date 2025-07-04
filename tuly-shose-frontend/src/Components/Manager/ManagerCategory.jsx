@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerCategory = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerCategory = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
+            //     category_name: record.category_name,
+            //     is_active: record.status
+            // });
+            await updateData('/categories/manager/edit_category', edittingRow, {
                 category_name: record.category_name,
                 is_active: record.status
-            });
+            }, true)
             setEdittingRow(null);
             fetchCategories();
         }
