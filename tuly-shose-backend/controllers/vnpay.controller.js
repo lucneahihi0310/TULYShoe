@@ -279,7 +279,7 @@ exports.return = async (req, res) => {
       const vnpResponseCode = vnpParams["vnp_ResponseCode"];
 
       if (vnpResponseCode === "00") {
-        return res.redirect(`https://tulyshoe-front.onrender.com/order-success`);
+        return res.redirect(`https://tulyshoe-front.onrender.com/order-success?order_code=${orderCode}`);
       } else {
         return res.redirect("https://tulyshoe-front.onrender.com/order-failure");
       }
