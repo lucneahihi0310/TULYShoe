@@ -49,7 +49,11 @@ const OrderDetail = () => {
   const total = totalProductAmount + shippingFee;
 
   if (loading)
-    return <Spin size="large" className="w-full mt-12 block text-center" />;
+    return (
+      <div className={styles.loaderContainer}>
+        <Spin size="large" />
+      </div>
+    );
 
   if (!order) return null;
 

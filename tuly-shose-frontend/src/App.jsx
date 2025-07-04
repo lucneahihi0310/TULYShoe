@@ -58,7 +58,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   return (
     <BrowserRouter>
-      {/* <Header /> */}
+      <Header />
       <Routes>
         <Route
           path="/login"

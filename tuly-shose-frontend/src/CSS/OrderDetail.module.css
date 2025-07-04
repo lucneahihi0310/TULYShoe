@@ -233,3 +233,9 @@
     font-size: 1.5rem;
   }
 }
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}

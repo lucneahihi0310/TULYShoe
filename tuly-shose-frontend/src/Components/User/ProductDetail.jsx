@@ -69,7 +69,7 @@ function ProductDetail() {
         const resRelated = await fetchData(`productDetail/customers/related/${id}`);
         setRelated(resRelated);
 
-        setSelectedColor(resDetail.color_id[0]._id);
+        setSelectedColor(resDetail.color_id._id);
         setSelectedSize(resDetail.size_id._id);
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu ProductDetail:", err);
@@ -89,7 +89,7 @@ function ProductDetail() {
   const handleColorClick = async (colorId) => {
     setSelectedColor(colorId);
     const match = variants.find(
-      (v) => v.color_id[0]._id === colorId && v.size_id._id === selectedSize
+      (v) => v.color_id._id === colorId && v.size_id._id === selectedSize
     );
     if (match) {
       navigate(`/products/${match._id}`);
@@ -310,7 +310,7 @@ function ProductDetail() {
             <div className={styles.colorOptions}>
               {[
                 ...new Map(
-                  variants.map((v) => [v.color_id[0]._id, v.color_id[0]])
+                  variants.map((v) => [v.color_id._id, v.color_id])
                 ).values(),
               ].map((color) => (
                 <div

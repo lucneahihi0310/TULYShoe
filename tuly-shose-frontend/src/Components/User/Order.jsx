@@ -157,13 +157,14 @@ const Order = () => {
 
             if (data?.order_code) {
               message.success("Đặt hàng thành công!");
-
               if (!user && location.state?.fromCart) {
                 localStorage.removeItem("guest_cart");
                 sessionStorage.removeItem("guest_cart");
               }
               window.dispatchEvent(new Event("cartUpdated"));
-              navigate("/order-success");
+              navigate("/order-success", {
+                state: { order_code: data.order_code },
+              });
             } else {
               message.error(data?.message || "Đặt hàng thất bại");
             }
@@ -195,12 +196,12 @@ const Order = () => {
 
             if (data?.paymentUrl) {
               window.dispatchEvent(new Event("cartUpdated"));
-
               if (!user && location.state?.fromCart) {
                 localStorage.removeItem("guest_cart");
                 sessionStorage.removeItem("guest_cart");
               }
-
+              // Sau khi thanh toán thành công qua VNPay, redirect về /order-success với order_code
+              sessionStorage.setItem("order_code", data.order_code); // Lưu tạm order_code
               window.location.href = data.paymentUrl;
             } else {
               message.error(

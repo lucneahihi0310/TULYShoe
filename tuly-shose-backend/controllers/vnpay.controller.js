@@ -279,7 +279,7 @@ exports.return = async (req, res) => {
 
       if (vnpResponseCode === "00") {
         // Redirect to success page
-        return res.redirect("http://localhost:5173/order-success");
+        return res.redirect(`https://tulyshoe-front.onrender.com/order-success?order_code=${orderCode}`);
       } else {
         // Redirect to failure page or show error
         return res.redirect("http://localhost:5173/order-failure");
