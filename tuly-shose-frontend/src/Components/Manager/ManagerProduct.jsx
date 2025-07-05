@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerProduct = () => {
     // State lưu danh sách dữ liệu tham chiếu từ các bảng liên quan
@@ -73,9 +74,10 @@ const ManagerProduct = () => {
         fetchForms()
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/products`);
-        setCategories(res.data);
-        console.log('a');
+        // const res = await axios.get(`http://localhost:9999/manager/products`);
+        const res = await fetchData('/products/manager/list_product');
+        setCategories(res);
+        console.log('product');
     }
     const fetchCategories_2 = async () => {
         const res = await axios.get(`http://localhost:9999/manager/categories`);
