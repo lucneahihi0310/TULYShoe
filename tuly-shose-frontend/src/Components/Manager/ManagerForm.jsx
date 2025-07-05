@@ -37,7 +37,7 @@ const ManagerForm = () => {
             await updateData('/forms/manager/edit_form', edittingRow, {
                 form_name: record.form_name,
                 is_active: record.status
-            }, true)
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
@@ -54,7 +54,8 @@ const ManagerForm = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/forms/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/forms/delete/${id}`);
+        await deleteData('/forms/manager/delete_form', id, true);
         fetchCategories();
     };
 
