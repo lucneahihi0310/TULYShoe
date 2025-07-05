@@ -30,10 +30,14 @@ const ManagerSize = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/sizes/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/sizes/edit/${edittingRow}`, {
+            //     size_name: record.size_name,
+            //     is_active: record.status
+            // });
+            await updateData('/sizes/manager/edit_size', edittingRow, {
                 size_name: record.size_name,
                 is_active: record.status
-            });
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
