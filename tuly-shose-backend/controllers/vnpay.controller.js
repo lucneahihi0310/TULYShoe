@@ -168,6 +168,9 @@ exports.createPayment = async (req, res) => {
             <li><strong>Địa chỉ nhận:</strong> ${userInfo.address}</li>
             <li><strong>Phí vận chuyển:</strong> ${shippingFee.toLocaleString()} ₫</li>
             <li><strong>Tổng tiền:</strong> ${totalAmount.toLocaleString()} ₫</li>
+            ${orderNote
+            ? `<li><strong>Ghi chú đơn hàng:</strong> ${orderNote}</li>`
+            : ""}
           </ul>
 
           <div style="margin: 20px 0;">
