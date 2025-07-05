@@ -275,10 +275,15 @@ const ManagerSize = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/sizes/create', {
+                                    // await axios.post('http://localhost:9999/manager/sizes/create', {
+                                    //     size_name: values.size_name,
+                                    //     is_active: values.is_active
+                                    // });
+
+                                    await postData('/sizes/manager/create_size', {
                                         size_name: values.size_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
