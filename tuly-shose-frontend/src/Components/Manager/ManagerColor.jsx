@@ -293,10 +293,14 @@ const ManagerColor = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/colors/create', {
+                                    // await axios.post('http://localhost:9999/manager/colors/create', {
+                                    //     color_code: values.color_code,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/colors/manager/create_color', {
                                         color_code: values.color_code,
                                         is_active: values.is_active
-                                    });
+                                    }, true)
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
