@@ -1,7 +1,7 @@
 .container {
   background-color: #f9fafb;
   padding: 3rem 1.5rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .main {
@@ -11,7 +11,18 @@
   flex-direction: column;
   gap: 4rem;
 }
+.fadeIn {
+  animation: fadeInUp 1s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
 
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .orderCard {
   background: #fff;
   border-radius: 12px;
@@ -162,7 +173,6 @@
     margin-left: 0;
   }
 }
-
 
 .aboutSection {
   border-radius: 12px;

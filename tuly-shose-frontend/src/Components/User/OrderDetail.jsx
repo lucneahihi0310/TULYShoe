@@ -58,7 +58,7 @@ const OrderDetail = () => {
   if (!order) return null;
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.fadeIn}`}>
       <main className={styles.main}>
         <Card className={styles.orderCard} id="order-detail">
           <Title level={2} className={styles.sectionTitle}>

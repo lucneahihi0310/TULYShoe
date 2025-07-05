@@ -12,7 +12,7 @@ app.use(morgan('dev'));
 
 app.use(
     cors({
-        origin: ["http://localhost:5173", "https://tulyshoe-front.onrender.com", "https://tulyshoe-frontent.onrender.com"],
+        origin: ["http://localhost:5173", "https://tulyshoe-front.onrender.com"],
         credentials: true,
     })
 );
