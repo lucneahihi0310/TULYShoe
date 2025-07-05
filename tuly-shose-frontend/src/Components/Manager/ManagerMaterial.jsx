@@ -275,10 +275,14 @@ const ManagerMaterial = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/materials/create', {
+                                    // await axios.post('http://localhost:9999/manager/materials/create', {
+                                    //     material_name: values.material_name,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/materials/manager/create_material', {
                                         material_name: values.material_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
