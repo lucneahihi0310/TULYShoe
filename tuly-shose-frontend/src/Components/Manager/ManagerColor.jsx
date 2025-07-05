@@ -64,8 +64,9 @@ const ManagerColor = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/colors`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/colors`);
+        const res = await fetchData('/colors/manager/list_color', true);
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
