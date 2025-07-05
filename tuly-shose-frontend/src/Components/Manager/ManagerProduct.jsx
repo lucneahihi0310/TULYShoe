@@ -485,7 +485,16 @@ const ManagerProduct = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/products/create', {
+                                    // await axios.post('http://localhost:9999/manager/products/create', {
+                                    //     productName: values.productName,
+                                    //     description: values.description,
+                                    //     price: values.price,
+                                    //     categories_id: values.categories_id,
+                                    //     brand_id: values.brand_id,
+                                    //     material_id: values.material_id,
+                                    //     form_id: values.form_id
+                                    // });
+                                    await postData('/products/manager/create_product', {
                                         productName: values.productName,
                                         description: values.description,
                                         price: values.price,
@@ -493,7 +502,7 @@ const ManagerProduct = () => {
                                         brand_id: values.brand_id,
                                         material_id: values.material_id,
                                         form_id: values.form_id
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
