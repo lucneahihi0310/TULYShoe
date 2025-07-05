@@ -80,9 +80,10 @@ const ManagerProduct = () => {
         console.log('product');
     }
     const fetchCategories_2 = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/categories`);
-        setCategories_2(res.data);
-        console.log('a');
+        // const res = await axios.get(`http://localhost:9999/manager/categories`);
+        const res = await fetchData('/categories/manager/list_category');
+        setCategories_2(res);
+        console.log('category');
     }
     const fetchBrands = async () => {
         const res = await axios.get(`http://localhost:9999/manager/brands`);
