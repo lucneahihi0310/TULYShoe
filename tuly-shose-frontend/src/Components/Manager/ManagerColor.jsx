@@ -54,7 +54,8 @@ const ManagerColor = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/colors/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/colors/delete/${id}`);
+        await deleteData('/colors/manager/delete_color', id, true);
         fetchCategories();
     };
 
