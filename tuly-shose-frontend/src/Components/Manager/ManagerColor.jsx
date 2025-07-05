@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerColor = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerColor = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/colors/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/colors/edit/${edittingRow}`, {
+            //     color_code: record.color_code,
+            //     is_active: record.status
+            // });
+            await updateData('/colors/manager/edit_color', edittingRow, {
                 color_code: record.color_code,
                 is_active: record.status
-            });
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
