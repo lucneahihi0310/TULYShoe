@@ -98,9 +98,10 @@ const ManagerProduct = () => {
         console.log('material');
     }
     const fetchForms = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/forms`);
-        setForms(res.data);
-        console.log('a');
+        // const res = await axios.get(`http://localhost:9999/manager/forms`);
+        const res = await fetchData('/forms/manager/list_forms');
+        setForms(res);
+        console.log('form');
     }
     const searchCategory = categories.filter((c) => {
         const findCategoryByName = c.productName.toLowerCase().includes(filterCategoryName.toLowerCase());
