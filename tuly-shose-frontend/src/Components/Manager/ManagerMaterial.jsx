@@ -30,10 +30,14 @@ const ManagerMaterial = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/materials/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/materials/edit/${edittingRow}`, {
+            //     material_name: record.material_name,
+            //     is_active: record.status
+            // });
+            await updateData('/materials/manager/edit_material', edittingRow, {
                 material_name: record.material_name,
                 is_active: record.status
-            });
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
