@@ -54,7 +54,8 @@ const ManagerSize = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/sizes/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/sizes/delete/${id}`);
+        await deleteData('/sizes/manager/delete_size', id, true);
         fetchCategories();
     };
 
