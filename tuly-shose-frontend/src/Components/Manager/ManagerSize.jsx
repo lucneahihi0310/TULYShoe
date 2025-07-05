@@ -64,8 +64,9 @@ const ManagerSize = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/sizes`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/sizes`);
+        const res = await fetchData('/sizes/manager/list_size');
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
