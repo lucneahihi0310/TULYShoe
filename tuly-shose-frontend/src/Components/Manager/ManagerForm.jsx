@@ -64,8 +64,9 @@ const ManagerForm = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/forms`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/forms`);
+        const res = await fetchData('/forms/manager/list_form');
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
@@ -274,10 +275,14 @@ const ManagerForm = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/forms/create', {
+                                    // await axios.post('http://localhost:9999/manager/forms/create', {
+                                    //     form_name: values.form_name,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/forms/manager/create_form', {
                                         form_name: values.form_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
