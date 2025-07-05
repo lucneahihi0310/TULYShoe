@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerForm = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerForm = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/forms/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/forms/edit/${edittingRow}`, {
+            //     form_name: record.form_name,
+            //     is_active: record.status
+            // });
+            await updateData('/forms/manager/edit_form', edittingRow, {
                 form_name: record.form_name,
                 is_active: record.status
-            });
+            }, true)
             setEdittingRow(null);
             fetchCategories();
         }
