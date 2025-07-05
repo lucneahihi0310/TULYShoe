@@ -31,7 +31,7 @@ function CartItem() {
           price_after_discount: item.pdetail_id.price_after_discount,
           image: item.pdetail_id.images[0],
           size_name: item.pdetail_id.size_id?.size_name,
-          color_code: item.pdetail_id.color_id[0]?.color_code,
+          color_code: item.pdetail_id.color_id?.color_code,
           productName: item.pdetail_id.product_id?.productName,
           title: item.pdetail_id.product_id?.title,
         }));
@@ -49,7 +49,7 @@ function CartItem() {
                 price_after_discount: data.price_after_discount,
                 image: data.images[0],
                 size_name: data.size_id?.size_name,
-                color_code: data.color_id[0]?.color_code,
+                color_code: data.color_id?.color_code,
                 productName: data.product_id?.productName,
                 title: data.product_id?.title,
               };
