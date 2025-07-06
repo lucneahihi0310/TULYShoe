@@ -34,16 +34,19 @@ const ManagerProduct = () => {
     //edit category
     const handleEditCategory = async () => {
         try {
-            // const record = await form.validateFields();
-            // console.log("Edit:", record);
+            const record = await form.validateFields();
+            console.log("Edit:", record);
 
             // await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
             //     category_name: record.category_name,
             //     is_active: record.status
             // });
-            // setEdittingRow(null);
-            // fetchCategories();
 
+            // await updateData('products/manager/edit_product', edittingRow, {
+            //     xax
+            // });
+            setEdittingRow(null);
+            fetchCategories();
             console.log("edit")
         }
         catch (error) {
@@ -419,8 +422,13 @@ const ManagerProduct = () => {
                             onClick={() => {
                                 setEdittingRow(record._id);
                                 form.setFieldsValue({
-                                    category_name: record.category_name,
-                                    status: record.status
+                                    productName: record.productName,
+                                    description: record.description,
+                                    price: record.price,
+                                    categories_id: record.categories_id,
+                                    brand_id: record.brand_id,
+                                    material_id: record.material_id,
+                                    form_id: record.form_id
                                 })
                             }}>
                             Edit
