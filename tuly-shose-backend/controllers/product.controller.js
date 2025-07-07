@@ -188,3 +188,7 @@ exports.create_product = async (req, res, next) => {
         next(error);
     }
 }
+
+// exports.edit_product = async (req,res,next) => {
+//   s
+// }
