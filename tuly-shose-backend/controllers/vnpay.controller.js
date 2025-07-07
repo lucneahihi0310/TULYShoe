@@ -227,6 +227,8 @@ exports.createPayment = async (req, res) => {
 
 exports.ipn = async (req, res) => {
   try {
+    console.log("🔔 VNPAY IPN CALLED");
+
     let vnpParams = req.query;
     const secureHash = vnpParams["vnp_SecureHash"];
     delete vnpParams["vnp_SecureHash"];
@@ -234,38 +236,57 @@ exports.ipn = async (req, res) => {
 
     const calculatedHash = createSecureHash(vnpParams);
 
-    if (secureHash === calculatedHash) {
-      const orderCode = vnpParams["vnp_TxnRef"];
-      const vnpResponseCode = vnpParams["vnp_ResponseCode"];
-      const order = await Order.findOne({ order_code: orderCode });
-
-      if (!order) {
-        return res.status(404).json({ RspCode: "01", Message: "Order not found" });
-      }
-
-      if (vnpResponseCode === "00") {
-        // Payment success
-        order.payment_status = "Đã thanh toán";
-        order.order_status_id = new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a882"); // Update to "Paid" status ID
-        await order.save();
-
-        return res.status(200).json({ RspCode: "00", Message: "Success" });
-      } else {
-        // Payment failed
-        order.payment_status = "Thanh toán thất bại";
-        order.order_status_id = new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a883"); // Update to "Failed" status ID
-        await order.save();
-
-        return res.status(200).json({ RspCode: vnpResponseCode, Message: "Payment failed" });
-      }
-    } else {
+    if (secureHash !== calculatedHash) {
+      console.warn("❌ Checksum mismatch");
       return res.status(200).json({ RspCode: "97", Message: "Checksum failed" });
     }
+
+    const orderCode = vnpParams["vnp_TxnRef"];
+    const vnpResponseCode = vnpParams["vnp_ResponseCode"];
+    const order = await Order.findOne({ order_code: orderCode });
+
+    if (!order) {
+      console.warn("❌ Order not found:", orderCode);
+      return res.status(404).json({ RspCode: "01", Message: "Order not found" });
+    }
+
+    if (vnpResponseCode === "00") {
+      console.log("✅ Payment success for", orderCode);
+
+      order.payment_status = "Đã thanh toán";
+      order.order_status_id = new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a882");
+      await order.save();
+
+      // ❗ Nếu bạn chưa trừ tồn kho lúc tạo đơn:
+      const orderDetails = await OrderDetail.find({ order_id: order._id });
+      for (const detail of orderDetails) {
+        await ProductDetail.findByIdAndUpdate(
+          detail.productdetail_id,
+          {
+            $inc: {
+              inventory_number: -detail.quantity,
+              sold_number: detail.quantity,
+            },
+            $set: { update_at: new Date() }
+          }
+        );
+      }
+
+      return res.status(200).json({ RspCode: "00", Message: "Success" });
+    } else {
+      console.log("❌ Payment failed", vnpResponseCode);
+      order.payment_status = "Thanh toán thất bại";
+      order.order_status_id = new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a883");
+      await order.save();
+
+      return res.status(200).json({ RspCode: vnpResponseCode, Message: "Payment failed" });
+    }
   } catch (err) {
-    console.error("Lỗi khi xử lý IPN:", err);
+    console.error("🔥 Lỗi IPN:", err);
     return res.status(500).json({ RspCode: "99", Message: "Unknown error" });
   }
 };
+
 
 
 exports.return = async (req, res) => {
