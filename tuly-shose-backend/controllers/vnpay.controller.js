@@ -20,7 +20,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// VNPAY Config
 const vnp_TmnCode = "IQGVN28J";
 const vnp_HashSecret = "2OM8RGUD4LTEEVIG2CLEVHEA2BFEPTOK";
 const vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -28,10 +27,10 @@ const vnp_ReturnUrl = "https://tulyshoe.onrender.com/vnpay/return";
 const vnp_IpnUrl = "https://tulyshoe.onrender.com/vnpay/ipn";
 const jwtSecret = process.env.JWT_SECRET || "your_secret_key";
 
-// Helpers
+// ======== Helper Functions ======== //
 function sortObject(obj) {
   const sorted = {};
-  Object.keys(obj).sort().forEach(key => {
+  Object.keys(obj).sort().forEach((key) => {
     sorted[key] = obj[key];
   });
   return sorted;
@@ -40,11 +39,12 @@ function sortObject(obj) {
 function createSecureHash(data) {
   const sortedData = sortObject(data);
   const signData = Object.keys(sortedData)
-    .map(key => `${key}=${encodeURIComponent(sortedData[key]).replace(/%20/g, "+")}`)
+    .map((key) => `${key}=${encodeURIComponent(sortedData[key]).replace(/%20/g, "+")}`)
     .join("&");
   return crypto.createHmac("sha512", vnp_HashSecret).update(signData).digest("hex");
 }
 
+// ======== Create Payment ======== //
 exports.createPayment = async (req, res) => {
   try {
     const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, isFromCart } = req.body;
@@ -66,8 +66,8 @@ exports.createPayment = async (req, res) => {
 
     const orderCode = `TULY-${Date.now()}`;
 
-    // Tạo JWT chứa thông tin đơn hàng (dùng ở IPN sau khi thanh toán)
-    const orderData = {
+    // Mã hóa thông tin đơn hàng
+    const payload = {
       orderCode,
       orderItems,
       userInfo,
@@ -77,10 +77,8 @@ exports.createPayment = async (req, res) => {
       orderNote,
       deliveryDate,
     };
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: "30m" });
 
-    const orderToken = jwt.sign(orderData, jwtSecret, { expiresIn: "20m" });
-
-    // Tạo URL thanh toán VNPAY
     const createDate = now.toISOString().replace(/[-:T.]/g, "").slice(0, 14);
     const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
@@ -91,18 +89,17 @@ exports.createPayment = async (req, res) => {
       vnp_Amount: totalAmount * 100,
       vnp_CurrCode: "VND",
       vnp_TxnRef: orderCode,
-      vnp_OrderInfo: `Thanh toán đơn hàng ${orderCode}`,
+      vnp_OrderInfo: `Thanh toán đơn hàng ${orderCode} | token=${token}`,
       vnp_OrderType: "250000",
       vnp_Locale: "vn",
       vnp_CreateDate: createDate,
       vnp_IpAddr: ipAddr,
-      vnp_ReturnUrl: vnp_ReturnUrl,
-      vnp_IpnUrl: `${vnp_IpnUrl}?token=${orderToken}`
+      vnp_ReturnUrl,
+      vnp_IpnUrl,
     };
 
     vnpParams.vnp_SecureHash = createSecureHash(vnpParams);
-    const queryString = new URLSearchParams(sortObject(vnpParams)).toString();
-    const paymentUrl = `${vnp_Url}?${queryString}`;
+    const paymentUrl = `${vnp_Url}?${new URLSearchParams(sortObject(vnpParams)).toString()}`;
 
     return res.status(200).json({
       message: "Tạo liên kết thanh toán thành công!",
@@ -115,14 +112,15 @@ exports.createPayment = async (req, res) => {
   }
 };
 
+// ======== Handle IPN ======== //
 exports.ipn = async (req, res) => {
   try {
+    console.log("== VNPAY IPN CALLED ==");
     const vnpParams = { ...req.query };
     const secureHash = vnpParams["vnp_SecureHash"];
-    const token = vnpParams["token"];
+    const orderInfo = vnpParams["vnp_OrderInfo"];
     delete vnpParams["vnp_SecureHash"];
     delete vnpParams["vnp_SecureHashType"];
-    delete vnpParams["token"];
 
     const calculatedHash = createSecureHash(vnpParams);
     if (secureHash !== calculatedHash) {
@@ -134,7 +132,14 @@ exports.ipn = async (req, res) => {
       return res.status(200).json({ RspCode: vnpResponseCode, Message: "Payment failed" });
     }
 
-    // Giải mã dữ liệu đơn hàng
+    // Lấy token từ OrderInfo
+    const match = orderInfo.match(/token=(.+)$/);
+    if (!match) {
+      console.warn("Không tìm thấy token trong vnp_OrderInfo");
+      return res.status(200).json({ RspCode: "98", Message: "Missing token" });
+    }
+
+    const token = match[1];
     const {
       orderCode,
       orderItems,
@@ -143,7 +148,7 @@ exports.ipn = async (req, res) => {
       user_id,
       isFromCart,
       orderNote,
-      deliveryDate
+      deliveryDate,
     } = jwt.verify(token, jwtSecret);
 
     const now = new Date();
@@ -194,12 +199,12 @@ exports.ipn = async (req, res) => {
       );
     }
 
-    // Xóa giỏ hàng
+    // Xóa giỏ hàng nếu cần
     if (user_id && isFromCart) {
       await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
     }
 
-    // Gửi mail xác nhận
+    // Gửi email xác nhận
     if (userInfo.email) {
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -274,7 +279,7 @@ exports.ipn = async (req, res) => {
           </div>
         </div>
       </div>
-    `, // Cắt bớt cho gọn, bạn dán lại đoạn HTML email ở đây
+    `,
       };
       await transporter.sendMail(mailOptions);
     }
@@ -286,6 +291,7 @@ exports.ipn = async (req, res) => {
   }
 };
 
+// ======== Return URL Handler ======== //
 exports.return = async (req, res) => {
   try {
     const vnpParams = { ...req.query };
