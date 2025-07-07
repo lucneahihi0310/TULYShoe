@@ -207,7 +207,71 @@ exports.ipn = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: userInfo.email,
         subject: `TULY Shoe - Xác nhận đơn hàng ${orderCode}`,
-        html: `<p>Chào ${userInfo.fullName}, bạn đã đặt hàng thành công. Mã đơn: ${orderCode}</p>`,
+        html: `
+  <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .logo {
+          content: url('https://duongvanluc2002.sirv.com/logo_trang.png');
+        }
+        .text-dark-mode {
+          color: #ffffff !important;
+        }
+        .container {
+          background-color: #1a1a1a !important;
+        }
+      }
+    </style>
+    <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+      <img src="https://duongvanluc2002.sirv.com/logo_den.png" width="200" alt="Logo" class="logo" style="margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+      
+      <h2 class="text-dark-mode" style="color: #333; text-align: center;">Cảm ơn bạn đã đặt hàng tại TULY Shoe!</h2>
+      <p class="text-dark-mode" style="font-size: 16px; color: #555;">Xin chào <strong>${pending.userInfo.fullName}</strong>,</p>
+      <p class="text-dark-mode" style="font-size: 16px; color: #555;">Chúng tôi đã nhận được đơn hàng <strong>${pending.order_code}</strong> của bạn.</p>
+
+      <ul style="list-style: none; padding: 0; font-size: 16px; color: #555;">
+        <li><strong>Phương thức thanh toán:</strong> Thanh toán trực tuyến qua VNPAY</li>
+        <li><strong>Ngày đặt hàng:</strong> ${now.toLocaleDateString("vi-VN")}</li>
+        <li><strong>Dự kiến giao:</strong> ${pending.deliveryDate.toLocaleDateString("vi-VN")}</li>
+        <li><strong>Địa chỉ nhận:</strong> ${pending.userInfo.address}</li>
+        <li><strong>Phí vận chuyển:</strong> ${pending.shippingFee.toLocaleString()} ₫</li>
+        <li><strong>Tổng tiền:</strong> ${totalAmount.toLocaleString()} ₫</li>
+        ${pending.orderNote
+            ? `<li><strong>Ghi chú đơn hàng:</strong> ${pending.orderNote}</li>`
+            : ""}
+      </ul>
+
+      <div style="margin: 20px 0;">
+        <h3 style="font-size: 18px; color: #007bff;">Chi tiết sản phẩm:</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background-color: #f0f0f0;">
+              <th align="left" style="padding: 8px;">Sản phẩm</th>
+              <th align="center" style="padding: 8px;">SL</th>
+              <th align="right" style="padding: 8px;">Giá</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pending.orderItems.map(item => `
+              <tr>
+                <td style="padding: 8px;">${item.productName} (Size: ${item.size_name})</td>
+                <td align="center" style="padding: 8px;">${item.quantity}</td>
+                <td align="right" style="padding: 8px;">${(item.price_after_discount * item.quantity).toLocaleString()} ₫</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 30px 0;">
+      <p class="text-dark-mode" style="font-size: 14px; color: #777; text-align: center;">Nếu bạn có bất kỳ câu hỏi nào, hãy phản hồi email này để được hỗ trợ.</p>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <p class="text-dark-mode" style="font-size: 14px; color: #777;">Trân trọng,</p>
+        <p class="text-dark-mode" style="font-size: 14px; color: #777;">Đội ngũ TULY Shoe</p>
+      </div>
+    </div>
+  </div>
+`,
       };
       await transporter.sendMail(mailOptions);
     }
