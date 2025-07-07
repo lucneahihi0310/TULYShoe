@@ -4,12 +4,12 @@ const pendingOrderSchema = new mongoose.Schema({
   order_code: { type: String, required: true, unique: true },
   orderItems: { type: Array, required: true },
   userInfo: { type: Object, required: true },
-  paymentMethod: { type: String, required: true },
-  orderNote: { type: String },
   shippingFee: { type: Number, required: true },
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
+  orderNote: { type: String, default: "" },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "Account", default: null },
   isFromCart: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
+  deliveryDate: { type: Date, required: true },
+  createdAt: { type: Date, default: Date.now, expires: 86400 } // auto delete sau 24h
 });
 
 module.exports = mongoose.model("PendingOrder", pendingOrderSchema);
