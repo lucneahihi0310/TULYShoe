@@ -1,5 +1,4 @@
 const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/oderDetail.model");
 const ProductDetail = require("../models/productDetail.model");
@@ -47,6 +46,7 @@ exports.createPayment = async (req, res) => {
   try {
     const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, isFromCart } = req.body;
 
+
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ." });
     }
@@ -56,23 +56,53 @@ exports.createPayment = async (req, res) => {
       0
     ) + shippingFee;
 
+    const isHanoi = userInfo.address?.toLowerCase().includes("hà nội");
+    const deliveryDays = isHanoi ? 3 : 5;
+    const now = new Date();
+    const deliveryDate = new Date(now);
+    deliveryDate.setDate(now.getDate() + deliveryDays);
+
     const orderCode = `TULY-${Date.now()}`;
 
-    // Prepare order data to encode in JWT
-    const orderData = {
-      orderItems,
-      userInfo,
-      paymentMethod,
-      orderNote,
-      shippingFee,
-      user_id,
-      isFromCart,
-      orderCode,
-      totalAmount,
-    };
+    // Create order in the database
+    const newOrder = await Order.create({
+      order_code: orderCode,
+      user_id: user_id || null,
+      shipping_info: {
+        full_name: userInfo.fullName,
+        phone: userInfo.phone,
+        email: userInfo.email || null,
+        address: userInfo.address,
+      },
+      order_date: now,
+      delivery_date: deliveryDate,
+      order_status_id: new mongoose.Types.ObjectId(DEFAULT_ORDER_STATUS_ID),
+      total_amount: totalAmount,
+      payment_status: paymentMethod === "online" ? "Thanh toán trực tuyến qua VNPAY" : "Thanh toán khi nhận hàng (COD)",
+      order_note: orderNote,
+      create_at: now,
+      update_at: now,
+    });
 
-    // Encode order data into JWT
-    const jwtToken = jwt.sign(orderData, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const orderDetails = orderItems.map((item) => {
+      if (!item.pdetail_id) {
+        console.warn("Thiếu pdetail_id ở item:", item);
+        throw new Error("Thiếu pdetail_id trong danh sách sản phẩm.");
+      }
+
+      return {
+        order_id: newOrder._id,
+        productdetail_id: new mongoose.Types.ObjectId(item.pdetail_id),
+        quantity: item.quantity,
+        price_at_order: item.price_after_discount,
+      };
+    });
+
+    await OrderDetail.insertMany(orderDetails);
+
+    if (user_id && isFromCart) {
+      await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
+    }
 
     // Prepare VNPAY payment parameters
     const date = new Date();
@@ -90,7 +120,7 @@ exports.createPayment = async (req, res) => {
       vnp_Amount: totalAmount * 100, // VNPAY requires amount in VND * 100
       vnp_CurrCode: "VND",
       vnp_TxnRef: orderCode,
-      vnp_OrderInfo: jwtToken,
+      vnp_OrderInfo: `Thanh toán đơn hàng ${orderCode}`,
       vnp_OrderType: "250000", // Category code for shopping
       vnp_Locale: "vn",
       vnp_CreateDate: createDate,
@@ -103,6 +133,87 @@ exports.createPayment = async (req, res) => {
     // Generate payment URL
     const queryString = new URLSearchParams(sortObject(vnpParams)).toString();
     const paymentUrl = `${vnp_Url}?${queryString}`;
+
+    // Send email confirmation
+    if (userInfo.email) {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: userInfo.email,
+        subject: `TULY Shoe - Xác nhận đơn hàng ${orderCode}`,
+        html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .logo {
+              content: url('https://duongvanluc2002.sirv.com/logo_trang.png');
+            }
+            .text-dark-mode {
+              color: #ffffff !important;
+            }
+            .container {
+              background-color: #1a1a1a !important;
+            }
+          }
+        </style>
+        <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+          <img src="https://duongvanluc2002.sirv.com/logo_den.png" width="200" height="auto" alt="Logo" class="logo" style="margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+          
+          <h2 class="text-dark-mode" style="color: #333; text-align: center;">Cảm ơn bạn đã đặt hàng tại TULY Shoe!</h2>
+          <p class="text-dark-mode" style="font-size: 16px; color: #555;">Xin chào <strong>${userInfo.fullName}</strong>,</p>
+          <p class="text-dark-mode" style="font-size: 16px; color: #555;">Chúng tôi đã nhận được đơn hàng <strong>${orderCode}</strong> của bạn.</p>
+
+          <ul style="list-style: none; padding: 0; font-size: 16px; color: #555;">
+            <li><strong>Phương thức thanh toán:</strong> Thanh toán trực tuyến qua VNPAY</li>
+            <li><strong>Ngày đặt hàng:</strong> ${now.toLocaleDateString("vi-VN")}</li>
+            <li><strong>Dự kiến giao:</strong> ${deliveryDate.toLocaleDateString("vi-VN")}</li>
+            <li><strong>Địa chỉ nhận:</strong> ${userInfo.address}</li>
+            <li><strong>Phí vận chuyển:</strong> ${shippingFee.toLocaleString()} ₫</li>
+            <li><strong>Tổng tiền:</strong> ${totalAmount.toLocaleString()} ₫</li>
+            ${orderNote
+            ? `<li><strong>Ghi chú đơn hàng:</strong> ${orderNote}</li>`
+            : ""}
+          </ul>
+
+          <div style="margin: 20px 0;">
+            <h3 style="font-size: 18px; color: #007bff;">Chi tiết sản phẩm:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f0f0f0;">
+                  <th align="left" style="padding: 8px;">Sản phẩm</th>
+                  <th align="center" style="padding: 8px;">SL</th>
+                  <th align="right" style="padding: 8px;">Giá</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orderItems
+            .map(
+              (item) => `
+                  <tr>
+                    <td style="padding: 8px;">${item.productName} (Size: ${item.size_name})</td>
+                    <td align="center" style="padding: 8px;">${item.quantity}</td>
+                    <td align="right" style="padding: 8px;">${(item.price_after_discount * item.quantity).toLocaleString()} ₫</td>
+                  </tr>
+                `
+            )
+            .join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <hr style="border “‘’: 0; border-top: 1px solid #ddd; margin: 30px 0;">
+          <p class="text-dark-mode" style="font-size: 14px; color: #777; text-align: center;">Nếu bạn có bất kỳ câu hỏi nào, hãy phản hồi email này để được hỗ trợ.</p>
+
+          <div style="text-align: center; margin-top: 30px;">
+            <p class="text-dark-mode" style="font-size: 14px; color: #777;">Trân trọng,</p>
+            <p class="text-dark-mode" style="font-size: 14px; color: #777;">Đội ngũ TULY Shoe</p>
+          </div>
+        </div>
+      </div>
+    `,
+      };
+
+      await transporter.sendMail(mailOptions);
+    }
 
     return res.status(200).json({
       message: "Tạo liên kết thanh toán thành công!",
@@ -133,67 +244,22 @@ exports.ipn = async (req, res) => {
 
     const orderCode = vnpParams["vnp_TxnRef"];
     const vnpResponseCode = vnpParams["vnp_ResponseCode"];
-    const orderInfo = vnpParams["vnp_OrderInfo"];
+    const order = await Order.findOne({ order_code: orderCode });
 
-    // Decode JWT to retrieve order data
-    let orderData;
-    try {
-      orderData = jwt.verify(orderInfo, process.env.JWT_SECRET);
-    } catch (err) {
-      console.warn("Invalid JWT token:", err);
-      return res.status(200).json({ RspCode: "98", Message: "Invalid JWT token" });
+    if (!order) {
+      console.warn("Order not found:", orderCode);
+      return res.status(404).json({ RspCode: "01", Message: "Order not found" });
     }
-
-    const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, isFromCart, totalAmount } = orderData;
 
     if (vnpResponseCode === "00") {
       console.log("Payment success for", orderCode);
 
-      // Calculate delivery date
-      const isHanoi = userInfo.address?.toLowerCase().includes("hà nội");
-      const deliveryDays = isHanoi ? 3 : 5;
-      const now = new Date();
-      const deliveryDate = new Date(now);
-      deliveryDate.setDate(now.getDate() + deliveryDays);
+      order.payment_status = "Đã thanh toán";
+      order.order_status_id = new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a882");
+      await order.save();
 
-      // Create order in the database
-      const newOrder = await Order.create({
-        order_code: orderCode,
-        user_id: user_id || null,
-        shipping_info: {
-          full_name: userInfo.fullName,
-          phone: userInfo.phone,
-          email: userInfo.email || null,
-          address: userInfo.address,
-        },
-        order_date: now,
-        delivery_date: deliveryDate,
-        order_status_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a882"), // Success status
-        total_amount: totalAmount,
-        payment_status: "Đã thanh toán",
-        order_note: orderNote,
-        create_at: now,
-        update_at: now,
-      });
-
-      // Create order details
-      const orderDetails = orderItems.map((item) => {
-        if (!item.pdetail_id) {
-          console.warn("Thiếu pdetail_id ở item:", item);
-          throw new Error("Thiếu pdetail_id trong danh sách sản phẩm.");
-        }
-
-        return {
-          order_id: newOrder._id,
-          productdetail_id: new mongoose.Types.ObjectId(item.pdetail_id),
-          quantity: item.quantity,
-          price_at_order: item.price_after_discount,
-        };
-      });
-
-      await OrderDetail.insertMany(orderDetails);
-
-      // Update inventory
+      // Nếu bạn chưa trừ tồn kho lúc tạo đơn:
+      const orderDetails = await OrderDetail.find({ order_id: order._id });
       for (const detail of orderDetails) {
         await ProductDetail.findByIdAndUpdate(
           detail.productdetail_id,
@@ -202,100 +268,18 @@ exports.ipn = async (req, res) => {
               inventory_number: -detail.quantity,
               sold_number: detail.quantity,
             },
-            $set: { update_at: new Date() },
+            $set: { update_at: new Date() }
           }
         );
-      }
-
-      // Delete cart items if applicable
-      if (user_id && isFromCart) {
-        await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
-      }
-
-      // Send email confirmation
-      if (userInfo.email) {
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: userInfo.email,
-          subject: `TULY Shoe - Xác nhận đơn hàng ${orderCode}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-              <style>
-                @media (prefers-color-scheme: dark) {
-                  .logo {
-                    content: url('https://duongvanluc2002.sirv.com/logo_trang.png');
-                  }
-                  .text-dark-mode {
-                    color: #ffffff !important;
-                  }
-                  .container {
-                    background-color: #1a1a1a !important;
-                  }
-                }
-              </style>
-              <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                <img src="https://duongvanluc2002.sirv.com/logo_den.png" width="200" height="auto" alt="Logo" class="logo" style="margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
-                
-                <h2 class="text-dark-mode" style="color: #333; text-align: center;">Cảm ơn bạn đã đặt hàng tại TULY Shoe!</h2>
-                <p class="text-dark-mode" style="font-size: 16px; color: #555;">Xin chào <strong>${userInfo.fullName}</strong>,</p>
-                <p class="text-dark-mode" style="font-size: 16px; color: #555;">Chúng tôi đã nhận được đơn hàng <strong>${orderCode}</strong> của bạn.</p>
-
-                <ul style="list-style: none; padding: 0; font-size: 16px; color: #555;">
-                  <li><strong>Phương thức thanh toán:</strong> Thanh toán trực tuyến qua VNPAY</li>
-                  <li><strong>Ngày đặt hàng:</strong> ${now.toLocaleDateString("vi-VN")}</li>
-                  <li><strong>Dự kiến giao:</strong> ${deliveryDate.toLocaleDateString("vi-VN")}</li>
-                  <li><strong>Địa chỉ nhận:</strong> ${userInfo.address}</li>
-                  <li><strong>Phí vận chuyển:</strong> ${shippingFee.toLocaleString()} ₫</li>
-                  <li><strong>Tổng tiền:</strong> ${totalAmount.toLocaleString()} ₫</li>
-                  ${orderNote
-              ? `<li><strong>Ghi chú đơn hàng:</strong> ${orderNote}</li>`
-              : ""}
-                </ul>
-
-                <div style="margin: 20px 0;">
-                  <h3 style="font-size: 18px; color: #007bff;">Chi tiết sản phẩm:</h3>
-                  <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                      <tr style="background-color: #f0f0f0;">
-                        <th align="left" style="padding: 8px;">Sản phẩm</th>
-                        <th align="center" style="padding: 8px;">SL</th>
-                        <th align="right" style="padding: 8px;">Giá</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${orderItems
-              .map(
-                (item) => `
-                            <tr>
-                              <td style="padding: 8px;">${item.productName} (Size: ${item.size_name})</td>
-                              <td align="center" style="padding: 8px;">${item.quantity}</td>
-                              <td align="right" style="padding: 8px;">${(item.price_after_discount * item.quantity).toLocaleString()} ₫</td>
-                            </tr>
-                          `
-              )
-              .join("")}
-                    </tbody>
-                  </table>
-                </div>
-
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 30px 0;">
-                <p class="text-dark-mode" style="font-size: 14px; color: #777; text-align: center;">Nếu bạn có bất kỳ câu hỏi nào, hãy phản hồi email này để được hỗ trợ.</p>
-
-                <div style="text-align: center; margin-top: 30px;">
-                  <p class="text-dark-mode" style="font-size: 14px; color: #777;">Trân trọng,</p>
-                  <p class="text-dark-mode" style="font-size: 14px; color: #777;">Đội ngũ TULY Shoe</p>
-                </div>
-              </div>
-            </div>
-          `,
-        };
-
-        await transporter.sendMail(mailOptions);
       }
 
       return res.status(200).json({ RspCode: "00", Message: "Success" });
     } else {
       console.log("Payment failed", vnpResponseCode);
+      order.payment_status = "Thanh toán thất bại";
+      order.order_status_id = new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a883");
+      await order.save();
+
       return res.status(200).json({ RspCode: vnpResponseCode, Message: "Payment failed" });
     }
   } catch (err) {
@@ -303,6 +287,8 @@ exports.ipn = async (req, res) => {
     return res.status(500).json({ RspCode: "99", Message: "Unknown error" });
   }
 };
+
+
 
 exports.return = async (req, res) => {
   try {
