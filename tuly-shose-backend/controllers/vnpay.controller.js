@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/oderDetail.model");
+const ProductDetail = require("../models/productDetail.model");
 const CartItem = require("../models/cartItem.model");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
