@@ -425,26 +425,18 @@ const ManagerProduct = () => {
                                                     title: 'Ảnh',
                                                     key: 'image',
                                                     render: (_, record) => {
-                                                        // <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                                                        //     {record.images?.map((img, index) => (
-                                                        //         <img
-                                                        //             key={index}
-                                                        //             src={img}
-                                                        //             alt={`img-${index}`}
-                                                        //             style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: 6 }}
-                                                        //         />
-                                                        //     ))}
-                                                        // </div>
-                                                        const firstImage = record.images?.[1];
-                                                        return firstImage ? (
-                                                            <img
-                                                                src={firstImage}
-                                                                alt="product"
-                                                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 8 }}
-                                                            />
-                                                        ) : (
-                                                            <span>No image</span>
-                                                        );
+                                                        return (
+                                                            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                                                {record.images?.map((img, index) => (
+                                                                    <img
+                                                                        key={index}
+                                                                        src={img}
+                                                                        alt={`img-${index}`}
+                                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: 6 }}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        )
                                                     }
                                                 },
                                                 {
@@ -473,6 +465,12 @@ const ManagerProduct = () => {
                                                                 </div>
                                                                 <div>
                                                                     Product detail status: {record.product_detail_status.productdetail_status_name}
+                                                                </div>
+                                                                <div>
+                                                                    Create at: {record.create_at}
+                                                                </div>
+                                                                <div>
+                                                                    Update at: {record.update_at}
                                                                 </div>
                                                             </div>
                                                         )
