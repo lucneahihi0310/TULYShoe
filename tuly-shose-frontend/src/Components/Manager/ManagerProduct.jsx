@@ -402,9 +402,17 @@ const ManagerProduct = () => {
                                     }}
                                     footer={null}
                                     width={800}>
-                                    <>
-                                        add product detail
-                                    </>
+                                    <Button
+                                        style={{ width: '200px', marginBottom: '15px' }}
+                                        shape="round"
+                                        icon={<PlusOutlined />}
+                                        onClick={() => {
+                                            // showAddCategoryModal();
+                                            console.log('add new product detail');
+                                        }}>
+                                        Add New Product Detail
+                                    </Button>
+
                                     {detailData.length > 0 ? (
                                         <Table
                                             rowKey="_id"
@@ -541,7 +549,8 @@ const ManagerProduct = () => {
                 </Col>
                 <Col span={4} offset={4}>
                     <Button
-                        shape="round" icon={<PlusOutlined />}
+                        shape="round"
+                        icon={<PlusOutlined />}
                         onClick={() => {
                             showAddCategoryModal();
                         }}>
