@@ -9,7 +9,7 @@ const pendingOrderSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "Account", default: null },
   isFromCart: { type: Boolean, default: false },
   deliveryDate: { type: Date, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now, expire: 900 },
 });
 
 module.exports = mongoose.model("PendingOrder", pendingOrderSchema);
