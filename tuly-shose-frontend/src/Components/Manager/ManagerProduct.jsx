@@ -132,7 +132,7 @@ const ManagerProduct = () => {
     }
     const fetchProductDetailStatuses = async () => {
         const res = await fetchData('/product_detail_status/manager/list_product_detail_status');
-        setColors(res);
+        setProduct_detail_statuses(res);
     }
     const searchCategory = categories.filter((c) => {
         const findCategoryByName = c.productName.toLowerCase().includes(filterCategoryName.toLowerCase());
