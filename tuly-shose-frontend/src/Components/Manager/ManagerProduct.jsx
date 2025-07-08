@@ -12,6 +12,7 @@ const ManagerProduct = () => {
     const [materials, setMaterials] = useState([]);
     const [forms, setForms] = useState([]);
     const [detailData, setDetailData] = useState([]);
+
     // State khác
     const [edittingRow, setEdittingRow] = useState(null);
     const [filterCategoryName, setFilterCategoryName] = useState("");
@@ -19,8 +20,9 @@ const ManagerProduct = () => {
     const [addCategory, setAddCategory] = useState(false);
     const [form] = Form.useForm();
     const [form2] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
+    // const [messageApi, contextHolder] = message.useMessage();
     const [listProductDetail, setListProductDetail] = useState(false);
+    const [addProductDetail, setAddProductDetail] = useState(false);
 
     //show add category
     const showAddCategoryModal = () => {
@@ -409,9 +411,110 @@ const ManagerProduct = () => {
                                         onClick={() => {
                                             // showAddCategoryModal();
                                             console.log('add new product detail');
+                                            setAddProductDetail(true);
                                         }}>
                                         Add New Product Detail
                                     </Button>
+                                    <Modal
+                                        title="Add Product Detail"
+                                        closable={{ 'aria-label': 'Custom Close Button' }}
+                                        open={addProductDetail}
+                                        onCancel={() => setAddProductDetail(false)}
+                                        footer={null}
+                                        width={600}
+                                    >
+                                        <Form
+                                            name="wrap"
+                                            labelCol={{ flex: '110px' }}
+                                            labelAlign="left"
+                                            labelWrap
+                                            wrapperCol={{ flex: 1 }}
+                                            colon={false}
+                                            onFinish={async (values) => {
+                                                // gọi API postData(...)
+                                                // await postData('/product_details/manager/create', {
+                                                //     product_id: currentProductId,
+                                                //     ...values
+                                                // });
+                                                // // load lại detailData
+                                                // fetchDetail(currentProductId);
+                                                // setAddDetailVisible(false);
+                                                console.log("add success");
+                                            }}
+                                        >
+                                            <Form.Item
+                                                label="Product name"
+                                                name="productName"
+                                                rules={[
+                                                    { required: true, message: "Please enter product name" },
+                                                    {
+                                                        validator: (_, value) => {
+                                                            const isDuplicate = categories.some(
+                                                                (cat) =>
+                                                                    cat.productName.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                                                    cat._id !== edittingRow
+                                                            );
+                                                            return isDuplicate
+                                                                ? Promise.reject("This product name already exists!")
+                                                                : Promise.resolve();
+                                                        }
+                                                    }
+                                                ]}>
+                                                <Input placeholder="Enter product name" />
+                                            </Form.Item>
+                                            {/* <Form.Item
+                                                name="color_id"
+                                                label="Color"
+                                                rules={[{ required: true }]}
+                                            >
+                                                <Select
+                                                    options={colors.map(c => ({ label: c.color_name, value: c._id }))}
+                                                />
+                                            </Form.Item>
+                                            <Form.Item
+                                                name="size_id"
+                                                label="Size"
+                                                rules={[{ required: true }]}
+                                            >
+                                                <Select options={sizes.map(s => ({ label: s.size_name, value: s._id }))} />
+                                            </Form.Item>
+                                            <Form.Item
+                                                name="discount_id"
+                                                label="Discount"
+                                            >
+                                                <Select options={discounts.map(d => ({ label: `${d.percent_discount}%`, value: d._id }))} />
+                                            </Form.Item>
+                                            <Form.Item
+                                                name="inventory_number"
+                                                label="Inventory Number"
+                                                rules={[{ required: true }]}
+                                            >
+                                                <InputNumber style={{ width: '100%' }} />
+                                            </Form.Item>
+                                            <Form.Item
+                                                name="price_after_discount"
+                                                label="Price After Discount"
+                                                rules={[{ required: true }]}
+                                            >
+                                                <InputNumber style={{ width: '100%' }} formatter={v => `${v}`} />
+                                            </Form.Item>
+                                            <Form.Item
+                                                name="images"
+                                                label="Image URLs"
+                                                rules={[{ required: true }]}
+                                            >
+                                                <Select
+                                                    mode="tags"
+                                                    placeholder="Paste image URLs and press Enter"
+                                                />
+                                            </Form.Item> */}
+                                            <Form.Item>
+                                                <Button type="primary" htmlType="submit">
+                                                    Submit
+                                                </Button>
+                                            </Form.Item>
+                                        </Form>
+                                    </Modal>
 
                                     {detailData.length > 0 ? (
                                         <Table
@@ -601,10 +704,10 @@ const ManagerProduct = () => {
                                     //     duration: 2
                                     // })
                                     // message.success("Add product successfully!");
-                                    messageApi.open({
-                                        type: 'success',
-                                        content: 'This is a success message',
-                                    });
+                                    // messageApi.open({
+                                    //     type: 'success',
+                                    //     content: 'This is a success message',
+                                    // });
                                 } catch (error) {
                                     console.log(error)
                                 }
