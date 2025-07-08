@@ -11,7 +11,8 @@ const ManagerProduct = () => {
     const [brands, setBrands] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [forms, setForms] = useState([]);
-    //
+    const [detailData, setDetailData] = useState([]);
+    // State khác
     const [edittingRow, setEdittingRow] = useState(null);
     const [filterCategoryName, setFilterCategoryName] = useState("");
     const [filterCategoryStatus, setFilterCategoryStatus] = useState(undefined);
@@ -62,14 +63,16 @@ const ManagerProduct = () => {
 
     //delete category
     const handleDeleteCategory = async (id) => {
-        // console.log("Delete : ", id);
+        console.log("Delete : ", id);
         // await axios.delete(`http://localhost:9999/manager/categories/delete/${id}`);
-        // fetchCategories();
-
+        fetchCategories();
         console.log("delete")
     };
 
-    const showProductDetail = () => {
+    const showProductDetail = async (productId) => {
+        const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
+        console.log(res);
+        setDetailData(res);
         setListProductDetail(true);
     };
 
@@ -87,32 +90,27 @@ const ManagerProduct = () => {
         fetchForms()
     }, [])
     const fetchCategories = async () => {
-        // const res = await axios.get(`http://localhost:9999/manager/products`);
         const res = await fetchData('/products/manager/list_product');
         setCategories(res);
         console.log('product');
     }
     const fetchCategories_2 = async () => {
-        // const res = await axios.get(`http://localhost:9999/manager/categories`);
         const res = await fetchData('/categories/manager/list_category');
         setCategories_2(res);
         console.log('category');
     }
     const fetchBrands = async () => {
-        // const res = await axios.get(`http://localhost:9999/manager/brands`);
         const res = await fetchData('/brands/manager/list_brand');
         setBrands(res);
         console.log('brand');
     }
     const fetchMaterials = async () => {
-        // const res = await axios.get(`http://localhost:9999/manager/materials`);
         const res = await fetchData('/materials/manager/list_material');
         setMaterials(res);
         console.log('material');
     }
     const fetchForms = async () => {
-        // const res = await axios.get(`http://localhost:9999/manager/forms`);
-        const res = await fetchData('/forms/manager/list_forms');
+        const res = await fetchData('/forms/manager/list_form');
         setForms(res);
         console.log('form');
     }
@@ -391,7 +389,7 @@ const ManagerProduct = () => {
                                         //     material_id: record.material_id,
                                         //     form_id: record.form_id
                                         // })
-                                        showProductDetail();
+                                        showProductDetail(record._id);
                                     }}>
                                     Product Detail
                                 </Button>
@@ -402,190 +400,89 @@ const ManagerProduct = () => {
                                     onCancel={() => {
                                         handleCancelShowProductDetail()
                                     }}
-                                    footer={null}>
-                                    {/* <Form
-                                        form={form2}
-                                        name="wrap"
-                                        labelCol={{ flex: '110px' }}
-                                        labelAlign="left"
-                                        labelWrap
-                                        wrapperCol={{ flex: 1 }}
-                                        colon={false}
-                                        onFinish={async (values) => {
-                                            try {
-                                                console.log(values);
-                                                // await axios.post('http://localhost:9999/manager/products/create', {
-                                                //     productName: values.productName,
-                                                //     description: values.description,
-                                                //     price: values.price,
-                                                //     categories_id: values.categories_id,
-                                                //     brand_id: values.brand_id,
-                                                //     material_id: values.material_id,
-                                                //     form_id: values.form_id
-                                                // });
-                                                await postData('/products/manager/create_product', {
-                                                    productName: values.productName,
-                                                    description: values.description,
-                                                    price: values.price,
-                                                    categories_id: values.categories_id,
-                                                    brand_id: values.brand_id,
-                                                    material_id: values.material_id,
-                                                    form_id: values.form_id
-                                                }, true);
-                                                form2.resetFields();
-                                                setAddCategory(false);
-                                                fetchCategories();
-                                                // message.success({
-                                                //     content: "Add product successfully!",
-                                                //     duration: 2
-                                                // })
-                                                // message.success("Add product successfully!");
-                                                messageApi.open({
-                                                    type: 'success',
-                                                    content: 'This is a success message',
-                                                });
-                                            } catch (error) {
-                                                console.log(error)
-                                            }
-                                        }}
-
-                                    // onFinish={(values) => {
-                                    //     console.log(values)
-                                    // }}
-                                    >
-                                        <Form.Item
-                                            label="Product name"
-                                            name="productName"
-                                            rules={[
-                                                { required: true, message: "Please enter product name" },
+                                    footer={null}
+                                    width={800}>
+                                    <>
+                                        add product detail
+                                    </>
+                                    {detailData.length > 0 ? (
+                                        <Table
+                                            rowKey="_id"
+                                            dataSource={detailData}
+                                            pagination={false}
+                                            columns={[
                                                 {
-                                                    validator: (_, value) => {
-                                                        const isDuplicate = categories.some(
-                                                            (cat) =>
-                                                                cat.productName.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                                cat._id !== edittingRow
+                                                    title: 'No',
+                                                    key: 'no',
+                                                    render: (text, _, index) => index + 1
+                                                },
+                                                {
+                                                    title: 'Tên sản phẩm',
+                                                    dataIndex: ['product_id', 'productName'],
+                                                    key: 'productName'
+                                                },
+                                                {
+                                                    title: 'Ảnh',
+                                                    key: 'image',
+                                                    render: (_, record) => {
+                                                        // <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                                        //     {record.images?.map((img, index) => (
+                                                        //         <img
+                                                        //             key={index}
+                                                        //             src={img}
+                                                        //             alt={`img-${index}`}
+                                                        //             style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: 6 }}
+                                                        //         />
+                                                        //     ))}
+                                                        // </div>
+                                                        const firstImage = record.images?.[1];
+                                                        return firstImage ? (
+                                                            <img
+                                                                src={firstImage}
+                                                                alt="product"
+                                                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 8 }}
+                                                            />
+                                                        ) : (
+                                                            <span>No image</span>
                                                         );
-                                                        return isDuplicate
-                                                            ? Promise.reject("This product name already exists!")
-                                                            : Promise.resolve();
+                                                    }
+                                                },
+                                                {
+                                                    title: 'Thông tin',
+                                                    key: 'info',
+                                                    render: (_, record) => {
+                                                        return (
+                                                            <div>
+                                                                <div>
+                                                                    Color: {record.color_id.color_code}
+                                                                </div>
+                                                                <div>
+                                                                    Size: {record.size_id.size_name}
+                                                                </div>
+                                                                <div>
+                                                                    Discount: {record.discount_id.percent_discount}
+                                                                </div>
+                                                                <div>
+                                                                    Inventory number: {record.inventory_number}
+                                                                </div>
+                                                                <div>
+                                                                    Sold number: {record.sold_numer}
+                                                                </div>
+                                                                <div>
+                                                                    Price after discount: {record.price_after_discount}
+                                                                </div>
+                                                                <div>
+                                                                    Product detail status: {record.product_detail_status.productdetail_status_name}
+                                                                </div>
+                                                            </div>
+                                                        )
                                                     }
                                                 }
-                                            ]}>
-                                            <Input placeholder="Enter product name" />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label="Description"
-                                            name="description"
-                                            rules={[
-                                                { required: true, message: "Please enter description" },
-                                            ]}>
-                                            <Input placeholder="Enter description" />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label="Price"
-                                            name="price"
-                                            rules={[
-                                                { required: true, message: "Please enter price" },
-                                            ]}>
-                                            <Input placeholder="Enter product name" />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label="Category"
-                                            name="categories_id"
-                                            rules={[{ required: true, message: "Please select category" }]}>
-                                            <Select
-                                                placeholder="Select category"
-                                                allowClear
-                                                // options={[
-                                                //     { label: 'Active', value: true },
-                                                //     { label: 'Inactive', value: false }
-                                                // ]}
-                                                options={categories_2.map((p) => {
-                                                    return {
-                                                        label: p.category_name,
-                                                        value: p._id
-                                                    }
-                                                })}
-                                            />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label="Brand"
-                                            name="brand_id"
-                                            rules={[{ required: true, message: "Please select brand" }]}>
-                                            <Select
-                                                placeholder="Select brand"
-                                                allowClear
-                                                // options={[
-                                                //     { label: 'Active', value: true },
-                                                //     { label: 'Inactive', value: false }
-                                                // ]}
-                                                options={brands.map((p) => {
-                                                    return {
-                                                        label: p.brand_name,
-                                                        value: p._id
-                                                    }
-                                                })}
-                                            />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label="Material"
-                                            name="material_id"
-                                            rules={[{ required: true, message: "Please select material" }]}>
-                                            <Select
-                                                placeholder="Select material"
-                                                allowClear
-                                                // options={[
-                                                //     { label: 'Active', value: true },
-                                                //     { label: 'Inactive', value: false }
-                                                // ]}
-                                                options={materials.map((p) => {
-                                                    return {
-                                                        label: p.material_name,
-                                                        value: p._id
-                                                    }
-                                                })}
-                                            />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label="Form"
-                                            name="form_id"
-                                            rules={[{ required: true, message: "Please select form" }]}>
-                                            <Select
-                                                placeholder="Select form"
-                                                allowClear
-                                                // options={[
-                                                //     { label: 'Active', value: true },
-                                                //     { label: 'Inactive', value: false }
-                                                // ]}
-                                                options={forms.map((p) => {
-                                                    return {
-                                                        label: p.form_name,
-                                                        value: p._id
-                                                    }
-                                                })}
-                                            />
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            label=" ">
-                                            <Button
-                                                type="primary"
-                                                htmlType="submit">
-                                                Submit
-                                            </Button>
-                                        </Form.Item>
-                                    </Form> */}
-                                    <div>
-                                        <div>
-                                            đá
-                                        </div>
-                                    </div>
+                                            ]}
+                                        />
+                                    ) : (
+                                        <p>Không có chi tiết cho sản phẩm này.</p>
+                                    )}
                                 </Modal>
                             </Row>
                             <Row>

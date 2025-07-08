@@ -3,15 +3,15 @@ const mongoose = require('mongoose');
 const productDetailSchema = new mongoose.Schema({
     product_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "product"
+        ref: "Product"
     },
     color_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "color"
+        ref: "Color"
     },
     size_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "size"
+        ref: "Size"
     },
     discount_id: {
         type: mongoose.Schema.Types.ObjectId,
