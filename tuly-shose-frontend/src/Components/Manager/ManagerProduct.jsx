@@ -11,12 +11,15 @@ const ManagerProduct = () => {
     const [brands, setBrands] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [forms, setForms] = useState([]);
+    const [colors, setColors] = useState([]);
+    const [sizes, setSizes] = useState([]);
+    const [discounts, setDiscounts] = useState([]);
+    const [product_detail_statuses, setProduct_detail_statuses] = useState([]);
     const [detailData, setDetailData] = useState([]);
 
     // State khác
     const [edittingRow, setEdittingRow] = useState(null);
     const [filterCategoryName, setFilterCategoryName] = useState("");
-    const [filterCategoryStatus, setFilterCategoryStatus] = useState(undefined);
     const [addCategory, setAddCategory] = useState(false);
     const [form] = Form.useForm();
     const [form2] = Form.useForm();
@@ -89,32 +92,47 @@ const ManagerProduct = () => {
         fetchCategories_2();
         fetchBrands();
         fetchMaterials();
-        fetchForms()
+        fetchForms();
+        fetchColors();
+        fetchSizes();
+        fetchDiscounts();
+        fetchProductDetailStatuses();
     }, [])
     const fetchCategories = async () => {
         const res = await fetchData('/products/manager/list_product');
         setCategories(res);
-        console.log('product');
     }
     const fetchCategories_2 = async () => {
         const res = await fetchData('/categories/manager/list_category');
         setCategories_2(res);
-        console.log('category');
     }
     const fetchBrands = async () => {
         const res = await fetchData('/brands/manager/list_brand');
         setBrands(res);
-        console.log('brand');
     }
     const fetchMaterials = async () => {
         const res = await fetchData('/materials/manager/list_material');
         setMaterials(res);
-        console.log('material');
     }
     const fetchForms = async () => {
         const res = await fetchData('/forms/manager/list_form');
         setForms(res);
-        console.log('form');
+    }
+    const fetchColors = async () => {
+        const res = await fetchData('/colors/manager/list_color');
+        setColors(res);
+    }
+    const fetchSizes = async () => {
+        const res = await fetchData('/sizes/manager/list_size');
+        setSizes(res);
+    }
+    const fetchDiscounts = async () => {
+        const res = await fetchData('/discounts/manager/list_discount');
+        setDiscounts(res);
+    }
+    const fetchProductDetailStatuses = async () => {
+        const res = await fetchData('/product_detail_status/manager/list_product_detail_status');
+        setColors(res);
     }
     const searchCategory = categories.filter((c) => {
         const findCategoryByName = c.productName.toLowerCase().includes(filterCategoryName.toLowerCase());
@@ -462,6 +480,7 @@ const ManagerProduct = () => {
                                                 ]}>
                                                 <Input placeholder="Enter product name" />
                                             </Form.Item>
+
                                             {/* <Form.Item
                                                 name="color_id"
                                                 label="Color"
