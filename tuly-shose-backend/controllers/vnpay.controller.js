@@ -72,7 +72,6 @@ exports.createPayment = async (req, res) => {
       shippingFee,
       orderNote,
       user_id,
-      paymentMethod,
       isFromCart,
       deliveryDate,
     });
@@ -147,7 +146,6 @@ exports.ipn = async (req, res) => {
       shippingFee,
       orderNote,
       user_id,
-      paymentMethod,
       isFromCart,
       deliveryDate,
     } = pending;
@@ -170,9 +168,9 @@ exports.ipn = async (req, res) => {
       },
       order_date: now,
       delivery_date: deliveryDate,
-      order_status_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a881"), // đã thanh toán
+      order_status_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a882"), // đã thanh toán
       total_amount: totalAmount,
-      payment_status: paymentMethod === "online" ? "Thanh toán trực tuyến qua VNPAY" : "Thanh toán khi nhận hàng",
+      payment_status: "Đã thanh toán",
       order_note: orderNote,
       create_at: now,
       update_at: now,

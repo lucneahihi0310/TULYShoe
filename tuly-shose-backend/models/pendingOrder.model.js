@@ -7,7 +7,6 @@ const pendingOrderSchema = new mongoose.Schema({
   shippingFee: { type: Number, required: true },
   orderNote: { type: String, default: "" },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "Account", default: null },
-  paymentMethod: { type: String, required: true },
   isFromCart: { type: Boolean, default: false },
   deliveryDate: { type: Date, required: true },
   createdAt: { type: Date, default: Date.now, expire: 900 },
