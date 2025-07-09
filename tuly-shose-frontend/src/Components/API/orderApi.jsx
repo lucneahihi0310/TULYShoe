@@ -1,6 +1,6 @@
 import { getToken } from "./authApi";
 
-const API_URL = 'http://localhost:9999/orders/staff';
+const API_URL = 'http://localhost:9999/staff/orders';
 
 export const fetchOrders = async () => {
   try {
@@ -9,7 +9,7 @@ export const fetchOrders = async () => {
       throw new Error('Failed to fetch orders');
     }
     const data = await response.json();
-    return data.formattedOrders; // vì trả về be trong key formattedOrders
+    return data.formattedOrders; 
   } catch (error) {
     console.error('Error fetching orders:', error);
     return [];
@@ -18,7 +18,7 @@ export const fetchOrders = async () => {
 
 export const confirmOrder = async (orderId, staffId) => {
     try {
-        const response = await fetch(`http://localhost:9999/orders/confirm/${orderId}`, {
+        const response = await fetch(`http://localhost:9999/staff/orders/confirm/${orderId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
