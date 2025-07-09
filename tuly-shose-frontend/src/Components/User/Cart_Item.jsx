@@ -1,183 +1,311 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, InputNumber } from 'antd';
-import styles from '../../CSS/CartItem.module.css';
+import React, { useEffect, useState, useContext } from "react";
+import { Table, Button, InputNumber, Modal, notification } from "antd";
+import { AuthContext } from "../API/AuthContext";
+import styles from "../../CSS/CartItem.module.css";
+import { useNavigate } from "react-router-dom";
+import {
+  fetchData,
+  updateData,
+  deleteData as deleteAPI,
+} from "../API/ApiService";
 
-const cartData = [
-  {
-    key: '1',
-    product: {
-      name: 'Black Runner Sneakers',
-      description: "Men's Running Shoe",
-      size: '42',
-      image: 'https://storage.googleapis.com/a1aa/image/91177bfd-d842-4f47-4d6b-4100b356cb39.jpg',
-    },
-    price: 120.00,
-    quantity: 2,
-    total: 240.00,
-  },
-  {
-    key: '2',
-    product: {
-      name: 'Gray Slip-On Casuals',
-      description: 'Unisex Casual Shoe',
-      size: '39',
-      image: 'https://storage.googleapis.com/a1aa/image/b2a6dc4e-2448-4bbb-f90e-b856b310d8cc.jpg',
-    },
-    price: 85.00,
-    quantity: 1,
-    total: 85.00,
-  },
-  {
-    key: '3',
-    product: {
-      name: 'White High-Top Sneakers',
-      description: "Men's Basketball Shoe",
-      size: '44',
-      image: 'https://storage.googleapis.com/a1aa/image/7fafa32f-4080-43e1-364d-fb07d3b1ccb9.jpg',
-    },
-    price: 150.00,
-    quantity: 1,
-    total: 150.00,
-  },
-  {
-    key: '4',
-    product: {
-      name: 'Black Leather Loafers',
-      description: "Men's Formal Shoe",
-      size: '43',
-      image: 'https://storage.googleapis.com/a1aa/image/c1809157-e43e-4a05-1ff1-05abb9a73dd9.jpg',
-    },
-    price: 180.00,
-    quantity: 1,
-    total: 180.00,
-  },
-  {
-    key: '5',
-    product: {
-      name: 'White Canvas Slip-Ons',
-      description: 'Unisex Casual Shoe',
-      size: '40',
-      image: 'https://storage.googleapis.com/a1aa/image/8434eade-2ea2-429b-99dc-0aa9fc314921.jpg',
-    },
-    price: 75.00,
-    quantity: 3,
-    total: 225.00,
-  },
-];
+notification.config({ placement: "bottomLeft" });
 
-const columns = [
-  {
-    title: 'Product',
-    dataIndex: 'product',
-    key: 'product',
-    render: (product) => (
-      <div className={styles.productContainer}>
-        <img
-          src={product.image}
-          alt={product.name}
-          className={styles.productImage}
-        />
-        <div>
-          <h3 className={styles.productName}>{product.name}</h3>
-          <p className={styles.productDescription}>{product.description}</p>
-          <p className={styles.productSize}>Size: {product.size}</p>
-        </div>
-      </div>
-    ),
-  },
-  {
-    title: 'Price',
-    dataIndex: 'price',
-    key: 'price',
-    align: 'center',
-    render: (price) => `$${price.toFixed(2)}`,
-  },
-  {
-    title: 'Quantity',
-    dataIndex: 'quantity',
-    key: 'quantity',
-    align: 'center',
-    render: (quantity, record) => (
-      <InputNumber
-        min={1}
-        defaultValue={quantity}
-        className={styles.quantityInput}
-        aria-label={`Quantity for ${record.product.name}`}
-      />
-    ),
-  },
-  {
-    title: 'Total',
-    dataIndex: 'total',
-    key: 'total',
-    align: 'center',
-    render: (total) => `$${total.toFixed(2)}`,
-  },
-  {
-    title: 'Remove',
-    key: 'remove',
-    align: 'center',
-    render: (_, record) => (
-      <Button
-        type="text"
-        icon={<i className={`fas fa-trash-alt ${styles.removeIcon}`}></i>}
-        aria-label={`Remove ${record.product.name} from cart`}
-      />
-    ),
-  },
-];
+function CartItem() {
+  const { user } = useContext(AuthContext);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const navigate = useNavigate();
 
-const CartItem = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const fetchCartItems = async () => {
+    setLoading(true);
+    try {
+      if (user) {
+        const data = await fetchData(`cartItem/customers/user/${user._id}`, true);
+        const mapped = data.map((item) => ({
+          _id: item._id,
+          pdetail_id: item.pdetail_id,
+          quantity: item.quantity,
+          price_after_discount: item.pdetail_id.price_after_discount,
+          image: item.pdetail_id.images[0],
+          size_name: item.pdetail_id.size_id?.size_name,
+          color_code: item.pdetail_id.color_id[0]?.color_code,
+          productName: item.pdetail_id.product_id?.productName,
+          title: item.pdetail_id.product_id?.title,
+        }));
+        setCartItems(mapped);
+      } else {
+        const guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+        const details = await Promise.all(
+          guest.map(async (item) => {
+            try {
+              const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
+              return {
+                _id: item.pdetail_id,
+                pdetail_id: item.pdetail_id,
+                quantity: item.quantity,
+                price_after_discount: data.price_after_discount,
+                image: data.images[0],
+                size_name: data.size_id?.size_name,
+                color_code: data.color_id[0]?.color_code,
+                productName: data.product_id?.productName,
+                title: data.product_id?.title,
+              };
+            } catch (err) {
+              console.error("Lỗi lấy chi tiết:", item.pdetail_id, err);
+              return null;
+            }
+          })
+        );
+        setCartItems(details.filter(Boolean));
+      }
+    } catch (e) {
+      console.error("Lỗi khi lấy giỏ hàng:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setIsVisible(true);
-  }, []);
+    fetchCartItems();
+  }, [user]);
+
+  const onQuantityChange = async (record, newQty) => {
+    if (newQty === 0) {
+      setSelectedRecord(record);
+      setIsModalVisible(true);
+    } else {
+      if (user) {
+        await updateData("/cartItem/customers", record._id, { quantity: newQty }, true);
+      } else {
+        let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+        guest = guest.map((item) =>
+          item.pdetail_id === record._id ? { ...item, quantity: newQty } : item
+        );
+        localStorage.setItem("guest_cart", JSON.stringify(guest));
+      }
+
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item._id === record._id ? { ...item, quantity: newQty } : item
+        )
+      );
+      window.dispatchEvent(new Event("cartUpdated"));
+      notification.success({ message: "Cập nhật số lượng!" });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedRecord) {
+      if (user) {
+        await deleteAPI("/cartItem/customers", selectedRecord._id, true);
+      } else {
+        let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+        guest = guest.filter((item) => item.pdetail_id !== selectedRecord._id);
+        localStorage.setItem("guest_cart", JSON.stringify(guest));
+      }
+
+      setCartItems((prev) =>
+        prev.filter((item) => item._id !== selectedRecord._id)
+      );
+      window.dispatchEvent(new Event("cartUpdated"));
+      notification.success({ message: "Đã xóa khỏi giỏ hàng!" });
+      setIsModalVisible(false);
+    }
+  };
+
+  const columns = [
+    {
+      title: "Sản phẩm",
+      dataIndex: "",
+      key: "product",
+      render: (record) => (
+        <div className={styles.productContainer}>
+          <img src={record.image} alt={record.productName} className={styles.productImage} />
+          <div>
+            <h3 className={styles.productName}>{record.productName}</h3>
+            <p className={styles.productDescription}>{record.title}</p>
+            <p className={styles.productSize}>Size: {record.size_name}</p>
+            <div className={styles.colorWrapper}>
+              <span className={styles.colorLabel}>Màu:</span>
+              <span
+                className={styles.colorDot}
+                style={{ backgroundColor: record.color_code }}
+              />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Giá",
+      dataIndex: "price_after_discount",
+      key: "price",
+      align: "center",
+      render: (value) =>
+        new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(value),
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "center",
+      render: (qty, record) => (
+        <InputNumber
+          min={0}
+          value={qty}
+          className={styles.quantityInput}
+          onChange={(val) => onQuantityChange(record, val)}
+        />
+      ),
+    },
+    {
+      title: "Tổng",
+      key: "total",
+      align: "center",
+      render: (_, rec) =>
+        new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(rec.price_after_discount * rec.quantity),
+    },
+    {
+      title: "Xóa",
+      key: "remove",
+      align: "center",
+      render: (_, rec) => (
+        <Button
+          type="text"
+          icon={<i className={`fa-solid fa-trash ${styles.removeIcon}`} />}
+          onClick={() => {
+            setSelectedRecord(rec);
+            setIsModalVisible(true);
+          }}
+        />
+      ),
+    },
+  ];
+
+  const subtotal = cartItems.reduce(
+    (sum, i) => sum + i.price_after_discount * i.quantity,
+    0
+  );
+  const shipping = cartItems.length > 0 ? 30000 : 0;
+  const total = subtotal + shipping;
 
   return (
-    <main className={`${styles.main} ${isVisible ? styles.fadeIn : ''}`}>
-      <h2 className={styles.title}>Your Cart</h2>
+    <main className={`${styles.main} ${styles.fadeIn}`}>
+      <h2 className={styles.title}>Giỏ hàng của bạn</h2>
       <div className={styles.cartContainer}>
         <section className={styles.cartSection}>
           <Table
-            dataSource={cartData}
+            dataSource={cartItems}
             columns={columns}
+            rowKey="_id"
+            loading={loading}
             pagination={false}
             className={styles.cartTable}
             rowClassName={styles.tableRow}
+            locale={{
+              emptyText: (
+                <div style={{ textAlign: "center", color: "#999" }}>
+                  <i
+                    className="bi bi-database-fill-slash"
+                    style={{
+                      fontSize: "40px",
+                      marginBottom: "8px",
+                      display: "block",
+                    }}
+                  />
+                  <div>Không có sản phẩm trong giỏ hàng</div>
+                </div>
+              ),
+            }}
           />
         </section>
         <aside className={styles.orderSummary}>
-          <h3 className={styles.summaryTitle}>Order Summary</h3>
+          <h3 className={styles.summaryTitle}>Tổng cộng giỏ hàng</h3>
           <div className={styles.summaryContent}>
             <div className={styles.summaryItem}>
-              <span>Subtotal</span>
-              <span>$880.00</span>
+              <span>Tạm tính</span>
+              <span>
+                {subtotal.toLocaleString("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                })}
+              </span>
             </div>
             <div className={styles.summaryItem}>
-              <span>Shipping</span>
-              <span>$25.00</span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span>Tax (8%)</span>
-              <span>$70.40</span>
+              <span>Phí Ship</span>
+              <span>
+                {shipping.toLocaleString("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                })}
+              </span>
             </div>
             <hr className={styles.divider} />
             <div className={styles.total}>
-              <span>Total</span>
-              <span>$975.40</span>
+              <span>Tổng</span>
+              <span>
+                {total.toLocaleString("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                })}
+              </span>
             </div>
           </div>
           <Button
             className={styles.checkoutButton}
-            aria-label="Proceed to checkout"
+            onClick={() =>
+              navigate("/order", {
+                state: {
+                  fromCart: true,
+                  orderItems: cartItems.map((item) => ({
+                    pdetail_id: item.pdetail_id._id || item.pdetail_id,
+                    quantity: item.quantity,
+                  })),
+                },
+              })
+            }
+            disabled={cartItems.length === 0}
           >
-            Proceed to Checkout
+            Thanh toán
           </Button>
         </aside>
       </div>
+
+      <Modal
+        title="Xóa sản phẩm?"
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button
+            key="ok"
+            type="primary"
+            danger
+            style={{ width: "100%" }}
+            onClick={handleDelete}
+          >
+            Xóa
+          </Button>,
+        ]}
+        closable
+        centered
+        className={styles.customModal}
+      >
+        <p>
+          Bạn có muốn xóa "<strong>{selectedRecord?.productName}</strong>" khỏi
+          giỏ hàng?
+        </p>
+      </Modal>
     </main>
   );
-};
+}
 
 export default CartItem;

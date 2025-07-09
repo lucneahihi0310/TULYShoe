@@ -1,10 +1,21 @@
 const mongoose = require('mongoose');
 
-const ProductDetailStatusSchema = new mongoose.Schema({
-  productdetail_status_name: { type: String, required: true },
-  is_active: { type: Boolean, default: true },
-  create_at: { type: Date, default: Date.now },
-  update_at: { type: Date, default: Date.now }
-}, { collection: 'product_detail_status' });
+const productDetailStatusSchema = new mongoose.Schema({
 
-module.exports = mongoose.model('ProductDetailStatus', ProductDetailStatusSchema);
+    productdetail_status_name: {
+        type: String,
+        required: true
+    },
+    is_active: {
+        type: Boolean,
+        default: true
+    },
+    create_at: {
+        type: Date
+    },
+    update_at: {
+        type: Date
+    }
+});
+const ProductDetailStatus = mongoose.model('ProductDetailStatus', productDetailStatusSchema, 'product_detail_status');
+module.exports = ProductDetailStatus;

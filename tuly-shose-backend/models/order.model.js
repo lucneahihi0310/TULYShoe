@@ -1,19 +1,36 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const mongoose = require("mongoose");
 
-const OrderSchema = new Schema({
-  order_code: String,
-  user_id: { type: Schema.Types.ObjectId, ref: 'Account' },
-  order_date: Date,
-  order_status_id: { type: Schema.Types.ObjectId, ref: 'OrderStatus' },
-  address_shipping_id: { type: Schema.Types.ObjectId, ref: 'AddressShipping' },
-  delivery_date: Date,
-  order_note: String,
-  total_amount: Number,
-  payment_status: String,
-  accepted_by: { type: Schema.Types.ObjectId, ref: 'Account' },
-  create_at: Date,
-  update_at: Date
+const orderShema = new mongoose.Schema({
+
+    order_code: { type: String, required: true, unique: true },
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Account",
+        default: null
+    },
+    shipping_info: {
+        full_name: { type: String, required: true },
+        phone: { type: String, required: true },
+        email: { type: String, default: null },
+        address: { type: String, required: true }
+    },
+    order_date: { type: Date, required: true },
+    order_status_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "OrderStatus",
+        required: true,
+    },
+    delivery_date: { type: Date, required: true },
+    order_note: { type: String, default: null },
+    total_amount: { type: Number, required: true },
+    payment_status: { type: String, required: true },
+    accepted_by: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Account",
+        default: null
+    },
+    create_at: { type: Date },
+    update_at: { type: Date }
 });
 
-module.exports = mongoose.model('Order', OrderSchema);
+module.exports = mongoose.model("Order", orderShema, "orders");

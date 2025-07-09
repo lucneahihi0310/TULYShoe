@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const middleware = require('../middlewares/auth.middleware');
-const { getAllAddress, getAddressById, addAddress, updateAddress, deleteAddress, updateAddressById } = require('../controllers/address_shipping.controller');
+const { getAllAddress, getAddressById, addAddress, updateAddress, deleteAddress } = require('../controllers/address_shipping.controller');
 
 const timlog = (req, res, next) => {
     console.log(`Time: ${new Date().toLocaleString()}`);
@@ -10,9 +10,10 @@ const timlog = (req, res, next) => {
 router.use(timlog);
 router.use(express.json());
 
-router.get('/', middleware, getAllAddress);
-router.get('/:id', middleware, getAddressById);
-router.post('/', addAddress);
-router.put('/:id', middleware, updateAddress);
-router.delete('/:id', middleware, deleteAddress);
+router.get('/customers', middleware, getAllAddress);
+router.get('/customers/:id', middleware, getAddressById);
+router.post('/customers', addAddress);
+router.put('/customers/:id', middleware, updateAddress);
+router.delete('/customers/:id', middleware, deleteAddress);
+
 module.exports = router;

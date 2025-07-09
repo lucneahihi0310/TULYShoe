@@ -259,6 +259,34 @@ exports.resetPassword = async (req, res, next) => {
     }
 };
 
+// GET /account/info
+exports.getFullUserInfo = async (req, res, next) => {
+  try {
+    const userId = req.customerId; //đã gán trong middleware xác thực JWT
+
+    const user = await User.findById(userId)
+      .select("first_name last_name phone email address_shipping_id")
+      .populate({
+        path: "address_shipping_id",
+        select: "address",
+      });
+
+    if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+
+    const userInfo = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone: user.phone,
+      email: user.email,
+      address: user.address_shipping_id?.address || "",
+    };
+
+    res.json(userInfo);
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin user:", error);
+    res.status(500).json({ message: "Lỗi server khi lấy thông tin người dùng!" });
+  }
+};
 exports.getProfile = async (req, res) => {
     try {
         const account = await User.findById(req.params.id)

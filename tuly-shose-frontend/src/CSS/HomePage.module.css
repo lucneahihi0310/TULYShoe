@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap&subset=vietnamese');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&subset=vietnamese&display=swap');
+
 .main {
-  font-family: 'Poppins', sans-serif;
+  /* font-family: 'Poppins', sans-serif; */
   background-color: #fff;
   color: #1f2937;
   overflow-x: hidden;
@@ -105,6 +108,7 @@
   font-weight: 600 !important;
   padding: 1rem 2rem !important;
   border-radius: 0.5rem !important;
+  max-width: 8rem !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -115,6 +119,7 @@
 
 .heroImageContainer {
   width: 100%;
+  max-width: 550px;
   margin-bottom: 3rem;
 }
 

@@ -1,353 +1,597 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
-  Breadcrumb,
   Button,
-  Rate,
   Row,
   Col,
-  Radio,
-  message,
-  Card,
-  Avatar,
+  Rate,
   Typography,
-  Divider,
+  Carousel,
+  Card,
+  Space,
+  Tag,
+  Spin,
+  Modal,
+  notification,
 } from "antd";
-import { useNavigate } from 'react-router-dom';
+import {
+  ShoppingCartOutlined,
+  ThunderboltOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import styles from "../../CSS/ProductDetail.module.css";
-import { ThunderboltOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-
+import { AuthContext } from "../API/AuthContext";
+import { fetchData, postData } from "../API/ApiService";
 const { Title, Paragraph, Text } = Typography;
 
-const reviews = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    avatar:
-      "https://storage.googleapis.com/a1aa/image/b4b52f6a-b8e5-4fc2-fd14-1eb9b9c84fc6.jpg",
-    rating: 5,
-    content:
-      "Giày đẹp, chất lượng tốt, đi rất êm chân. Màu sắc giống hình, shop giao hàng nhanh.",
-  },
-  {
-    id: 2,
-    name: "Trần Thị B",
-    avatar:
-      "https://storage.googleapis.com/a1aa/image/b8242acc-de1f-45f7-5961-236ed092b0d4.jpg",
-    rating: 4.5,
-    content:
-      "Mình rất thích kiểu dáng và màu sắc của đôi giày này. Size chuẩn, đi thoải mái.",
-  },
-  {
-    id: 3,
-    name: "Lê Văn C",
-    avatar:
-      "https://storage.googleapis.com/a1aa/image/f997f8f6-98ef-43f2-fa6f-7f842b3487dc.jpg",
-    rating: 5,
-    content:
-      "Đôi giày rất đẹp, chất lượng tốt, giá cả hợp lý. Sẽ ủng hộ shop tiếp.",
-  },
-];
+function ProductDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const carouselRef = useRef(null);
+  const imageContainerRef = useRef(null);
+  const { user } = useContext(AuthContext);
 
-const relatedProducts = [
-  {
-    id: 1,
-    name: "Nike Air Max 90 Trắng Đỏ",
-    price: "1.450.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/1d4b5ac2-2721-4d9f-b490-d930af4f676a.jpg",
-    link: "#",
-  },
-  {
-    id: 2,
-    name: "Nike Air Force 1 Đen Trắng",
-    price: "1.300.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/a473356e-51db-4bb6-16ad-8f1be50aaa92.jpg",
-    link: "#",
-  },
-  {
-    id: 3,
-    name: "Nike Blazer Mid Xám",
-    price: "1.250.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/c077e1e6-f92f-4bf1-53b7-1b2c9d5b839e.jpg",
-    link: "#",
-  },
-  {
-    id: 4,
-    name: "Nike React Infinity Run",
-    price: "1.600.000₫",
-    image:
-      "https://storage.googleapis.com/a1aa/image/38afdc46-167d-4406-edf0-973fbcbd465a.jpg",
-    link: "#",
-  },
-];
-
-const ProductDetail = () => {
+  const [productDetail, setProductDetail] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [related, setRelated] = useState([]);
+  const [mainImage, setMainImage] = useState(null);
+  const [isSizeGuideVisible, setIsSizeGuideVisible] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [mainImage, setMainImage] = useState(
-    "https://storage.googleapis.com/a1aa/image/b94000a9-b76a-4b35-4976-a23cd3d29110.jpg"
-  );
+  const [loading, setLoading] = useState(true);
+  const [zoomStyle, setZoomStyle] = useState({
+    transform: "scale(1)",
+    transformOrigin: "center center",
+  });
 
-  const colors = [
-    {
-      label: "Trắng Nâu Xám",
-      value: "trang-nau-xam",
-      image:
-        "https://storage.googleapis.com/a1aa/image/b94000a9-b76a-4b35-4976-a23cd3d29110.jpg",
-    },
-    {
-      label: "Trắng Đỏ Đen",
-      value: "trang-do-den",
-      image:
-        "https://storage.googleapis.com/a1aa/image/1d4b5ac2-2721-4d9f-b490-d930af4f676a.jpg",
-    },
-    {
-      label: "Đen Trắng",
-      value: "den-trang",
-      image:
-        "https://storage.googleapis.com/a1aa/image/a473356e-51db-4bb6-16ad-8f1be50aaa92.jpg",
-    },
-    {
-      label: "Xám Trắng",
-      value: "xam-trang",
-      image:
-        "https://storage.googleapis.com/a1aa/image/c077e1e6-f92f-4bf1-53b7-1b2c9d5b839e.jpg",
-    },
-  ];
+  useEffect(() => {
+    const fetchDataAsync = async () => {
+      try {
+        setLoading(true);
 
-  const sizes = [36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
+        const resDetail = await fetchData(`productDetail/${id}`);
+        setProductDetail(resDetail);
+        setMainImage(resDetail.images[0]);
+        console.log("resDetail:", resDetail);
+        console.log("resDetail._id:", resDetail._id);
+        const resVariants = await fetchData(
+          `productDetail/product/${resDetail.product_id._id}`
+        );
+        setVariants(resVariants);
 
-  const handleAddToCart = () => {
-    if (!selectedColor) {
-      message.error("Vui lòng chọn màu giày.");
-      return;
-    }
-    if (!selectedSize) {
-      message.error("Vui lòng chọn size giày.");
-      return;
-    }
-    message.success(
-      `Đã thêm giày màu ${selectedColor} size ${selectedSize} vào giỏ hàng!`
+        const resReviews = await fetchData(`reviews/detail/${resDetail._id}`);
+        setReviews(resReviews);
+
+        const resRelated = await fetchData(`productDetail/related/${id}`);
+        setRelated(resRelated);
+
+        setSelectedColor(resDetail.color_id[0]._id);
+        setSelectedSize(resDetail.size_id._id);
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu ProductDetail:", err);
+      } finally {
+        setLoading(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+
+    fetchDataAsync();
+  }, [id]);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  const handleColorClick = async (colorId) => {
+    setSelectedColor(colorId);
+    const match = variants.find(
+      (v) => v.color_id[0]._id === colorId && v.size_id._id === selectedSize
     );
-    navigate("/cart");
+    if (match) {
+      navigate(`/products/${match._id}`);
+    }
   };
-const navigate = useNavigate();
-  return (
-    <div style={{ maxWidth: 1200, margin: "auto", padding: 16 }}>
-      <Breadcrumb>
-        <Breadcrumb.Item>
-          <a href="#">Trang chủ</a>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          <a href="#">Sản phẩm</a>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11
-        </Breadcrumb.Item>
-      </Breadcrumb>
+  const handleBuyNow = () => {
+    const orderItem = {
+      pdetail_id: productDetail._id,
+      quantity: 1,
+    };
 
-      <Row gutter={[32, 32]} style={{ marginTop: 24 }}>
-        <Col xs={24} md={12}>
-          <img
-            src={mainImage}
-            alt="Nike Air Force 1 Shadow"
-            style={{ width: "100%", borderRadius: 8 }}
-          />
+    navigate("/order", {
+      state: {
+        fromDetail: true,
+        orderItems: [orderItem],
+      },
+    });
+  };
+  const handleSizeClick = async (sizeId) => {
+    setSelectedSize(sizeId);
+    const match = variants.find(
+      (v) => v.size_id._id === sizeId && v.color_id[0]._id === selectedColor
+    );
+    if (match) {
+      navigate(`/products/${match._id}`);
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (imageContainerRef.current) {
+      const rect = imageContainerRef.current.getBoundingClientRect();
+      const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+      const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+      setZoomStyle({
+        transform: "scale(2)",
+        transformOrigin: `${xPercent}% ${yPercent}%`,
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setZoomStyle({ transform: "scale(1)", transformOrigin: "center center" });
+  };
+
+  const handleAddToCart = async () => {
+    const cartItem = {
+      pdetail_id: productDetail._id,
+      quantity: 1,
+    };
+
+    const notifyAddSuccess = () => {
+      notification.success({
+        message: "Đã thêm vào giỏ hàng!",
+        description: `Sản phẩm "${productDetail.product_id.productName}" đã được thêm.`,
+        placement: "bottomLeft",
+        duration: 2,
+      });
+    };
+
+    if (user) {
+      try {
+        await postData("cartItem", { ...cartItem, user_id: user._id });
+        window.dispatchEvent(new Event("cartUpdated"));
+        notifyAddSuccess();
+      } catch (err) {
+        console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
+      }
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+      const existingIndex = guestCart.findIndex(
+        (item) => item.pdetail_id === cartItem.pdetail_id
+      );
+
+      if (existingIndex >= 0) {
+        guestCart[existingIndex].quantity += 1;
+      } else {
+        guestCart.push(cartItem);
+      }
+      window.dispatchEvent(new Event("cartUpdated"));
+      localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+      notifyAddSuccess();
+    }
+  };
+
+  const formatVND = (price) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
+  const handleAddRelatedToCart = async (prod) => {
+    const cartItem = {
+      pdetail_id: prod._id,
+      quantity: 1,
+    };
+
+    const notifyAddSuccess = () => {
+      notification.success({
+        message: "Đã thêm vào giỏ hàng!",
+        description: `Sản phẩm "${prod.product_id.productName}" đã được thêm.`,
+        placement: "bottomLeft",
+        duration: 2,
+      });
+    };
+
+    try {
+      if (user && user._id) {
+        await postData("cartItem", { ...cartItem, user_id: user._id });
+        window.dispatchEvent(new Event("cartUpdated"));
+        notifyAddSuccess();
+      } else {
+        const guestCart = JSON.parse(
+          localStorage.getItem("guest_cart") || "[]"
+        );
+        const existingIndex = guestCart.findIndex(
+          (item) => item.pdetail_id === cartItem.pdetail_id
+        );
+
+        if (existingIndex >= 0) {
+          guestCart[existingIndex].quantity += 1;
+        } else {
+          guestCart.push(cartItem);
+        }
+        window.dispatchEvent(new Event("cartUpdated"));
+        localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+        notifyAddSuccess();
+      }
+    } catch (err) {
+      console.error("Lỗi thêm sản phẩm liên quan vào giỏ hàng:", err);
+      notification.error({
+        message: "Thêm giỏ hàng thất bại!",
+        description: err.message || "Vui lòng thử lại sau.",
+        placement: "bottomLeft",
+      });
+    }
+  };
+
+  const handlePrev = () => carouselRef.current?.prev();
+  const handleNext = () => carouselRef.current?.next();
+
+  if (loading || !productDetail || !productDetail.product_id) {
+    return (
+      <div className={styles.loadingWrapper}>
+        <Spin size="large" tip="Đang tải dữ liệu sản phẩm..." />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
+      <Row gutter={32} className={styles.main}>
+        <Col xs={24} lg={12}>
           <div
-            style={{
-              marginTop: 12,
-              display: "flex",
-              gap: 8,
-              overflowX: "auto",
-            }}
+            className={styles.imageContainer}
+            ref={imageContainerRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
           >
-            {colors.map((color) => (
+            <img
+              src={mainImage}
+              className={styles.mainImage}
+              style={zoomStyle}
+              alt="main product"
+            />
+          </div>
+          <div className={styles.thumbnails}>
+            {productDetail.images.map((img, i) => (
               <img
-                key={color.value}
-                src={color.image}
-                alt={color.label}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  border:
-                    mainImage === color.image
-                      ? "2px solid #1890ff"
-                      : "1px solid #ddd",
-                }}
-                onClick={() => {
-                  setMainImage(color.image);
-                  setSelectedColor(color.value);
-                }}
+                key={i}
+                src={img}
+                className={styles.thumbnail}
+                onClick={() => setMainImage(img)}
               />
             ))}
           </div>
         </Col>
 
-        <Col xs={24} md={12}>
-          <Title level={2}>Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11</Title>
-          <Rate allowHalf defaultValue={4.5} disabled />
-          <Text style={{ marginLeft: 8 }}>(45 đánh giá) | Đã bán 150+</Text>
+        <Col xs={24} lg={12} className={styles.productInfo}>
+          <Title level={3}>{productDetail.product_id.productName}</Title>
+          <Space align="center" className={styles.rating}>
+            <Rate
+              allowHalf
+              value={
+                reviews.reduce((total, review) => total + review.rating, 0) /
+                reviews.length
+              }
+              disabled
+            />
+            <Text>({reviews.length} đánh giá)</Text>
+            <Text>| Đã bán {productDetail.sold_number}</Text>
+            <Text>
+              | {productDetail.product_detail_status.productdetail_status_name}
+            </Text>
+          </Space>
 
-          <div
-            style={{
-              marginTop: 16,
-              fontSize: 24,
-              fontWeight: "bold",
-              color: "#ff4d4f",
-            }}
-          >
-            1.350.000₫{" "}
-            <del style={{ color: "#999", marginLeft: 12 }}>1.800.000₫</del>{" "}
-            <span
-              style={{
-                backgroundColor: "#ff4d4f",
-                color: "white",
-                padding: "2px 8px",
-                borderRadius: 4,
-                fontSize: 12,
-                marginLeft: 8,
-              }}
+          <div className={styles.price}>
+            {productDetail.discount_id?.percent_discount > 0 ? (
+              <>
+                <Text className={styles.salePrice}>
+                  {formatVND(productDetail.price_after_discount)}
+                </Text>
+                <Text delete className={styles.originalPrice}>
+                  {formatVND(productDetail.product_id.price)}
+                </Text>
+                <Tag color="orange">
+                  Giảm {productDetail.discount_id.percent_discount}%
+                </Tag>
+              </>
+            ) : (
+              <Text className={styles.salePrice}>
+                {formatVND(productDetail.product_id.price)}
+              </Text>
+            )}
+          </div>
+
+          <div className={styles.selection}>
+            <Text strong>Chọn màu</Text>
+            <div className={styles.colorOptions}>
+              {[
+                ...new Map(
+                  variants.map((v) => [v.color_id[0]._id, v.color_id[0]])
+                ).values(),
+              ].map((color) => (
+                <div
+                  key={color._id}
+                  className={`${styles.colorButton} ${
+                    selectedColor === color._id ? styles.colorSelected : ""
+                  }`}
+                  style={{ backgroundColor: color.color_code }}
+                  title={color.color_name}
+                  onClick={() => handleColorClick(color._id)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.selection}>
+            <div className={styles.selectHeader}>
+              <Text strong className={styles.selectTitle}>
+                Chọn size
+              </Text>
+              <Button
+                type="link"
+                size="small"
+                className={styles.guideBtn}
+                onClick={() => setIsSizeGuideVisible(true)}
+              >
+                HD chọn size
+              </Button>
+            </div>
+
+            <div className={styles.sizeOptions}>
+              {[
+                ...new Map(
+                  variants.map((v) => [v.size_id._id, v.size_id])
+                ).values(),
+              ].map((size) => (
+                <Button
+                  key={size._id}
+                  className={`${styles.sizeButton} ${
+                    selectedSize === size._id ? styles.sizeSelected : ""
+                  }`}
+                  onClick={() => handleSizeClick(size._id)}
+                >
+                  {size.size_name}
+                </Button>
+              ))}
+            </div>
+
+            <Modal
+              open={isSizeGuideVisible}
+              onCancel={() => setIsSizeGuideVisible(false)}
+              footer={null}
+              centered
+              width={800}
             >
-              Giảm 25%
-            </span>
+              <img
+                src="https://duongvanluc2002.sirv.com/1.jpeg"
+                alt="Hướng dẫn chọn size"
+                style={{ width: "100%", borderRadius: "8px" }}
+              />
+            </Modal>
           </div>
 
-          <div style={{ marginTop: 24 }}>
-            <Title level={4}>Chọn màu</Title>
-            <Radio.Group
-              options={colors.map((c) => ({ label: c.label, value: c.value }))}
-              onChange={(e) => {
-                setSelectedColor(e.target.value);
-                const selected = colors.find((c) => c.value === e.target.value);
-                if (selected) setMainImage(selected.image);
-              }}
-              value={selectedColor}
-              optionType="button"
-              buttonStyle="solid"
-            />
-          </div>
-
-          <div style={{ marginTop: 24 }}>
-            <Title level={4}>Chọn size</Title>
-            <Radio.Group
-              options={sizes.map((s) => ({ label: s.toString(), value: s }))}
-              onChange={(e) => setSelectedSize(e.target.value)}
-              value={selectedSize}
-              optionType="button"
-              buttonStyle="solid"
-            />
-          </div>
-
-          <div className={styles.productActions}>
-            <button onClick={() => navigate("/order")}  className={styles.productButton}>
-              <ThunderboltOutlined />
+          <div className={styles.actions}>
+            <Button
+              type="primary"
+              icon={<ThunderboltOutlined />}
+              size="large"
+              className={styles.buyButton}
+              onClick={handleBuyNow}
+            >
               Mua ngay
-            </button>
-            <button
-              className={`${styles.productButton} ${styles.cart}`}
+            </Button>
+            <Button
+              icon={<ShoppingCartOutlined />}
+              size="large"
+              className={styles.cartButton}
               onClick={handleAddToCart}
             >
-              <ShoppingCartOutlined />
               Giỏ hàng
-            </button>
+            </Button>
           </div>
 
-          <div style={{ marginTop: 32, color: "#555" }}>
+          <div className={styles.details}>
             <Paragraph>
-              <b>Thương hiệu:</b> Nike
+              <Text strong>Thương hiệu:</Text>{" "}
+              {productDetail.product_id.brand_id?.brand_name}
             </Paragraph>
             <Paragraph>
-              <b>Chất liệu:</b> Da tổng hợp cao cấp, đế cao su bền bỉ
+              <Text strong>Chất liệu:</Text>{" "}
+              {productDetail.product_id.material_id?.material_name}
             </Paragraph>
             <Paragraph>
-              <b>Màu sắc:</b> Trắng, nâu, xám
+              <Text strong>Kiểu dáng:</Text>{" "}
+              {productDetail.product_id.form_id?.form_name}
             </Paragraph>
             <Paragraph>
-              <b>Bảo hành:</b> 12 tháng
+              <Text strong>Thể loại:</Text>{" "}
+              {productDetail.product_id.categories_id?.category_name}
             </Paragraph>
             <Paragraph>
-              <b>Xuất xứ:</b> Việt Nam
+              <Text strong>Giới tính:</Text>{" "}
+              {productDetail.product_id.gender_id?.gender_name}
             </Paragraph>
           </div>
         </Col>
       </Row>
 
-      {/* Product Description */}
-      <Divider />
-      <section>
-        <Title level={3}>Mô tả sản phẩm</Title>
-        <Paragraph>
-          Nike Air Force 1 Shadow Trắng Nâu Xám Rep 11 là phiên bản giày sneaker
-          thời trang với thiết kế độc đáo, phối màu trắng, nâu và xám hài hòa,
-          phù hợp cho cả nam và nữ. Được làm từ chất liệu da tổng hợp cao cấp,
-          đế cao su bền bỉ, mang lại sự thoải mái và độ bền vượt trội khi sử
-          dụng hàng ngày.
-        </Paragraph>
-        <Paragraph>
-          Đế giày được thiết kế với độ bám cao, chống trơn trượt hiệu quả. Form
-          giày ôm chân, tạo cảm giác chắc chắn và thoải mái khi di chuyển. Đây
-          là lựa chọn hoàn hảo cho những ai yêu thích phong cách streetwear năng
-          động và cá tính.
-        </Paragraph>
-        <Paragraph>
-          Sản phẩm được bảo hành 12 tháng và cam kết chính hãng 100%. Hãy nhanh
-          tay đặt hàng để sở hữu đôi giày thời thượng này!
-        </Paragraph>
-      </section>
+      <div className={styles.description}>
+        <Title level={3} className={styles.titleBorder}>
+          Mô tả sản phẩm
+        </Title>
+        <Paragraph>{productDetail.product_id.description}</Paragraph>
+      </div>
 
-      {/* Reviews Section */}
-      <Divider />
-      <section>
-        <Title level={3}>Đánh giá sản phẩm</Title>
-        <Row gutter={[16, 16]}>
-          {reviews.map(({ id, name, avatar, rating, content }) => (
-            <Col xs={24} md={8} key={id}>
-              <Card>
-                <Card.Meta
-                  avatar={<Avatar src={avatar} />}
-                  title={name}
-                  description={<Rate disabled defaultValue={rating} />}
-                />
-                <Paragraph style={{ marginTop: 12 }}>{content}</Paragraph>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </section>
+      <div className={styles.reviews}>
+        <Title level={3} className={styles.titleBorder}>
+          Đánh giá sản phẩm
+        </Title>
 
-      {/* Related Products */}
-      <Divider />
-      <section>
-        <Title level={3}>Sản phẩm liên quan</Title>
-        <Row gutter={[16, 16]}>
-          {relatedProducts.map(({ id, name, price, image, link }) => (
-            <Col xs={12} sm={8} md={6} key={id}>
-              <Card
-                hoverable
-                cover={
-                  <img alt={name} src={image} style={{ borderRadius: 8 }} />
-                }
-                onClick={() => (window.location.href = link)}
-              >
-                <Card.Meta
-                  title={name}
-                  description={
-                    <Text strong style={{ color: "#ff4d4f" }}>
-                      {price}
+        {reviews.length === 0 ? (
+          <Paragraph style={{ padding: "12px 0", color: "#888" }}>
+            Chưa có đánh giá nào cho sản phẩm này.
+          </Paragraph>
+        ) : (
+          <>
+            {(showAllReviews ? reviews : reviews.slice(0, 3)).map((r) => (
+              <Card key={r._id} className={styles.reviewCard}>
+                <div className={styles.review}>
+                  <img
+                    src={r.user_id?.avatar_image}
+                    className={styles.avatar}
+                  />
+                  <div>
+                    <Text strong>
+                      {r.user_id?.first_name} {r.user_id?.last_name}
                     </Text>
-                  }
-                />
+                    <div>
+                      <Rate
+                        value={r.rating}
+                        allowHalf
+                        disabled
+                        className={styles.reviewRating}
+                      />
+                    </div>
+                    <Paragraph>{r.review_content}</Paragraph>
+                  </div>
+                </div>
+
+                {r.replies.length > 0 &&
+                  r.replies.map((rep) => (
+                    <div key={rep._id} className={styles.reply}>
+                      <img
+                        src={rep.replier_id?.avatar_image}
+                        className={styles.replyAvatar}
+                      />
+                      <div className={styles.replyContent}>
+                        <Text strong>
+                          {rep.replier_id?.first_name}{" "}
+                          {rep.replier_id?.last_name}:
+                        </Text>{" "}
+                        {rep.reply_content}
+                      </div>
+                    </div>
+                  ))}
               </Card>
-            </Col>
-          ))}
-        </Row>
-      </section>
+            ))}
+
+            {reviews.length > 3 && (
+              <div className={styles.toggleReview}>
+                <Button
+                  type="link"
+                  onClick={() => setShowAllReviews(!showAllReviews)}
+                >
+                  {showAllReviews ? "Ẩn bớt" : "Xem thêm đánh giá"}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {related.length > 0 && (
+        <div className={styles.relatedProducts}>
+          <Title level={3} className={styles.titleBorder}>
+            Sản phẩm liên quan
+          </Title>
+          <div className={styles.carouselWrapper}>
+            <Button
+              icon={<LeftOutlined />}
+              onClick={handlePrev}
+              className={`${styles.carouselNav} ${styles.prev}`}
+            />
+            <Carousel
+              ref={carouselRef}
+              dots={false}
+              slidesToShow={3}
+              slidesToScroll={1}
+              className={styles.carousel}
+            >
+              {related.map((prod) => (
+                <div
+                  key={prod._id}
+                  className={styles.carouselItem}
+                  onClick={() => navigate(`/products/${prod._id}`)}
+                >
+                  <div className={styles.sameHeightWrapper}>
+                    <Card
+                      hoverable
+                      cover={
+                        <img
+                          src={prod.images[0]}
+                          alt={prod.product_id.productName}
+                          className={styles.relatedImage}
+                        />
+                      }
+                      className={styles.relatedCard}
+                    >
+                      {prod.discount_id.percent_discount > 0 && (
+                        <Tag color="orange" className={styles.discountTag}>
+                          -{prod.discount_id.percent_discount}%
+                        </Tag>
+                      )}
+                      <Card.Meta
+                        title={prod.product_id.productName}
+                        description={
+                          <>
+                            <Paragraph ellipsis={{ rows: 2 }}>
+                              {prod.product_id.description}
+                            </Paragraph>
+                            <div className={styles.priceContainer}>
+                              <div className={styles.priceRow}>
+                                <div className={styles.priceColumn}>
+                                  {prod.discount_id.percent_discount > 0 ? (
+                                    <>
+                                      <Text
+                                        className={styles.originalPrice}
+                                        delete
+                                      >
+                                        {formatVND(prod.product_id.price)}
+                                      </Text>
+                                      <Text className={styles.salePrice}>
+                                        {formatVND(prod.price_after_discount)}
+                                      </Text>
+                                    </>
+                                  ) : (
+                                    <Text className={styles.salePrice}>
+                                      {formatVND(prod.product_id.price)}
+                                    </Text>
+                                  )}
+                                </div>
+
+                                <Button
+                                  type="text"
+                                  className={styles.cartIconButton}
+                                  icon={<ShoppingCartOutlined />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddRelatedToCart(prod);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </>
+                        }
+                      />
+                    </Card>
+                  </div>
+                </div>
+              ))}
+            </Carousel>
+            <Button
+              icon={<RightOutlined />}
+              onClick={handleNext}
+              className={`${styles.carouselNav} ${styles.next}`}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
 export default ProductDetail;

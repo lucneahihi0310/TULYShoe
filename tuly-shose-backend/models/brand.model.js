@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const brandSchema = new mongoose.Schema({
-    _id: {
-        type: String,
-        default: () => new mongoose.Types.ObjectId().toString()
-    },
     brand_name: {
         type: String,
         required: true
@@ -20,7 +16,7 @@ const brandSchema = new mongoose.Schema({
         type: String,
         default: () => new Date().toISOString()
     }
-}, { collection: "brands" });
+});
 
-const brand = mongoose.model('brand', brandSchema);
+const brand = mongoose.model('Brand', brandSchema, 'brands');
 module.exports = brand;

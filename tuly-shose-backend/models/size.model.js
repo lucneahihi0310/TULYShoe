@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const sizeSchema = new mongoose.Schema({
-    _id: {
-        type: String,
-        default: () => new mongoose.Types.ObjectId().toString()
-    },
     size_name: {
         type: String,
         required: true
@@ -20,7 +16,7 @@ const sizeSchema = new mongoose.Schema({
         type: String,
         default: () => new Date().toISOString()
     }
-}, { collection: "sizes" });
+});
 
-const size = mongoose.model('size', sizeSchema);
+const size = mongoose.model('Size', sizeSchema, 'sizes');
 module.exports = size;

@@ -1,28 +1,75 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="G1Yu5hiEv2anEHE8JUjL_BZfKgE0mpXl6QSEVvXWglc" />
     <title>TULY Shoe</title>
+    <link rel="canonical" href="https://tulyshoe-front.onrender.com/" />
+
+    <!-- Favicon -->
     <link id="favicon" rel="icon" type="image/png" href="/image/logo_den.png" />
+
+    <!-- ✅ Google Analytics GA4 -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-H12XLD07GB"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-H12XLD07GB");
+    </script>
+
+    <!-- ✅ SEO cơ bản -->
+    <meta
+      name="description"
+      content="TULY Shoes - Giày thời trang chính hãng, chất lượng cao, giao hàng toàn quốc."
+    />
+    <meta
+      name="keywords"
+      content="giày, giày nam, giày nữ, sneaker, TULY Shoes"
+    />
+    <meta name="author" content="TULY Team" />
+
+    <!-- ✅ Open Graph (khi chia sẻ lên Facebook, Zalo...) -->
+    <meta
+      property="og:title"
+      content="TULY Shoes - Giày thời trang chính hãng"
+    />
+    <meta
+      property="og:description"
+      content="Mua giày chất lượng cao tại TULY Shoes. Giao hàng toàn quốc."
+    />
+    <meta
+      property="og:image"
+      content="https://tulyshoe-front.onrender.com/image/logo_den.png"
+    />
+    <meta property="og:url" content="https://tulyshoe-front.onrender.com" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
     <script>
       const favicon = document.getElementById("favicon");
-      const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const darkModeMediaQuery = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
 
       function updateFavicon(e) {
         const isDarkMode = e.matches;
-        favicon.href = isDarkMode ? "/image/logo_trang.png" : "/image/logo_den.png";
+        favicon.href = isDarkMode
+          ? "/image/logo_trang.png"
+          : "/image/logo_den.png";
       }
 
-      // Cập nhật lúc load trang
       updateFavicon(darkModeMediaQuery);
-
-      // Nghe thay đổi theme (live switch)
       darkModeMediaQuery.addEventListener("change", updateFavicon);
     </script>
   </body>

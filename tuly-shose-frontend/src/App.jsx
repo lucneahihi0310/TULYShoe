@@ -7,18 +7,18 @@ import HomePage from "./Components/User/HomePage";
 import ProductDetail from "./Components/User/ProductDetail";
 import ListProduct from "./Components/User/ListProduct";
 import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
-import ManagerProduct from "./Components/Manager/ManagerProduct";
-import ManagerCategory from "./Components/Manager/ManagerCategory";
 import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
 import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
-
+import OrderSuccess from "./Components/User/OrderSuccess";
+import ManagerDashboard from "./Components/Manager/ManagerDashboard";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
     if (!token) {
@@ -32,6 +32,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     } catch (error) {
       console.error("Invalid token:", error);
       localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +53,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-
 function App() {
   return (
     <BrowserRouter>
@@ -70,33 +70,25 @@ function App() {
         />
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute allowedRoles={["user"]}>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+
         <Route
-          path="/manager/product"
+          path="/manager"
+          element={<Navigate to="/manager/brands" replace />}
+        />
+        <Route
+          path="/manager/:section"
           element={
             <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerProduct />
+              <ManagerDashboard />
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/manager/category"
-          element={
-            <ProtectedRoute allowedRoles={["manager"]}>
-              <ManagerCategory />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/dashboard"
           element={<Navigate to="/dashboard/feedbacks" replace />}

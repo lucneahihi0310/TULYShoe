@@ -1,214 +1,382 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  Form,
   Input,
-  Select,
   Checkbox,
+  Radio,
   Button,
-  Typography,
-  Row,
-  Col,
-  Divider,
   Tooltip,
+  Modal,
+  message,
+  InputNumber,
 } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import styles from "../../CSS/Order.module.css";
+import { AuthContext } from "../API/AuthContext";
+import { useLocation } from "react-router-dom";
+import { fetchData, postData } from "../API/ApiService";
+const Order = () => {
+  const { user } = useContext(AuthContext);
+  const location = useLocation();
+  const [shippingFee, setShippingFee] = useState(0);
+  const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [orderNote, setOrderNote] = useState("");
+  const [orderItems, setOrderItems] = useState([]);
+  useEffect(() => {
+    const normalized = userInfo.address?.toLowerCase() || "";
+    if (normalized.includes("hà nội")) {
+      setShippingFee(0);
+    } else {
+      setShippingFee(30000);
+    }
+  }, [userInfo.address]);
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!user) return;
+      try {
+        const data = await fetchData("account/info", true);
+        setUserInfo({
+          fullName: `${data.first_name} ${data.last_name}`,
+          phone: data.phone,
+          email: data.email,
+          address: data.address,
+        });
+      } catch (error) {
+        console.error("Lỗi lấy thông tin người dùng:", error);
+      }
+    };
+    fetchUserInfo();
+  }, [user]);
 
-// Sample cart data (replace with actual cart data from your app)
-const cart = [
-  {
-    id: 1,
-    name: "Die-cut Insoles - Ananas Ortholite 7mm RF - White Asparagus",
-    size: "S",
-    price: 69000,
-    quantity: 10,
-  },
-  {
-    id: 2,
-    name: "Vintas Vivu - Low Top - Warm Sand",
-    size: "36.5",
-    price: 620000,
-    quantity: 2,
-  },
-];
+  useEffect(() => {
+    const fetchDataOrderItems = async () => {
+      if (location.state?.fromCart && location.state.orderItems) {
+        const enrichedItems = await Promise.all(
+          location.state.orderItems.map(async (item) => {
+            try {
+              const data = await fetchData(`productDetail/${item.pdetail_id}`);
+              return {
+                pdetail_id: item.pdetail_id,
+                quantity: item.quantity,
+                image: data.images[0],
+                size_name: data.size_id?.size_name,
+                color_code: data.color_id[0]?.color_code,
+                productName: data.product_id?.productName,
+                price_after_discount: data.price_after_discount,
+              };
+            } catch (err) {
+              console.error("Lỗi lấy chi tiết sản phẩm:", err);
+              return null;
+            }
+          })
+        );
+        setOrderItems(enrichedItems.filter(Boolean));
+      } else if (location.state?.fromDetail && location.state.orderItems) {
+        const item = location.state.orderItems[0];
+        try {
+          const data = await fetchData(`productDetail/${item.pdetail_id}`);
+          setOrderItems([
+            {
+              pdetail_id: item.pdetail_id,
+              quantity: 1,
+              image: data.images[0],
+              size_name: data.size_id?.size_name,
+              color_code: data.color_id[0]?.color_code,
+              productName: data.product_id?.productName,
+              price_after_discount: data.price_after_discount,
+            },
+          ]);
+        } catch (err) {
+          console.error("Lỗi lấy chi tiết sản phẩm:", err);
+        }
+      }
+    };
 
-function Order() {
-  // Calculate totals
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    fetchDataOrderItems();
+  }, [location]);
+
+  const totalAmount = orderItems.reduce(
+    (sum, item) => sum + item.quantity * item.price_after_discount,
     0
   );
-  const discount = 0;
-  const shippingFee = 0;
-  const paymentFee = 0;
-  const total = subtotal - discount + shippingFee + paymentFee;
 
-  // Format price to VND
-  const formatPrice = (price) =>
-    price.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+  const estimatedDeliveryDate = () => {
+    const date = new Date();
+    const isHanoi = userInfo.address?.toLowerCase().includes("hà nội");
+    date.setDate(date.getDate() + (isHanoi ? 3 : 5));
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleOrderSubmit = async () => {
+    if (orderItems.length === 0) {
+      return message.warning("Không có sản phẩm để đặt hàng.");
+    }
+
+    const payload = {
+      user_id: user?._id || null,
+      orderItems: orderItems.map((item) => ({
+        pdetail_id: item.pdetail_id,
+        quantity: item.quantity,
+        price_after_discount: item.price_after_discount,
+        productName: item.productName,
+        size_name: item.size_name,
+      })),
+      userInfo,
+      paymentMethod,
+      orderNote,
+      shippingFee,
+    };
+
+    if (paymentMethod === "cod") {
+      Modal.confirm({
+        title: "Xác nhận đặt hàng",
+        content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
+        okText: "Xác nhận",
+        icon: <QuestionCircleOutlined />,
+        cancelButtonProps: { style: { display: "none" } },
+        closable: true,
+        async onOk() {
+          try {
+            const data = await postData("orders", payload, true);
+
+            if (data?.order_code) {
+              message.success("Đặt hàng thành công!");
+
+              if (!user) {
+                localStorage.removeItem("guest_cart");
+                sessionStorage.removeItem("guest_cart");
+              }
+              window.dispatchEvent(new Event("cartUpdated"));
+              navigate("/order-success");
+            } else {
+              message.error(data?.message || "Đặt hàng thất bại");
+            }
+          } catch (error) {
+            console.error("Lỗi khi gửi đơn hàng:", error);
+            message.error("Lỗi kết nối đến server.");
+          }
+        },
+      });
+    } else {
+      Modal.confirm({
+        title: "Xác nhận đặt hàng",
+        content: "Bạn có chắc chắn muốn thanh toán với VNPay?",
+        okText: "Xác nhận",
+        icon: <QuestionCircleOutlined />,
+        cancelButtonProps: { style: { display: "none" } },
+        closable: true,
+        async onOk() {
+          try {
+            const data = await postData(
+              "vnpay/create",
+              {
+                ...payload,
+                amount: totalAmount,
+                paymentMethod: "online",
+              },
+              true
+            );
+
+            if (data?.paymentUrl) {
+              window.dispatchEvent(new Event("cartUpdated"));
+
+              if (!user) {
+                localStorage.removeItem("guest_cart");
+                sessionStorage.removeItem("guest_cart");
+              }
+
+              window.location.href = data.paymentUrl;
+            } else {
+              message.error(
+                data?.message || "Không thể tạo liên kết thanh toán."
+              );
+            }
+          } catch (err) {
+            console.error("Lỗi khi gọi VNPay:", err);
+            message.error("Lỗi kết nối đến VNPay.");
+          }
+        },
+      });
+    }
+  };
 
   return (
-    <div className={styles.container}>
-      <Row gutter={[32, 16]}>
-        {/* Left form section */}
-        <Col xs={24} md={14}>
-          <Form layout="vertical" className={styles.form}>
-            {/* Delivery Information */}
-            <div className={styles.section}>
-              <Title level={5} className={styles.sectionTitle}>
-                THÔNG TIN GIAO HÀNG
-              </Title>
-              <Form.Item>
-                <Input placeholder="HỌ TÊN" size="large" />
-              </Form.Item>
-              <Form.Item>
-                <Input placeholder="Số điện thoại" size="large" />
-              </Form.Item>
-              <Form.Item>
-                <Input placeholder="Email" size="large" type="email" />
-              </Form.Item>
-              <Form.Item>
-                <Input placeholder="Địa chỉ" size="large" />
-              </Form.Item>
-              <Form.Item>
-                <Select placeholder="Tỉnh/ Thành Phố" size="large">
-                  <Option value="">Tỉnh/ Thành Phố</Option>
-                </Select>
-              </Form.Item>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item>
-                    <Select placeholder="Quận/ Huyện" size="large">
-                      <Option value="">Quận/ Huyện</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item>
-                    <Select placeholder="Phường/ Xã" size="large">
-                      <Option value="">Phường/ Xã</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
+    <main className={`${styles.main} ${styles.fadeIn}`}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>Đặt hàng tại TULY Shoe</h2>
+        <div className={styles.content}>
+          <section className={styles.formSection}>
+            <form className={styles.form}>
+              <h3 className={styles.sectionTitle}>Thông tin giao hàng</h3>
+              <Input
+                placeholder="Họ tên"
+                className={styles.input}
+                value={userInfo.fullName}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, fullName: e.target.value }))
+                }
+              />
 
-            {/* Delivery Method */}
-            <div className={styles.section}>
-              <Title level={5} className={styles.sectionTitle}>
-                PHƯƠNG THỨC GIAO HÀNG
-              </Title>
-              <Form.Item>
-                <div className={styles.checkboxWrapper}>
-                  <Checkbox defaultChecked>
-                    <span className={styles.checkboxLabel}>
-                      Tốc độ tiêu chuẩn (từ 2 - 5 ngày làm việc)
-                      <Tooltip
-                        title="Tuỳ vào địa chỉ giao hàng mà tốc độ giao hàng tiêu chuẩn sẽ khác nhau. Chúng tôi luôn cố gắng để đơn hàng đến tay bạn sớm nhất."
-                        color="#808080"
-                        overlayStyle={{ fontSize: "12px" }}
-                      >
-                        <QuestionCircleOutlined className={styles.infoIcon} />
-                      </Tooltip>
-                    </span>
-                  </Checkbox>
-                  <span className={styles.price}>0 VNĐ</span>
-                </div>
-              </Form.Item>
-            </div>
+              <Input
+                placeholder="Số điện thoại"
+                className={styles.input}
+                value={userInfo.phone}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, phone: e.target.value }))
+                }
+              />
 
-            {/* Payment Method */}
-            <div className={styles.section}>
-              <Title level={5} className={styles.sectionTitle}>
-                PHƯƠNG THỨC THANH TOÁN
-              </Title>
-              <Form.Item>
-                <Checkbox defaultChecked>
-                  <span className={styles.checkboxLabel}>
-                    Thanh toán trực tiếp khi giao hàng
-                    <Tooltip
-                      title="Là phương thức thanh toán bằng tiền mặt trực tiếp khi nhận hàng"
-                      color="#808080"
-                      overlayStyle={{ fontSize: "12px" }}
-                    >
-                      <QuestionCircleOutlined className={styles.infoIcon} />
-                    </Tooltip>
-                  </span>
-                </Checkbox>
-              </Form.Item>
-              <Form.Item>
-                <Checkbox>
-                  <span className={styles.checkboxLabel}>
-                    Thanh toán trực tuyến.
-                    <Tooltip
-                      title="Là phương thức thanh toán trực tuyến qua cổng thanh toán của chúng tôi. Bạn sẽ được chuyển hướng đến trang thanh toán an toàn."
-                      color="#808080"
-                      overlayStyle={{ fontSize: "12px" }}
-                    >
-                      <QuestionCircleOutlined className={styles.infoIcon} />
-                    </Tooltip>
-                  </span>
-                </Checkbox>
-              </Form.Item>
-            </div>
-          </Form>
-        </Col>
+              <Input
+                placeholder="Email"
+                className={styles.input}
+                value={userInfo.email}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, email: e.target.value }))
+                }
+              />
 
-        {/* Right order summary */}
-        <Col xs={24} md={10}>
-          <div className={styles.orderSummary}>
-            <Title level={5} className={styles.sectionTitle}>
-              ĐƠN HÀNG
-            </Title>
-            {cart.map((item) => (
-              <React.Fragment key={item.id}>
-                <div className={styles.orderItem}>
-                  <div>
-                    <Text strong>{item.name}</Text>
-                    <div className={styles.itemDetail}>Size: {item.size}</div>
+              <Input
+                placeholder="Địa chỉ"
+                className={styles.input}
+                value={userInfo.address}
+                onChange={(e) =>
+                  setUserInfo((prev) => ({ ...prev, address: e.target.value }))
+                }
+              />
+
+              <h3 className={styles.sectionTitle}>Ghi chú đơn hàng</h3>
+              <Input.TextArea
+                rows={3}
+                className={styles.input}
+                placeholder="Giao buổi sáng, gọi trước khi đến..."
+                value={orderNote}
+                onChange={(e) => setOrderNote(e.target.value)}
+              />
+
+              <h3 className={styles.sectionTitle}>Phương thức thanh toán</h3>
+              <Radio.Group
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className={styles.radioGroup}
+              >
+                <Radio value="cod" className={styles.radio}>
+                  Thanh toán khi giao hàng (COD)
+                </Radio>
+                <Radio value="online" className={styles.radio}>
+                  Thanh toán trực tuyến
+                </Radio>
+              </Radio.Group>
+            </form>
+          </section>
+
+          <aside className={styles.orderSummary}>
+            <h3 className={styles.summaryTitle}>Tóm tắt đơn hàng</h3>
+            <div className={styles.summaryItems}>
+              {orderItems.map((item, idx) => (
+                <div className={styles.product} key={idx}>
+                  <div className={styles.productInfo}>
+                    <img src={item.image} className={styles.productImage} />
+                    <div>
+                      <p className={styles.productName}>{item.productName}</p>
+                      <p className={styles.productDetail}>
+                        Size: {item.size_name}
+                      </p>
+                      <div className={styles.colorDotWrapper}>
+                        <span>Màu:</span>
+                        <span
+                          style={{
+                            backgroundColor: item.color_code,
+                            display: "inline-block",
+                            width: "16px",
+                            height: "16px",
+                            borderRadius: "50%",
+                            marginLeft: "6px",
+                            border: "1px solid #ccc",
+                          }}
+                        />
+                      </div>
+                      <p className={styles.productPriceLine}>
+                        Giá: {item.price_after_discount.toLocaleString()} ₫
+                      </p>
+                      <div className={styles.productQtyWrapper}>
+                        <span>Số lượng:</span>
+                        <InputNumber
+                          min={1}
+                          max={99}
+                          value={item.quantity}
+                          disabled={!!location.state?.fromCart}
+                          onChange={(val) => {
+                            if (!location.state?.cartItems) {
+                              setOrderItems((prev) =>
+                                prev.map((itm, i) =>
+                                  i === idx ? { ...itm, quantity: val } : itm
+                                )
+                              );
+                            }
+                          }}
+                          className={styles.qtyInput}
+                          size="small"
+                          style={{ marginLeft: 8 }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <Text className={styles.itemPrice}>
-                    {formatPrice(item.price)}
-                  </Text>
+                  <div className={styles.productPrice}>
+                    {(
+                      item.price_after_discount * item.quantity
+                    ).toLocaleString()}{" "}
+                    ₫
+                  </div>
                 </div>
-                <Text className={styles.quantity}>x {item.quantity}</Text>
-              </React.Fragment>
-            ))}
-            <Divider className={styles.divider} />
-            <div className={styles.summaryRow}>
-              <Text strong>Đơn hàng</Text>
-              <Text strong>{formatPrice(subtotal)}</Text>
+              ))}
             </div>
-            <div className={styles.summaryRow}>
-              <Text strong>Giảm</Text>
-              <Text strong>{formatPrice(-discount)}</Text>
+            <hr className={styles.divider} />
+            <div className={styles.summaryDetails}>
+              <div className={styles.summaryRow}>
+                <span>Đơn hàng</span>
+                <span>{totalAmount.toLocaleString()} ₫</span>
+              </div>
+              <div className={styles.summaryRowSecondary}>
+                <span>Phí vận chuyển</span>
+                <span>{shippingFee.toLocaleString()} ₫</span>
+              </div>
+
+              <div className={styles.summaryRowSecondary}>
+                <span>Ngày giao dự kiến</span>
+                <span>
+                  {estimatedDeliveryDate()} (
+                  {userInfo.address?.toLowerCase().includes("hà nội")
+                    ? "3"
+                    : "5"}{" "}
+                  ngày)
+                </span>
+              </div>
             </div>
-            <div className={styles.summaryRow}>
-              <Text strong>Phí vận chuyển</Text>
-              <Text strong>{formatPrice(shippingFee)}</Text>
+            <hr className={styles.divider} />
+            <div className={styles.total}>
+              <span>TỔNG CỘNG</span>
+              <span>{(totalAmount + shippingFee).toLocaleString()} ₫</span>
             </div>
-            <div className={styles.summaryRow}>
-              <Text strong>Phí thanh toán</Text>
-              <Text strong>{formatPrice(paymentFee)}</Text>
-            </div>
-            <Divider className={styles.divider} />
-            <div className={styles.totalRow}>
-              <Text strong>TỔNG CỘNG</Text>
-              <Text strong className={styles.totalPrice}>
-                {formatPrice(total)}
-              </Text>
-            </div>
-            <Button type="primary" size="large" className={styles.submitButton}>
+
+            <Button className={styles.submitButton} onClick={handleOrderSubmit}>
               HOÀN TẤT ĐẶT HÀNG
             </Button>
-          </div>
-        </Col>
-      </Row>
-    </div>
+          </aside>
+        </div>
+      </div>
+    </main>
   );
-}
+};
 
 export default Order;
