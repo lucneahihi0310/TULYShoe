@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message } from "antd";
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined } from '@ant-design/icons'
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message, InputNumber, Upload } from "antd";
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, UploadOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
@@ -26,6 +26,9 @@ const ManagerProduct = () => {
     // const [messageApi, contextHolder] = message.useMessage();
     const [listProductDetail, setListProductDetail] = useState(false);
     const [addProductDetail, setAddProductDetail] = useState(false);
+    //state ảnh
+    const [uploadedUrls, setUploadedUrls] = useState([]);
+
 
     //show add category
     const showAddCategoryModal = () => {
@@ -43,15 +46,15 @@ const ManagerProduct = () => {
         try {
             const record = await form.validateFields();
             console.log("Edit:", record);
-
-            // await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
-            //     category_name: record.category_name,
-            //     is_active: record.status
-            // });
-
-            // await updateData('products/manager/edit_product', edittingRow, {
-            //     xax
-            // });
+            await updateData('products/manager/edit_product', edittingRow, {
+                productName: record.productName,
+                description: record.description,
+                price: record.price,
+                categories_id: record.categories_id,
+                brand_id: record.brand_id,
+                material_id: record.material_id,
+                form_id: record.form_id
+            }, true);
             setEdittingRow(null);
             fetchCategories();
             console.log("edit")
@@ -69,7 +72,7 @@ const ManagerProduct = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        // await axios.delete(`http://localhost:9999/manager/categories/delete/${id}`);
+        await deleteData('/products/manager/delete_product', id, true);
         fetchCategories();
         console.log("delete")
     };
@@ -160,18 +163,6 @@ const ManagerProduct = () => {
                             name="productName"
                             rules={[
                                 { required: true, message: "Please enter product name" },
-                                {
-                                    validator: (_, value) => {
-                                        const isDuplicate = categories.some(
-                                            (cat) =>
-                                                cat.productName.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                cat._id !== edittingRow
-                                        );
-                                        return isDuplicate
-                                            ? Promise.reject("This product name already exists!")
-                                            : Promise.resolve();
-                                    }
-                                }
                             ]}>
                             <Input />
                         </Form.Item>
@@ -198,18 +189,6 @@ const ManagerProduct = () => {
                             name="description"
                             rules={[
                                 { required: true, message: "Please enter product description" },
-                                {
-                                    validator: (_, value) => {
-                                        const isDuplicate = categories.some(
-                                            (cat) =>
-                                                cat.description.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                cat._id !== edittingRow
-                                        );
-                                        return isDuplicate
-                                            ? Promise.reject("This product description already exists!")
-                                            : Promise.resolve();
-                                    }
-                                }
                             ]}>
                             <Input />
                         </Form.Item>
@@ -232,100 +211,74 @@ const ManagerProduct = () => {
                     return (
                         <>
                             <Form.Item
+                                label="Price"
                                 name="price"
                                 rules={[
-                                    { required: true, message: "Please enter product price" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.price.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This product price already exists!")
-                                                : Promise.resolve();
-                                        }
-                                    }
+                                    { required: true, message: "Please enter product price" }
                                 ]}>
                                 <Input />
                             </Form.Item>
                             <Form.Item
+                                label="Category"
                                 name="categories_id"
-                                rules={[
-                                    { required: true, message: "Please enter category name" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.categories_id.category_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This category name already exists!")
-                                                : Promise.resolve();
+                                // initialValue={record.}
+                                rules={[{ required: true, message: "Please select category" }]}>
+                                <Select
+                                    placeholder="Select category"
+                                    allowClear
+                                    options={categories_2.map((p) => {
+                                        return {
+                                            label: p.category_name,
+                                            value: p._id
                                         }
-                                    }
-                                ]}
-                            >
-                                <Input />
+                                    })}
+                                />
                             </Form.Item>
                             <Form.Item
+                                label="Brand"
                                 name="brand_id"
-                                rules={[
-                                    { required: true, message: "Please enter product name" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.brand_id.brand_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This product name already exists!")
-                                                : Promise.resolve();
+                                rules={[{ required: true, message: "Please select brand" }]}>
+                                <Select
+                                    placeholder="Select brand"
+                                    allowClear
+                                    options={brands.map((p) => {
+                                        return {
+                                            label: p.brand_name,
+                                            value: p._id
                                         }
-                                    }
-                                ]}>
-                                <Input />
+                                    })}
+                                />
                             </Form.Item>
                             <Form.Item
+                                label="Material"
                                 name="material_id"
-                                rules={[
-                                    { required: true, message: "Please enter material name" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.material_id.material_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This material name already exists!")
-                                                : Promise.resolve();
+                                rules={[{ required: true, message: "Please select material" }]}>
+                                <Select
+                                    placeholder="Select material"
+                                    allowClear
+                                    options={materials.map((p) => {
+                                        return {
+                                            label: p.material_name,
+                                            value: p._id
                                         }
-                                    }
-                                ]}>
-                                <Input />
+                                    })}
+                                />
                             </Form.Item>
                             <Form.Item
+                                label="Form"
                                 name="form_id"
-                                rules={[
-                                    { required: true, message: "Please enter form name" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.form_id.form_name.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This form name already exists!")
-                                                : Promise.resolve();
+                                initialValue={record.form_id}
+                                rules={[{ required: true, message: "Please select form" }]}>
+                                <Select
+                                    placeholder="Select form"
+                                    allowClear
+                                    options={forms.map((p) => {
+                                        return {
+                                            label: p.form_name,
+                                            value: p._id
                                         }
-                                    }
-                                ]}>
-                                <Input />
+                                    })}
+                                />
                             </Form.Item>
                         </>
                     )
@@ -439,7 +392,7 @@ const ManagerProduct = () => {
                                         open={addProductDetail}
                                         onCancel={() => setAddProductDetail(false)}
                                         footer={null}
-                                        width={600}
+                                        width={800}
                                     >
                                         <Form
                                             name="wrap"
@@ -478,54 +431,141 @@ const ManagerProduct = () => {
                                                         }
                                                     }
                                                 ]}>
-                                                <Input placeholder="Enter product name" />
+                                                <Input disabled placeholder="Enter product name" />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Color"
+                                                name="color"
+                                                rules={[{ required: true, message: "Please select color" }]}>
+                                                <Select
+                                                    placeholder="Select color"
+                                                    allowClear
+                                                    options={colors.map((c) => {
+                                                        return {
+                                                            label: c.color_code,
+                                                            value: c._id
+                                                        }
+                                                    })}
+                                                />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Size"
+                                                name="size"
+                                                rules={[{ required: true, message: "Please select size" }]}>
+                                                <Select
+                                                    placeholder="Select size"
+                                                    allowClear
+                                                    options={sizes.map((s) => {
+                                                        return {
+                                                            label: s.size_name,
+                                                            value: s._id
+                                                        }
+                                                    })}
+                                                />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Discount"
+                                                name="discount"
+                                                rules={[{ required: true, message: "Please select discount" }]}>
+                                                <Select
+                                                    placeholder="Select discount"
+                                                    allowClear
+                                                    options={discounts.map((d) => {
+                                                        return {
+                                                            label: d.percent_discount,
+                                                            value: d._id
+                                                        }
+                                                    })}
+                                                />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Inventory number"
+                                                name="inventory_number"
+                                                rules={[
+                                                    { required: true, message: "Please enter inventory number" },
+                                                ]}>
+                                                <Input placeholder="Enter inventory number" />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Sold number"
+                                                name="sold_number"
+                                                rules={[
+                                                    { required: true, message: "Please enter sold number" },
+                                                ]}>
+                                                <InputNumber placeholder="Enter sold number" />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Price after discount"
+                                                name="price_after_discount"
+                                                rules={[
+                                                    { required: true, message: "Please enter price after discount" },
+                                                ]}>
+                                                <InputNumber placeholder="Enter price after discount" />
                                             </Form.Item>
 
-                                            {/* <Form.Item
-                                                name="color_id"
-                                                label="Color"
-                                                rules={[{ required: true }]}
-                                            >
-                                                <Select
-                                                    options={colors.map(c => ({ label: c.color_name, value: c._id }))}
-                                                />
-                                            </Form.Item>
+                                            {/* lưu ảnh */}
                                             <Form.Item
-                                                name="size_id"
-                                                label="Size"
-                                                rules={[{ required: true }]}
-                                            >
-                                                <Select options={sizes.map(s => ({ label: s.size_name, value: s._id }))} />
-                                            </Form.Item>
-                                            <Form.Item
-                                                name="discount_id"
-                                                label="Discount"
-                                            >
-                                                <Select options={discounts.map(d => ({ label: `${d.percent_discount}%`, value: d._id }))} />
-                                            </Form.Item>
-                                            <Form.Item
-                                                name="inventory_number"
-                                                label="Inventory Number"
-                                                rules={[{ required: true }]}
-                                            >
-                                                <InputNumber style={{ width: '100%' }} />
-                                            </Form.Item>
-                                            <Form.Item
-                                                name="price_after_discount"
-                                                label="Price After Discount"
-                                                rules={[{ required: true }]}
-                                            >
-                                                <InputNumber style={{ width: '100%' }} formatter={v => `${v}`} />
-                                            </Form.Item>
-                                            <Form.Item
+                                                label="Images"
                                                 name="images"
-                                                label="Image URLs"
-                                                rules={[{ required: true }]}
+                                                rules={[{ required: true, message: 'Please upload at least one image' }]}
                                             >
+                                                <Upload
+                                                    multiple
+                                                    listType="picture-card"
+                                                // không dùng action, customRequest sẽ handle việc upload
+                                                // customRequest={async ({ file, onSuccess, onError }) => {
+                                                //     try {
+                                                //         const url = await uploadToCloudinary(file);
+                                                //         // lưu tạm xuống state và Form
+                                                //         const newList = [...uploadedUrls, url];
+                                                //         setUploadedUrls(newList);
+                                                //         form.setFieldsValue({ images: newList });
+                                                //         onSuccess(null, file);
+                                                //         message.success(`${file.name} uploaded successfully.`);
+                                                //     } catch (err) {
+                                                //         console.error(err);
+                                                //         onError(err);
+                                                //         message.error(`${file.name} upload failed.`);
+                                                //     }
+                                                // }}
+                                                // onRemove={(file) => {
+                                                //     // khi xóa preview thì cũng xoá URL trong Form
+                                                //     const urlToRemove = file.url || file.response;
+                                                //     const newList = uploadedUrls.filter((u) => u !== urlToRemove);
+                                                //     setUploadedUrls(newList);
+                                                //     form.setFieldsValue({ images: newList });
+                                                // }}
+                                                // // hiển thị các preview dựa trên URL
+                                                // fileList={uploadedUrls.map((url) => ({
+                                                //     uid: url,
+                                                //     name: url.split('/').pop(),
+                                                //     status: 'done',
+                                                //     url,
+                                                // }))}
+                                                >
+                                                    <div>
+                                                        <UploadOutlined />
+                                                        <div style={{ marginTop: 8 }}>Upload</div>
+                                                    </div>
+                                                </Upload>
+                                            </Form.Item>
+
+                                            <Form.Item
+                                                label="Product detail status"
+                                                name="product_detail_status"
+                                                rules={[{ required: true, message: "Please select product detail status" }]}>
                                                 <Select
-                                                    mode="tags"
-                                                    placeholder="Paste image URLs and press Enter"
+                                                    placeholder="Select product detail status"
+                                                    allowClear
+                                                    options={product_detail_statuses.map((p) => {
+                                                        return {
+                                                            label: p.productdetail_status_name,
+                                                            value: p._id
+                                                        }
+                                                    })}
                                                 />
+                                            </Form.Item>
+                                            {/* <Form.Item
                                             </Form.Item> */}
                                             <Form.Item>
                                                 <Button type="primary" htmlType="submit">
@@ -620,14 +660,15 @@ const ManagerProduct = () => {
                                     icon={<EditOutlined />}
                                     onClick={() => {
                                         setEdittingRow(record._id);
+                                        console.log(record);
                                         form.setFieldsValue({
                                             productName: record.productName,
                                             description: record.description,
                                             price: record.price,
-                                            categories_id: record.categories_id,
-                                            brand_id: record.brand_id,
-                                            material_id: record.material_id,
-                                            form_id: record.form_id
+                                            categories_id: record.categories_id._id,
+                                            brand_id: record.brand_id._id,
+                                            material_id: record.material_id._id,
+                                            form_id: record.form_id._id
                                         })
                                     }}>
                                     Edit
@@ -697,15 +738,6 @@ const ManagerProduct = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    // await axios.post('http://localhost:9999/manager/products/create', {
-                                    //     productName: values.productName,
-                                    //     description: values.description,
-                                    //     price: values.price,
-                                    //     categories_id: values.categories_id,
-                                    //     brand_id: values.brand_id,
-                                    //     material_id: values.material_id,
-                                    //     form_id: values.form_id
-                                    // });
                                     await postData('/products/manager/create_product', {
                                         productName: values.productName,
                                         description: values.description,
@@ -782,10 +814,6 @@ const ManagerProduct = () => {
                                 <Select
                                     placeholder="Select category"
                                     allowClear
-                                    // options={[
-                                    //     { label: 'Active', value: true },
-                                    //     { label: 'Inactive', value: false }
-                                    // ]}
                                     options={categories_2.map((p) => {
                                         return {
                                             label: p.category_name,
@@ -802,10 +830,6 @@ const ManagerProduct = () => {
                                 <Select
                                     placeholder="Select brand"
                                     allowClear
-                                    // options={[
-                                    //     { label: 'Active', value: true },
-                                    //     { label: 'Inactive', value: false }
-                                    // ]}
                                     options={brands.map((p) => {
                                         return {
                                             label: p.brand_name,
@@ -822,10 +846,6 @@ const ManagerProduct = () => {
                                 <Select
                                     placeholder="Select material"
                                     allowClear
-                                    // options={[
-                                    //     { label: 'Active', value: true },
-                                    //     { label: 'Inactive', value: false }
-                                    // ]}
                                     options={materials.map((p) => {
                                         return {
                                             label: p.material_name,
@@ -842,10 +862,6 @@ const ManagerProduct = () => {
                                 <Select
                                     placeholder="Select form"
                                     allowClear
-                                    // options={[
-                                    //     { label: 'Active', value: true },
-                                    //     { label: 'Inactive', value: false }
-                                    // ]}
                                     options={forms.map((p) => {
                                         return {
                                             label: p.form_name,

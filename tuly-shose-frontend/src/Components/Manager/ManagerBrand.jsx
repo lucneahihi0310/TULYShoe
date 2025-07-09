@@ -29,10 +29,6 @@ const ManagerBrand = () => {
         try {
             const record = await form.validateFields();
             console.log("Edit:", record);
-            // await axios.put(`http://localhost:9999/manager/brands/edit/${edittingRow}`, {
-            //     brand_name: record.brand_name,
-            //     is_active: record.status
-            // });
             await updateData('/brands/manager/edit_brand', edittingRow, {
                 brand_name: record.brand_name,
                 is_active: record.status
@@ -53,7 +49,6 @@ const ManagerBrand = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        // await axios.delete(`http://localhost:9999/manager/brands/delete/${id}`);
         await deleteData('/brands/manager/delete_brand', id, true)
         fetchCategories();
     };
@@ -126,7 +121,6 @@ const ManagerBrand = () => {
                     return (
                         <Form.Item
                             name="status"
-                            initialValue={record.status}
                             rules={[{ required: true, message: "Please select status" }]}>
                             <Select
                                 placeholder="Select status"
@@ -197,24 +191,10 @@ const ManagerBrand = () => {
                                     brand_name: record.brand_name,
                                     status: record.status
                                 })
+                                console.log(record)
                             }}>
                             Edit
                         </Button>
-                        {/* <Popconfirm
-                            title="Are you sure to delete this brand?"
-                            onConfirm={() => {
-                                handleDeleteCategory(record._id)
-                            }}
-                            okText="Yes"
-                            cancelText="No"
-                            overlayStyle={{maxWidth: '220px', fontSize: '13px', textAlign: 'center'}}>
-                            <Button
-                                color="danger"
-                                variant="solid"
-                                icon={<DeleteOutlined />}>
-                                Delete
-                            </Button>
-                        </Popconfirm> */}
                         <Popconfirm
                             title="Are you sure to delete this brand?"
                             onConfirm={() => {
@@ -289,10 +269,6 @@ const ManagerBrand = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    // await axios.post('http://localhost:9999/manager/brands/create', {
-                                    //     brand_name: values.brand_name,
-                                    //     is_active: values.is_active
-                                    // });
                                     await postData('/brands/manager/create_brand', {
                                         brand_name: values.brand_name,
                                         is_active: values.is_active
