@@ -1,8 +1,11 @@
-const API_BASE_URL = 'http://localhost:9999/staff';
-
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:9999"
+    : "https://tulyshoe.onrender.com");
 export const fetchSchedulesByStaff = async (staffId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/schedules/${staffId}`);
+    const response = await fetch(`${BASE_URL}/staff/schedules/${staffId}`);
     if (!response.ok) {
       throw new Error('Lỗi khi lấy dữ liệu lịch làm việc');
     }
@@ -16,7 +19,7 @@ export const fetchSchedulesByStaff = async (staffId) => {
 // Check-in
 export const checkInSchedule = async (scheduleId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/schedules/checkin/${scheduleId}`, { method: 'PUT' });
+    const response = await fetch(`${API_BASE_URL}/staff/schedules/checkin/${scheduleId}`, { method: 'PUT' });
     if (!response.ok) throw new Error('Check-in thất bại');
     return await response.json();
   } catch (error) {
@@ -28,7 +31,7 @@ export const checkInSchedule = async (scheduleId) => {
 // Check-out
 export const checkOutSchedule = async (scheduleId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/schedules/checkout/${scheduleId}`, { method: 'PUT' });
+    const response = await fetch(`${API_BASE_URL}/staff/schedules/checkout/${scheduleId}`, { method: 'PUT' });
     if (!response.ok) throw new Error('Check-out thất bại');
     return await response.json();
   } catch (error) {

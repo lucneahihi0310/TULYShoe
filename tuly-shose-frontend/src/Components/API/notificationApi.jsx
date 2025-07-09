@@ -1,15 +1,18 @@
-const API_URL = 'http://localhost:9999/notifications/staff';
-
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:9999"
+    : "https://tulyshoe.onrender.com");
 // Lấy tất cả thông báo của user
 export const fetchNotifications = async (userId) => {
-    const response = await fetch(`${API_URL}/${userId}`);
+    const response = await fetch(`${API_URL}/staff/${userId}`);
     const data = await response.json();
     return data.data;
 };
 
 // Đánh dấu một thông báo đã đọc
 export const markAsRead = async (id) => {
-    await fetch(`${API_URL}/mark-as-read/${id}`, {
+    await fetch(`${API_URL}/staff/mark-as-read/${id}`, {
         method: 'PUT'
     });
 };

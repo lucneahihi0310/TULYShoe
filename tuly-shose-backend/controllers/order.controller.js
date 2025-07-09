@@ -169,19 +169,18 @@ exports.createOrder = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
     try {
-        const orders = await orderModel.find()
+        const orders = await Order.find()
             .populate('order_status_id')
-            .populate('address_shipping_id')
             .populate('accepted_by')
             .populate('user_id');
 
         const formattedOrders = orders.map(order => ({
             _id: order._id,
-            userName: order.user_id ? `${order.user_id.first_name} ${order.user_id.last_name}` : 'Unknown',
+            userName: order.shipping_info.full_name,
             order_code: order.order_code,
             order_date: order.order_date,
             order_status: order.order_status_id ? order.order_status_id.order_status_name : 'Không có trạng thái',
-            address_shipping: order.address_shipping_id ? order.address_shipping_id.address : 'Không có địa chỉ',
+            address_shipping: order.shipping_info.address,
             delivery_date: order.delivery_date,
             order_note: order.order_note,
             total_amount: order.total_amount,
@@ -211,7 +210,7 @@ exports.confirmOrder = async (req, res) => {
         if (!staff) return res.status(404).json({ message: 'Nhân viên không tồn tại' });
 
         // Tìm đơn hàng
-        const order = await orderModel.findById(orderId);
+        const order = await Order.findById(orderId);
         if (!order) return res.status(404).json({ message: 'Đơn hàng không tồn tại' });
 
         // Kiểm tra nếu đơn hàng đã xác nhận

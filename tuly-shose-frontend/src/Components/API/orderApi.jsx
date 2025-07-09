@@ -1,10 +1,13 @@
 import { getToken } from "./authApi";
 
-const API_URL = 'http://localhost:9999/staff/orders';
-
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:9999"
+    : "https://tulyshoe.onrender.com");
 export const fetchOrders = async () => {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch(`${BASE_URL}/staff/orders`);
     if (!response.ok) {
       throw new Error('Failed to fetch orders');
     }

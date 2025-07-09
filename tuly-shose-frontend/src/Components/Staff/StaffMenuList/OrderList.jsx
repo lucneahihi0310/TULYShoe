@@ -68,10 +68,10 @@ const handleConfirmOrder = async (orderId) => {
     setShowModal(true);
   };
 
-  const filteredOrders = orders.filter((order) =>
-    order.userName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (filterStatus === "" || order.order_status === filterStatus)
-  );
+const filteredOrders = orders.filter((order) =>
+  (order.userName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) &&
+  (filterStatus === "" || order.order_status === filterStatus)
+);
 
   const indexOfLastOrder = currentPage * itemsPerPage;
   const indexOfFirstOrder = indexOfLastOrder - itemsPerPage;
