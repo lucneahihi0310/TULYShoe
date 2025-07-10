@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Gender = require("./gender.model");
+const AddressShipping = require("./address_shipping.model");
 
 const accountSchema = new mongoose.Schema({
     first_name: { type: String, required: true },

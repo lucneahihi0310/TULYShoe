@@ -9,12 +9,12 @@ import ListProduct from "./Components/User/ListProduct";
 import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
 import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
-import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import OrderSuccess from "./Components/User/OrderSuccess";
 import ManagerDashboard from "./Components/Manager/ManagerDashboard";
 import ListProductByOnSale from "./Components/User/ListProductByOnSale";
 import OrderDetail from "./Components/User/OrderDetail";
+import Profile from "./Components/User/Profile";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
