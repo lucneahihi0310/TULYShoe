@@ -28,23 +28,61 @@ const ManagerProduct = () => {
     const [listProductDetail, setListProductDetail] = useState(false);
     const [addProductDetail, setAddProductDetail] = useState(false);
     //state ảnh
-    const props = {
-        name: 'file',
-        action: 'https://api.cloudinary.com/v1_1/demo/image/upload',
-        headers: {
-            authorization: 'authorization-text',
-        },
-        onChange(info) {
-            if (info.file.status !== 'uploading') {
-                console.log(info.file, info.fileList);
-            }
-            if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully`);
-            } else if (info.file.status === 'error') {
-                message.error(`${info.file.name} file upload failed.`);
-            }
-        },
+    // const props = {
+    //     name: 'file',
+    //     action: 'https://api.cloudinary.com/v1_1/demo/image/upload',
+    //     headers: {
+    //         authorization: 'authorization-text',
+    //     },
+    //     onChange(info) {
+    //         if (info.file.status !== 'uploading') {
+    //             console.log(info.file, info.fileList);
+    //         }
+    //         if (info.file.status === 'done') {
+    //             message.success(`${info.file.name} file uploaded successfully`);
+    //         } else if (info.file.status === 'error') {
+    //             message.error(`${info.file.name} file upload failed.`);
+    //         }
+    //     },
+    // };
+    // State cho upload ảnh
+    const [imageUrls, setImageUrls] = useState([]);
+    const [fileList, setFileList] = useState([]);
+
+    // Hàm upload lên Cloudinary
+    const uploadToCloudinary = async (file) => {
+        const data = new FormData();
+        data.append('file', file);
+        data.append('upload_preset', 'product-detail-images'); // sửa thành upload_preset của bạn
+        const res = await fetch('https://api.cloudinary.com/v1_1/drpiifgqs/image/upload', {
+            method: 'POST',
+            body: data,
+        });
+        const json = await res.json();
+        if (json.secure_url) return json.secure_url;
+        throw new Error('Upload failed');
     };
+
+    // Handler customRequest cho AntD Upload
+    const handleCustomRequest = async ({ file, onSuccess, onError }) => {
+        try {
+            const url = await uploadToCloudinary(file);
+            setImageUrls(prev => [...prev, url]);
+            setFileList(prev => [...prev, { uid: url, name: file.name, status: 'done', url }]);
+            onSuccess(null, file);
+        } catch (err) {
+            console.error(err);
+            message.error('Upload failed');
+            onError(err);
+        }
+    };
+
+    // Khi bấm xóa ảnh preview
+    const handleRemove = (file) => {
+        setImageUrls(prev => prev.filter(u => u !== file.url));
+        setFileList(prev => prev.filter(f => f.url !== file.url));
+    };
+
 
 
     //show add category
@@ -424,13 +462,19 @@ const ManagerProduct = () => {
                                             colon={false}
                                             onFinish={async (values) => {
                                                 // gọi API postData(...)
-                                                // await postData('/product_details/manager/create', {
-                                                //     product_id: currentProductId,
-                                                //     ...values
-                                                // });
-                                                // // load lại detailData
-                                                // fetchDetail(currentProductId);
-                                                // setAddDetailVisible(false);
+                                                const payload = {
+                                                    product_id: values.product_id,
+                                                    color_id: values.color,
+                                                    size_id: values.size,
+                                                    discount_id: values.discount,
+                                                    inventory_number: values.inventory_number,
+                                                    sold_number: values.sold_number,
+                                                    price_after_discount: values.price_after_discount,
+                                                    product_detail_status: values.product_detail_status,
+                                                    images: imageUrls,  // <-- đây là mảng URL ảnh
+                                                };
+                                                await postData('/product_details/manager/create_product_detail', payload, true);
+                                                form_add_product_detail.resetFields();
                                                 console.log(values);
                                             }}
                                         >
@@ -522,6 +566,25 @@ const ManagerProduct = () => {
                                                     <Button icon={<UploadOutlined />}>Click to Upload</Button>
                                                 </Upload>
                                             </Form.Item> */}
+                                            <Form.Item
+                                                label="Images"
+                                                name="images"
+                                                rules={[{ required: true, message: 'Please upload at least one image' }]}
+                                            >
+                                                <Upload
+                                                    multiple
+                                                    listType="picture-card"
+                                                    customRequest={handleCustomRequest}
+                                                    fileList={fileList}
+                                                    onRemove={handleRemove}
+                                                >
+                                                    <div>
+                                                        <UploadOutlined />
+                                                        <div style={{ marginTop: 8 }}>Upload</div>
+                                                    </div>
+                                                </Upload>
+                                            </Form.Item>
+
 
                                             <Form.Item
                                                 label="Product detail status"

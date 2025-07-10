@@ -62,20 +62,42 @@ exports.list_product_detail_by_id = async (req, res, next) => {
     }
 }
 
-// exports.create_product = async (req, res, next) => {
-//     try {
-//         const newProduct = new product({
-//             productName: req.body.productName,
-//             description: req.body.description,
-//             price: req.body.price,
-//             categories_id: req.body.categories_id,
-//             brand_id: req.body.brand_id,
-//             material_id: req.body.material_id,
-//             form_id: req.body.form_id
-//         })
-//         const insertProduct = await newProduct.save();
-//         res.status(201).json(insertProduct);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
+exports.create_product_detail = async (req, res, next) => {
+    try {
+        const {
+            product_id,
+            color_id,
+            size_id,
+            discount_id,
+            inventory_number,
+            price_after_discount,
+            sold_number,
+            product_detail_status,
+            images, // mảng URL ảnh từ frontend
+        } = req.body;
+
+        // Kiểm tra bắt buộc
+        if (!images || !Array.isArray(images) || images.length === 0) {
+            return res.status(400).json({ message: 'Images array is required' });
+        }
+
+        const newDetail = new product_detail({
+            product_id,
+            color_id,
+            size_id,
+            discount_id,
+            inventory_number,
+            price_after_discount,
+            sold_number,
+            product_detail_status,
+            images,
+            create_at: new Date().toISOString(),
+            update_at: new Date().toISOString(),
+        });
+
+        const savedDetail = await newDetail.save();
+        return res.status(201).json(savedDetail);
+    } catch (error) {
+        next(error);
+    }
+};
