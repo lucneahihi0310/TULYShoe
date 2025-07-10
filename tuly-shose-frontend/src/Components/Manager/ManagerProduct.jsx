@@ -23,11 +23,28 @@ const ManagerProduct = () => {
     const [addCategory, setAddCategory] = useState(false);
     const [form] = Form.useForm();
     const [form2] = Form.useForm();
+    const [form_add_product_detail] = Form.useForm();
     // const [messageApi, contextHolder] = message.useMessage();
     const [listProductDetail, setListProductDetail] = useState(false);
     const [addProductDetail, setAddProductDetail] = useState(false);
     //state ảnh
-    const [uploadedUrls, setUploadedUrls] = useState([]);
+    const props = {
+        name: 'file',
+        action: 'https://api.cloudinary.com/v1_1/demo/image/upload',
+        headers: {
+            authorization: 'authorization-text',
+        },
+        onChange(info) {
+            if (info.file.status !== 'uploading') {
+                console.log(info.file, info.fileList);
+            }
+            if (info.file.status === 'done') {
+                message.success(`${info.file.name} file uploaded successfully`);
+            } else if (info.file.status === 'error') {
+                message.error(`${info.file.name} file upload failed.`);
+            }
+        },
+    };
 
 
     //show add category
@@ -79,7 +96,7 @@ const ManagerProduct = () => {
 
     const showProductDetail = async (productId) => {
         const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
-        console.log(res);
+        // console.log(res);
         setDetailData(res);
         setListProductDetail(true);
     };
@@ -363,6 +380,7 @@ const ManagerProduct = () => {
                                         //     form_id: record.form_id
                                         // })
                                         showProductDetail(record._id);
+                                        console.log(record);
                                     }}>
                                     Product Detail
                                 </Button>
@@ -380,8 +398,10 @@ const ManagerProduct = () => {
                                         shape="round"
                                         icon={<PlusOutlined />}
                                         onClick={() => {
-                                            // showAddCategoryModal();
-                                            console.log('add new product detail');
+                                            form_add_product_detail.setFieldsValue({
+                                                product_id: detailData[0].product_id._id
+                                            });
+                                            console.log(detailData[0].product_id._id);
                                             setAddProductDetail(true);
                                         }}>
                                         Add New Product Detail
@@ -395,6 +415,7 @@ const ManagerProduct = () => {
                                         width={800}
                                     >
                                         <Form
+                                            form={form_add_product_detail}
                                             name="wrap"
                                             labelCol={{ flex: '110px' }}
                                             labelAlign="left"
@@ -410,26 +431,14 @@ const ManagerProduct = () => {
                                                 // // load lại detailData
                                                 // fetchDetail(currentProductId);
                                                 // setAddDetailVisible(false);
-                                                console.log("add success");
+                                                console.log(values);
                                             }}
                                         >
                                             <Form.Item
                                                 label="Product name"
-                                                name="productName"
+                                                name="product_id"
                                                 rules={[
-                                                    { required: true, message: "Please enter product name" },
-                                                    {
-                                                        validator: (_, value) => {
-                                                            const isDuplicate = categories.some(
-                                                                (cat) =>
-                                                                    cat.productName.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                                    cat._id !== edittingRow
-                                                            );
-                                                            return isDuplicate
-                                                                ? Promise.reject("This product name already exists!")
-                                                                : Promise.resolve();
-                                                        }
-                                                    }
+                                                    { required: true, message: "Please enter product name" }
                                                 ]}>
                                                 <Input disabled placeholder="Enter product name" />
                                             </Form.Item>
@@ -504,51 +513,15 @@ const ManagerProduct = () => {
                                             </Form.Item>
 
                                             {/* lưu ảnh */}
-                                            <Form.Item
+                                            {/* <Form.Item
                                                 label="Images"
                                                 name="images"
                                                 rules={[{ required: true, message: 'Please upload at least one image' }]}
                                             >
-                                                <Upload
-                                                    multiple
-                                                    listType="picture-card"
-                                                // không dùng action, customRequest sẽ handle việc upload
-                                                // customRequest={async ({ file, onSuccess, onError }) => {
-                                                //     try {
-                                                //         const url = await uploadToCloudinary(file);
-                                                //         // lưu tạm xuống state và Form
-                                                //         const newList = [...uploadedUrls, url];
-                                                //         setUploadedUrls(newList);
-                                                //         form.setFieldsValue({ images: newList });
-                                                //         onSuccess(null, file);
-                                                //         message.success(`${file.name} uploaded successfully.`);
-                                                //     } catch (err) {
-                                                //         console.error(err);
-                                                //         onError(err);
-                                                //         message.error(`${file.name} upload failed.`);
-                                                //     }
-                                                // }}
-                                                // onRemove={(file) => {
-                                                //     // khi xóa preview thì cũng xoá URL trong Form
-                                                //     const urlToRemove = file.url || file.response;
-                                                //     const newList = uploadedUrls.filter((u) => u !== urlToRemove);
-                                                //     setUploadedUrls(newList);
-                                                //     form.setFieldsValue({ images: newList });
-                                                // }}
-                                                // // hiển thị các preview dựa trên URL
-                                                // fileList={uploadedUrls.map((url) => ({
-                                                //     uid: url,
-                                                //     name: url.split('/').pop(),
-                                                //     status: 'done',
-                                                //     url,
-                                                // }))}
-                                                >
-                                                    <div>
-                                                        <UploadOutlined />
-                                                        <div style={{ marginTop: 8 }}>Upload</div>
-                                                    </div>
+                                                <Upload {...props}>
+                                                    <Button icon={<UploadOutlined />}>Click to Upload</Button>
                                                 </Upload>
-                                            </Form.Item>
+                                            </Form.Item> */}
 
                                             <Form.Item
                                                 label="Product detail status"
