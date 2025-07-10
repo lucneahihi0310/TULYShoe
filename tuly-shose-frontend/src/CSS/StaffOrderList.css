@@ -376,4 +376,22 @@ body, html {
 justify-content: center;
 align-items: center;
 }
+.status-select {
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: none;
+  font-weight: bold;
+}
+
+.cho-xac-nhan { background-color: #3887fe; }     
+.da-xac-nhan { background-color: #f8c93a; }      
+.dang-van-chuyen { background-color: #f3974d; }  
+.hoan-thanh { background-color: #4ff5a8; }       
+
+
+.status-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
