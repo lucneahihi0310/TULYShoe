@@ -16,6 +16,7 @@ const ManagerProduct = () => {
     const [discounts, setDiscounts] = useState([]);
     const [product_detail_statuses, setProduct_detail_statuses] = useState([]);
     const [detailData, setDetailData] = useState([]);
+    const [product_detail_by_ids, setProduct_detail_by_ids] = useState([]);
 
     // State khác
     const [edittingRow, setEdittingRow] = useState(null);
@@ -155,6 +156,7 @@ const ManagerProduct = () => {
         fetchSizes();
         fetchDiscounts();
         fetchProductDetailStatuses();
+        fetchProductDetails
     }, [])
     const fetchCategories = async () => {
         const res = await fetchData('/products/manager/list_product');
@@ -191,6 +193,10 @@ const ManagerProduct = () => {
     const fetchProductDetailStatuses = async () => {
         const res = await fetchData('/product_detail_status/manager/list_product_detail_status');
         setProduct_detail_statuses(res);
+    }
+    const fetchProductDetails = async () => {
+        const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
+        setProduct_detail_by_ids(res);
     }
     const searchCategory = categories.filter((c) => {
         const findCategoryByName = c.productName.toLowerCase().includes(filterCategoryName.toLowerCase());
@@ -476,6 +482,7 @@ const ManagerProduct = () => {
                                                 await postData('/product_details/manager/create_product_detail', payload, true);
                                                 form_add_product_detail.resetFields();
                                                 console.log(values);
+                                                fetchProductDetails();
                                             }}
                                         >
                                             <Form.Item
