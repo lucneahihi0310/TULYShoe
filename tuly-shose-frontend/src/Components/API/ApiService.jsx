@@ -66,10 +66,15 @@ axiosInstance.interceptors.response.use(
 // GET
 export const fetchData = async (endpoint, includeAuth = false) => {
   try {
-    const config = includeAuth
-      ? { headers: { Authorization: `Bearer ${getToken()}` } }
-      : {};
-    const response = await axiosInstance.get(endpoint, config); 
+    const headers = {
+      "Cache-Control": "no-cache",
+    };
+
+    if (includeAuth) {
+      headers.Authorization = `Bearer ${getToken()}`;
+    }
+
+    const response = await axiosInstance.get(endpoint, { headers });
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Request failed.";

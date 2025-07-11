@@ -21,7 +21,82 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+exports.getOrdersByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
 
+    const orders = await Order.find({ user_id: userId })
+      .populate("order_status_id", "order_status_name")
+      .sort({ order_date: -1 });
+
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      order_code: order.order_code,
+      order_date: order.order_date,
+      delivery_date: order.delivery_date,
+      order_status: order.order_status_id?.order_status_name || "Chưa xác định",
+      total_amount: order.total_amount,
+      payment_status: order.payment_status,
+    }));
+
+    res.json(formattedOrders);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách đơn hàng:", error);
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách đơn hàng" });
+  }
+};
+
+exports.getOrderDetailById = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId).populate("order_status_id");
+    if (!order) {
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng." });
+    }
+
+    const orderDetails = await OrderDetail.find({ order_id: order._id });
+
+    const detailedProducts = [];
+
+    for (const item of orderDetails) {
+      const productDetail = await ProductDetail.findById(item.productdetail_id)
+        .populate("product_id")
+        .populate("color_id")
+        .populate("size_id");
+
+      if (!productDetail) continue;
+
+      detailedProducts.push({
+        orderdetail_id: item._id,
+        productdetail_id: productDetail._id,
+        name: productDetail.product_id.productName,
+        description: `${productDetail.color_id.color_name} - ${productDetail.size_id.size_name}`,
+        image: productDetail.images[0],
+        price_at_order: item.price_at_order,
+        quantity: item.quantity,
+        total_price: item.price_at_order * item.quantity,
+        review: item.review || null, // nếu có đánh giá
+      });
+    }
+
+    res.json({
+      _id: order._id,
+      order_code: order.order_code,
+      order_date: order.order_date,
+      delivery_date: order.delivery_date,
+      payment_status: order.payment_status,
+      order_status: order.order_status_id?.order_status_name || "Chưa xác định",
+      shipping_info: order.shipping_info,
+      order_note: order.order_note,
+      total_amount: order.total_amount,
+      items: detailedProducts,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết đơn hàng theo ID:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi server khi lấy chi tiết đơn hàng." });
+  }
+};
 exports.getOrderByOrderCode = async (req, res) => {
   try {
     const { orderCode } = req.params;
