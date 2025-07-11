@@ -135,8 +135,24 @@ export const uploadAvatar = async (formData) => {
     });
     return res.data;
   } catch (err) {
-     console.log("Upload Avatar Error:", err.response?.data);
+    console.log("Upload Avatar Error:", err.response?.data);
     const message = err.response?.data?.message || "Lỗi upload avatar";
     throw new Error(message);
+  }
+};
+
+export const uploadReview = async (formData) => {
+  try {
+    const token = getToken();
+    const res = await axios.post(`${BASE_URL}/reviews/customers`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Lỗi upload review:", err.response?.data);
+    throw new Error(err.response?.data?.message || "Lỗi khi đánh giá");
   }
 };

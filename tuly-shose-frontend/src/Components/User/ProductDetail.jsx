@@ -12,6 +12,7 @@ import {
   Tag,
   Spin,
   Modal,
+  Image,
   notification,
 } from "antd";
 import {
@@ -63,10 +64,14 @@ function ProductDetail() {
         );
         setVariants(resVariants);
 
-        const resReviews = await fetchData(`reviews/customers/detail/${resDetail._id}`);
+        const resReviews = await fetchData(
+          `reviews/customers/detail/${resDetail._id}`
+        );
         setReviews(resReviews);
 
-        const resRelated = await fetchData(`productDetail/customers/related/${id}`);
+        const resRelated = await fetchData(
+          `productDetail/customers/related/${id}`
+        );
         setRelated(resRelated);
 
         setSelectedColor(resDetail.color_id._id);
@@ -151,7 +156,10 @@ function ProductDetail() {
 
     if (user) {
       try {
-        await postData("/cartItem/customers", { ...cartItem, user_id: user._id });
+        await postData("/cartItem/customers", {
+          ...cartItem,
+          user_id: user._id,
+        });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
       } catch (err) {
@@ -197,7 +205,10 @@ function ProductDetail() {
 
     try {
       if (user && user._id) {
-        await postData("/cartItem/customers", { ...cartItem, user_id: user._id });
+        await postData("/cartItem/customers", {
+          ...cartItem,
+          user_id: user._id,
+        });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
       } else {
@@ -443,6 +454,7 @@ function ProductDetail() {
                   <img
                     src={r.user_id?.avatar_image}
                     className={styles.avatar}
+                    alt="user"
                   />
                   <div>
                     <Text strong>
@@ -457,6 +469,28 @@ function ProductDetail() {
                       />
                     </div>
                     <Paragraph>{r.review_content}</Paragraph>
+
+                    {r.images && r.images.length > 0 && (
+                      <div className={styles.imagePreview}>
+                        {r.images.map((img, i) => (
+                          <Image
+                            key={i}
+                            src={img}
+                            width={80}
+                            height={80}
+                            style={{ borderRadius: 4 }}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <Paragraph
+                      type="secondary"
+                      style={{ fontSize: "13px", fontStyle: "italic" }}
+                    >
+                      Đánh giá lúc:{" "}
+                      {new Date(r.review_date).toLocaleString("vi-VN")}
+                    </Paragraph>
                   </div>
                 </div>
 
@@ -466,6 +500,7 @@ function ProductDetail() {
                       <img
                         src={rep.replier_id?.avatar_image}
                         className={styles.replyAvatar}
+                        alt="reply user"
                       />
                       <div className={styles.replyContent}>
                         <Text strong>
@@ -473,6 +508,16 @@ function ProductDetail() {
                           {rep.replier_id?.last_name}:
                         </Text>{" "}
                         {rep.reply_content}
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#999",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          Phản hồi lúc:{" "}
+                          {new Date(rep.reply_date).toLocaleString("vi-VN")}
+                        </div>
                       </div>
                     </div>
                   ))}

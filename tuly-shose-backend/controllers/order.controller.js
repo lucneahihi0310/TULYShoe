@@ -2,6 +2,7 @@ const Order = require("../models/order.model");
 const OrderDetail = require("../models/oderDetail.model");
 const ProductDetail = require("../models/productDetail.model");
 const Product = require("../models/product.model");
+const Review = require("../models/review.modle");
 const Color = require("../models/color.model");
 const Size = require("../models/size.model");
 const CartItem = require("../models/cartItem.model");
@@ -97,6 +98,7 @@ exports.getOrderDetailById = async (req, res) => {
     res.status(500).json({ message: "Đã xảy ra lỗi server khi lấy chi tiết đơn hàng." });
   }
 };
+
 exports.getOrderByOrderCode = async (req, res) => {
   try {
     const { orderCode } = req.params;
@@ -110,7 +112,7 @@ exports.getOrderByOrderCode = async (req, res) => {
     // 2. Lấy danh sách OrderDetail
     const orderDetails = await OrderDetail.find({ order_id: order._id });
 
-    // 3. Duyệt từng OrderDetail để lấy thông tin sản phẩm chi tiết
+    // 3. Duyệt từng OrderDetail để lấy thông tin sản phẩm chi tiết và review
     const detailedProducts = [];
 
     for (const item of orderDetails) {
@@ -121,14 +123,24 @@ exports.getOrderByOrderCode = async (req, res) => {
 
       if (!productDetail) continue;
 
+      // Kiểm tra review (nếu có)
+      const review = await Review.findOne({
+        ordetail_id: item._id,
+        user_id: order.user_id,
+      }).lean();
+
       detailedProducts.push({
-        product_name: productDetail.product_id.productName,
-        image: productDetail.images[0],
-        color: productDetail.color_id.color_code,
-        size: productDetail.size_id.size_name,
+        _id: item._id,
+        orderdetail_id: item._id,
+        productdetail_id: item.productdetail_id,
+        product_name: productDetail.product_id?.productName || "Sản phẩm",
+        image: productDetail.images?.[0] || "",
+        color: productDetail.color_id?.color_code || "",
+        size: productDetail.size_id?.size_name || "",
         quantity: item.quantity,
         price: item.price_at_order,
         total_price: item.price_at_order * item.quantity,
+        review: review || null,
       });
     }
 
@@ -165,6 +177,7 @@ exports.getOrderByOrderCode = async (req, res) => {
     res.status(500).json({ message: "Đã xảy ra lỗi server khi lấy chi tiết đơn hàng." });
   }
 };
+
 
 exports.createOrder = async (req, res) => {
   try {
