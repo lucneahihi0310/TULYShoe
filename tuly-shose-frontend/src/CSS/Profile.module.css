@@ -10,7 +10,18 @@
   max-height: 900px;
   display: flex;
 }
+.fadeIn {
+  animation: fadeInUp 1s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
 
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .layout {
   width: 100%;
   height: 100%;
@@ -274,7 +285,7 @@
   text-align: center !important;
   color: #715ad6 !important;
   margin-bottom: 1.5rem !important;
-  font-weight: 700 !important; 
+  font-weight: 700 !important;
 }
 
 .orderInfo {

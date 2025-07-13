@@ -18,6 +18,7 @@ import { AuthContext } from "../API/AuthContext";
 import { fetchData, postData } from "../API/ApiService";
 const { Option } = Select;
 const { Title, Paragraph } = Typography;
+
 function ListProductByOnSale() {
   const [products, setProducts] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
@@ -92,6 +93,7 @@ function ListProductByOnSale() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchFilters();
   }, []);
@@ -124,7 +126,6 @@ function ListProductByOnSale() {
     };
 
     if (user) {
-      // Đã đăng nhập
       try {
         await postData("/cartItem/customers", {
           ...cartItem,
@@ -136,7 +137,6 @@ function ListProductByOnSale() {
         console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
       }
     } else {
-      // Guest
       const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
       const existingIndex = guestCart.findIndex(
         (item) => item.pdetail_id === cartItem.pdetail_id
@@ -262,6 +262,7 @@ function ListProductByOnSale() {
             ) : (
               products.map((product) => {
                 const hasDiscount = product.detail?.discount_percent > 0;
+                const isOutOfStock = product.detail?.inventory_number === 0;
 
                 return (
                   <Col
@@ -274,15 +275,33 @@ function ListProductByOnSale() {
                   >
                     <Card
                       hoverable
+                      style={{
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
                       onClick={() =>
                         navigate(`/products/${product.detail._id}`)
                       }
                       cover={
-                        <img
-                          alt={product.productName}
-                          src={product.detail?.images?.[0]}
-                          className={`${styles.productImage} ${styles.sameHeightCard}`}
-                        />
+                        <div style={{ position: "relative" }}>
+                          <img
+                            alt={product.productName}
+                            src={
+                              product.detail?.images?.[0] ||
+                              "/placeholder-image.jpg"
+                            }
+                            className={`${styles.productImage} ${styles.sameHeightCard}`}
+                            style={{
+                              filter: isOutOfStock ? "grayscale(50%)" : "none",
+                            }}
+                          />
+                          {isOutOfStock && (
+                            <div className={styles.outOfStockOverlay}>
+                              Hết hàng
+                            </div>
+                          )}
+                        </div>
                       }
                     >
                       {hasDiscount && (
@@ -297,44 +316,47 @@ function ListProductByOnSale() {
                           </span>
                         }
                         description={
-                          <>
-                            <Paragraph ellipsis={{ rows: 2 }}>
-                              {product.title}
-                            </Paragraph>
-                            <div className={styles.priceAndCartContainer}>
-                              <div className={styles.priceContainer}>
-                                <span
-                                  className={styles.originalPrice}
-                                  style={{
-                                    visibility: hasDiscount
-                                      ? "visible"
-                                      : "hidden",
-                                  }}
-                                >
-                                  {formatVND(product.price)}
-                                </span>
-                                <span className={styles.currentPrice}>
-                                  {hasDiscount
-                                    ? formatVND(
-                                        product.detail?.price_after_discount
-                                      )
-                                    : formatVND(product.price)}
-                                </span>
-                              </div>
-
-                              <Button
-                                icon={<i className="bi bi-bag-heart" />}
-                                className={styles.addToCart}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddToCart(product);
-                                }}
-                                aria-label={`Add ${product.productName} to cart`}
-                              />
-                            </div>
-                          </>
+                          <Paragraph
+                            ellipsis={{ rows: 2 }}
+                            className={styles.productDescription}
+                          >
+                            {product.title}
+                          </Paragraph>
                         }
                       />
+                      <div className={styles.priceAndCartContainer}>
+                        <div className={styles.priceContainer}>
+                          <span
+                            className={styles.originalPrice}
+                            style={{
+                              visibility: hasDiscount ? "visible" : "hidden",
+                            }}
+                          >
+                            {formatVND(product.price)}
+                          </span>
+                          <span className={styles.currentPrice}>
+                            {hasDiscount
+                              ? formatVND(product.detail?.price_after_discount)
+                              : formatVND(product.price)}
+                          </span>
+                        </div>
+                        <Button
+                          icon={<i className="bi bi-bag-heart" />}
+                          className={
+                            isOutOfStock
+                              ? styles.addToCartDisabled
+                              : styles.addToCart
+                          }
+                          onClick={(e) => {
+                            if (!isOutOfStock) {
+                              e.stopPropagation();
+                              handleAddToCart(product);
+                            }
+                          }}
+                          disabled={isOutOfStock}
+                          aria-label={`Add ${product.productName} to cart`}
+                        />
+                      </div>
                     </Card>
                   </Col>
                 );

@@ -58,8 +58,9 @@ function ProductDetail() {
         const resDetail = await fetchData(`productDetail/customers/${id}`);
         setProductDetail(resDetail);
         setMainImage(resDetail.images[0]);
-        console.log("resDetail:", resDetail);
-        console.log("resDetail._id:", resDetail._id);
+        setSelectedColor(resDetail.color_id._id);
+        setSelectedSize(resDetail.size_id._id);
+
         const resVariants = await fetchData(
           `productDetail/customers/product/${resDetail.product_id._id}`
         );
@@ -74,9 +75,6 @@ function ProductDetail() {
           `productDetail/customers/related/${id}`
         );
         setRelated(resRelated);
-
-        setSelectedColor(resDetail.color_id._id);
-        setSelectedSize(resDetail.size_id._id);
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu ProductDetail:", err);
       } finally {
@@ -92,34 +90,15 @@ function ProductDetail() {
     setIsVisible(true);
   }, []);
 
-  const handleColorClick = async (colorId) => {
+  const handleColorClick = (colorId) => {
     setSelectedColor(colorId);
-    const match = variants.find(
-      (v) => v.color_id._id === colorId && v.size_id._id === selectedSize
-    );
-    if (match) {
-      navigate(`/products/${match._id}`);
-    }
-  };
-
-  const handleBuyNow = () => {
-    const orderItem = {
-      pdetail_id: productDetail._id,
-      quantity: quantity,
-    };
-
-    navigate("/order", {
-      state: {
-        fromDetail: true,
-        orderItems: [orderItem],
-      },
-    });
+    setSelectedSize(null);
   };
 
   const handleSizeClick = async (sizeId) => {
     setSelectedSize(sizeId);
     const match = variants.find(
-      (v) => v.size_id._id === sizeId && v.color_id[0]._id === selectedColor
+      (v) => v.color_id._id === selectedColor && v.size_id._id === sizeId
     );
     if (match) {
       navigate(`/products/${match._id}`);
@@ -185,13 +164,23 @@ function ProductDetail() {
     }
   };
 
-  const formatVND = (price) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
+  const handleBuyNow = () => {
+    const orderItem = {
+      pdetail_id: productDetail._id,
+      quantity: quantity,
+    };
+
+    navigate("/order", {
+      state: {
+        fromDetail: true,
+        orderItems: [orderItem],
+      },
+    });
+  };
 
   const handleAddRelatedToCart = async (prod) => {
+    if (prod.inventory_number === 0) return;
+
     const cartItem = {
       pdetail_id: prod._id,
       quantity: 1,
@@ -241,6 +230,12 @@ function ProductDetail() {
     }
   };
 
+  const formatVND = (price) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
   if (loading || !productDetail || !productDetail.product_id) {
     return (
       <div className={styles.loadingWrapper}>
@@ -249,6 +244,17 @@ function ProductDetail() {
     );
   }
 
+  const isOutOfStock = productDetail.inventory_number === 0;
+  const hasDiscount = productDetail.discount_id?.percent_discount > 0;
+
+  const availableSizes = [
+    ...new Map(
+      variants
+        .filter((v) => v.color_id._id === selectedColor)
+        .map((v) => [v.size_id._id, v.size_id])
+    ).values(),
+  ];
+
   return (
     <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
       <Row gutter={32} className={styles.main}>
@@ -256,15 +262,21 @@ function ProductDetail() {
           <div
             className={styles.imageContainer}
             ref={imageContainerRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
+            onMouseMove={isOutOfStock ? null : handleMouseMove}
+            onMouseLeave={isOutOfStock ? null : handleMouseLeave}
           >
             <img
               src={mainImage}
               className={styles.mainImage}
-              style={zoomStyle}
+              style={{
+                ...zoomStyle,
+                filter: isOutOfStock ? "grayscale(50%)" : "none",
+              }}
               alt="main product"
             />
+            {isOutOfStock && (
+              <div className={styles.outOfStockOverlay}>Hết hàng</div>
+            )}
           </div>
           <div className={styles.thumbnails}>
             {productDetail.images.map((img, i) => (
@@ -285,7 +297,7 @@ function ProductDetail() {
               allowHalf
               value={
                 reviews.reduce((total, review) => total + review.rating, 0) /
-                reviews.length
+                (reviews.length || 1)
               }
               disabled
             />
@@ -297,7 +309,7 @@ function ProductDetail() {
           </Space>
 
           <div className={styles.price}>
-            {productDetail.discount_id?.percent_discount > 0 ? (
+            {hasDiscount > 0 ? (
               <>
                 <Text className={styles.salePrice}>
                   {formatVND(productDetail.price_after_discount)}
@@ -353,11 +365,7 @@ function ProductDetail() {
             </div>
 
             <div className={styles.sizeOptions}>
-              {[
-                ...new Map(
-                  variants.map((v) => [v.size_id._id, v.size_id])
-                ).values(),
-              ].map((size) => (
+              {availableSizes.map((size) => (
                 <Button
                   key={size._id}
                   className={`${styles.sizeButton} ${
@@ -392,13 +400,16 @@ function ProductDetail() {
             >
               <InputNumber
                 min={1}
-                max={productDetail.quantity}
+                max={productDetail.inventory_number}
                 value={quantity}
                 onChange={(value) => setQuantity(value)}
                 className={styles.quantityInput}
+                disabled={isOutOfStock}
               />
               <Text type="secondary" style={{ marginLeft: "12px" }}>
-                Còn {productDetail.inventory_number} sản phẩm
+                {isOutOfStock
+                  ? "Hết hàng"
+                  : `Còn ${productDetail.inventory_number} sản phẩm`}
               </Text>
             </div>
           </div>
@@ -408,16 +419,22 @@ function ProductDetail() {
               type="primary"
               icon={<ThunderboltOutlined />}
               size="large"
-              className={styles.buyButton}
-              onClick={handleBuyNow}
+              className={
+                isOutOfStock ? styles.buyButtonDisabled : styles.buyButton
+              }
+              onClick={isOutOfStock ? null : handleBuyNow}
+              disabled={isOutOfStock}
             >
               Mua ngay
             </Button>
             <Button
               icon={<ShoppingCartOutlined />}
               size="large"
-              className={styles.cartButton}
-              onClick={handleAddToCart}
+              className={
+                isOutOfStock ? styles.cartButtonDisabled : styles.cartButton
+              }
+              onClick={isOutOfStock ? null : handleAddToCart}
+              disabled={isOutOfStock}
             >
               Giỏ hàng
             </Button>
@@ -562,76 +579,95 @@ function ProductDetail() {
             Sản phẩm liên quan
           </Title>
           <div className={styles.scrollContainer}>
-            {related.map((prod) => (
-              <div
-                key={prod._id}
-                className={styles.scrollItem}
-                onClick={() => navigate(`/products/${prod._id}`)}
-              >
-                <div style={{ position: "relative" }}>
-                  {prod.discount_id?.percent_discount > 0 && (
-                    <Tag color="orange" className={styles.discountTag}>
-                      -{prod.discount_id.percent_discount}%
-                    </Tag>
-                  )}
-                  <Card
-                    hoverable
-                    cover={
-                      <img
-                        src={prod.images[0]}
-                        alt={prod.product_id.productName}
-                        className={styles.relatedImage}
-                      />
-                    }
-                    className={styles.relatedCard}
-                  >
-                    <Card.Meta
-                      title={prod.product_id.productName}
-                      description={
-                        <>
-                          <Paragraph ellipsis={{ rows: 2 }}>
-                            {prod.product_id.description}
-                          </Paragraph>
-                          <div className={styles.priceContainer}>
-                            <div className={styles.priceRow}>
-                              <div className={styles.priceColumn}>
-                                {prod.discount_id?.percent_discount > 0 ? (
-                                  <>
-                                    <Text
-                                      className={styles.originalPrice}
-                                      delete
-                                    >
+            {related.map((prod) => {
+              const hasDiscount = prod.discount_id?.percent_discount > 0;
+              const isOutOfStock = prod.inventory_number === 0;
+
+              return (
+                <div
+                  key={prod._id}
+                  className={styles.scrollItem}
+                  onClick={() => navigate(`/products/${prod._id}`)}
+                >
+                  <div style={{ position: "relative" }}>
+                    {hasDiscount && (
+                      <Tag color="orange" className={styles.discountTag}>
+                        -{prod.discount_id.percent_discount}%
+                      </Tag>
+                    )}
+                    <Card
+                      hoverable
+                      className={styles.relatedCard}
+                      cover={
+                        <div className={styles.imageWrapper}>
+                          <img
+                            src={prod.images[0]}
+                            alt={prod.product_id.productName}
+                            className={styles.relatedImage}
+                            style={{
+                              filter: isOutOfStock ? "grayscale(50%)" : "none",
+                            }}
+                          />
+                          {isOutOfStock && (
+                            <div className={styles.outOfStockOverlay}>
+                              Hết hàng
+                            </div>
+                          )}
+                        </div>
+                      }
+                    >
+                      <Card.Meta
+                        title={prod.product_id.productName}
+                        description={
+                          <>
+                            <Paragraph ellipsis={{ rows: 2 }}>
+                              {prod.product_id.description}
+                            </Paragraph>
+                            <div className={styles.priceContainer}>
+                              <div className={styles.priceRow}>
+                                <div className={styles.priceColumn}>
+                                  {hasDiscount ? (
+                                    <>
+                                      <Text
+                                        className={styles.originalPrice}
+                                        delete
+                                      >
+                                        {formatVND(prod.product_id.price)}
+                                      </Text>
+                                      <Text className={styles.salePrice}>
+                                        {formatVND(prod.price_after_discount)}
+                                      </Text>
+                                    </>
+                                  ) : (
+                                    <Text className={styles.salePrice}>
                                       {formatVND(prod.product_id.price)}
                                     </Text>
-                                    <Text className={styles.salePrice}>
-                                      {formatVND(prod.price_after_discount)}
-                                    </Text>
-                                  </>
-                                ) : (
-                                  <Text className={styles.salePrice}>
-                                    {formatVND(prod.product_id.price)}
-                                  </Text>
-                                )}
+                                  )}
+                                </div>
+                                <Button
+                                  type="text"
+                                  className={
+                                    isOutOfStock
+                                      ? styles.cartButtonDisabled
+                                      : styles.cartIconButton
+                                  }
+                                  icon={<ShoppingCartOutlined />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddRelatedToCart(prod);
+                                  }}
+                                  disabled={isOutOfStock}
+                                />
                               </div>
-
-                              <Button
-                                type="text"
-                                className={styles.cartIconButton}
-                                icon={<ShoppingCartOutlined />}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddRelatedToCart(prod);
-                                }}
-                              />
                             </div>
-                          </div>
-                        </>
-                      }
-                    />
-                  </Card>
+                          </>
+                        }
+                      />
+                    </Card>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

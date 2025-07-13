@@ -46,16 +46,9 @@ exports.getFilteredProducts = async (req, res) => {
           let: { productId: '$_id' },
           pipeline: [
             {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$product_id', '$$productId'] },
-                    { $gt: ['$inventory_number', 0] },
-                  ],
-                },
-              },
+              $match: { $expr: { $eq: ['$product_id', '$$productId'] } },
             },
-            { $sort: { inventory_number: -1 } },
+            { $sort: { inventory_number: -1 } }, // Prioritize details with stock
             { $limit: 1 },
             {
               $lookup: {
@@ -81,6 +74,7 @@ exports.getFilteredProducts = async (req, res) => {
                 images: 1,
                 color: '$colors.color_name',
                 discount_percent: '$discount.percent_discount',
+                inventory_number: 1,
               },
             },
           ],
@@ -88,9 +82,7 @@ exports.getFilteredProducts = async (req, res) => {
         },
       },
       { $unwind: { path: '$detail', preserveNullAndEmptyArrays: true } },
-      { $match: { detail: { $ne: null } } },
-
-      //  Add sort_price field để chuẩn hóa logic sắp xếp
+      { $match: { detail: { $ne: null } } }, // Only include products with at least one detail
       {
         $addFields: {
           sort_price: {
@@ -104,11 +96,11 @@ exports.getFilteredProducts = async (req, res) => {
       },
     ];
 
-    // Tổng số bản ghi
+    // Total count of records
     const totalFiltered = await Product.aggregate([...basePipeline, { $count: 'total' }]);
     const totalCount = totalFiltered[0]?.total || 0;
 
-    // Xử lý sortStage chính xác
+    // Handle sort stage
     let sortStage = {};
     if (sortBy === 'price-asc') sortStage = { sort_price: 1 };
     else if (sortBy === 'price-desc') sortStage = { sort_price: -1 };
@@ -146,6 +138,7 @@ exports.getFilteredProducts = async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
 exports.getFilteredProductsByOnSale = async (req, res) => {
   try {
     const {
@@ -180,16 +173,9 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
           let: { productId: '$_id' },
           pipeline: [
             {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$product_id', '$$productId'] },
-                    { $gt: ['$inventory_number', 0] },
-                  ],
-                },
-              },
+              $match: { $expr: { $eq: ['$product_id', '$$productId'] } },
             },
-            { $sort: { inventory_number: -1 } },
+            { $sort: { inventory_number: -1 } }, // Prioritize details with stock
             { $limit: 1 },
             {
               $lookup: {
@@ -215,6 +201,7 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
                 images: 1,
                 color: '$colors.color_name',
                 discount_percent: '$discount.percent_discount',
+                inventory_number: 1,
               },
             },
           ],
@@ -222,9 +209,7 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
         },
       },
       { $unwind: { path: '$detail', preserveNullAndEmptyArrays: true } },
-      { $match: { detail: { $ne: null } } },
-
-      //  Add sort_price field để chuẩn hóa logic sắp xếp
+      { $match: { detail: { $ne: null } } }, // Only include products with at least one detail
       {
         $addFields: {
           sort_price: {
@@ -243,11 +228,11 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
       },
     ];
 
-    // Tổng số bản ghi
+    // Total count of records
     const totalFiltered = await Product.aggregate([...basePipeline, { $count: 'total' }]);
     const totalCount = totalFiltered[0]?.total || 0;
 
-    // Xử lý sortStage chính xác
+    // Handle sort stage
     let sortStage = {};
     if (sortBy === 'price-asc') sortStage = { sort_price: 1 };
     else if (sortBy === 'price-desc') sortStage = { sort_price: -1 };
@@ -285,7 +270,6 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
-
 
 exports.list_product = async (req, res, next) => {
   try {

@@ -2,19 +2,18 @@ const ProductDetail = require("./../models/productDetail.model");
 const Product = require("../models/product.model");
 
 exports.getAllProductDetails = async (req, res) => {
-    try {
-        const productDetails = await ProductDetail.find()
-            .populate("product_id", "product_name")
-            .populate("color_id", "color_name")
-            .populate("size_id", "size_name")
-            .populate("discount_id", "discount_value")
-            .populate("product_detail_status", "status_name");
-        res.json(productDetails);
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi khi lấy danh sách chi tiết sản phẩm", error: error.message });
-    }
+  try {
+    const productDetails = await ProductDetail.find()
+      .populate("product_id", "productName")
+      .populate("color_id", "color_name color_code")
+      .populate("size_id", "size_name")
+      .populate("discount_id", "percent_discount")
+      .populate("product_detail_status", "productdetail_status_name");
+    res.json(productDetails);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách chi tiết sản phẩm", error: error.message });
+  }
 };
-
 
 exports.getProductDetailById = async (req, res) => {
   try {
@@ -30,10 +29,11 @@ exports.getProductDetailById = async (req, res) => {
           { path: 'categories_id', select: 'category_name' }
         ]
       })
-      .populate('color_id', 'color_code')
+      .populate('color_id', 'color_name color_code')
       .populate('size_id', 'size_name')
       .populate('discount_id', 'percent_discount')
-      .populate('product_detail_status', 'productdetail_status_name');
+      .populate('product_detail_status', 'productdetail_status_name')
+      .select('price_after_discount images inventory_number sold_number');
 
     if (!detail) return res.status(404).json({ message: 'Không tìm thấy detail!' });
     res.json(detail);
@@ -42,14 +42,17 @@ exports.getProductDetailById = async (req, res) => {
   }
 };
 
-
-
 exports.getProductDetailsByProduct = async (req, res) => {
-  const productId = req.params.productId;
-  const details = await ProductDetail.find({ product_id: productId })
-    .populate('color_id', 'color_code')
-    .populate('size_id', 'size_name');
-  res.json(details);
+  try {
+    const productId = req.params.productId;
+    const details = await ProductDetail.find({ product_id: productId })
+      .populate('color_id', 'color_name color_code')
+      .populate('size_id', 'size_name')
+      .select('color_id size_id inventory_number _id');
+    res.json(details);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 exports.getRelatedProducts = async (req, res) => {
@@ -68,12 +71,18 @@ exports.getRelatedProducts = async (req, res) => {
       ]
     }).limit(8);
 
-    // Bước 2: Lấy ProductDetail đầu tiên của mỗi sản phẩm liên quan
+    // Bước 2: Lấy ProductDetail đầu tiên của mỗi sản phẩm liên quan, ưu tiên có hàng
     const relatedDetails = await Promise.all(
       relatedProducts.map(async (prod) => {
         const detail = await ProductDetail.findOne({ product_id: prod._id })
-          .populate('product_id')
-          .populate('discount_id', 'percent_discount');
+          .populate({
+            path: 'product_id',
+            select: 'productName description price'
+          })
+          .populate('discount_id', 'percent_discount')
+          .populate('color_id', 'color_name')
+          .sort({ inventory_number: -1 }) // Prioritize details with stock
+          .select('price_after_discount images inventory_number color_id _id');
         return detail;
       })
     );
@@ -87,5 +96,3 @@ exports.getRelatedProducts = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi lấy sản phẩm liên quan' });
   }
 };
-
-

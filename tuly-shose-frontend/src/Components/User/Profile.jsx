@@ -36,7 +36,7 @@ const Profile = () => {
   }, []);
 
   return (
-    <div className={styles.appContainer}>
+    <div className={`${styles.appContainer} ${styles.fadeIn}`}>
       <Layout className={styles.layout}>
         <Sider
           width={192}

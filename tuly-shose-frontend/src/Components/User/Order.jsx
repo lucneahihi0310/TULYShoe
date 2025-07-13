@@ -140,11 +140,7 @@ const Order = () => {
   }, [user]);
 
   useEffect(() => {
-    if (
-      isAddressModalVisible &&
-      provinces.length > 0 &&
-      !initialLoadComplete
-    ) {
+    if (isAddressModalVisible && provinces.length > 0 && !initialLoadComplete) {
       const address = userInfo.address;
       if (address) {
         const { province, district, ward, detailedAddress } =
@@ -288,7 +284,7 @@ const Order = () => {
               quantity: item.quantity,
               image: data.images[0],
               size_name: data.size_id?.size_name,
-              color_code: data.color_id?.color_code, 
+              color_code: data.color_id?.color_code,
               productName: data.product_id?.productName,
               price_after_discount: data.price_after_discount,
             },
@@ -607,7 +603,9 @@ const Order = () => {
                     </div>
                   </div>
                   <div className={styles.productPrice}>
-                    {(item.price_after_discount * item.quantity).toLocaleString()}{" "}
+                    {(
+                      item.price_after_discount * item.quantity
+                    ).toLocaleString()}{" "}
                     ₫
                   </div>
                 </div>
@@ -685,7 +683,9 @@ const Order = () => {
                 onChange={handleProvinceChange}
                 value={selectedProvince}
                 className={styles.modalSelect}
-                notFoundContent={isLoadingProvinces ? <Spin size="small" /> : null}
+                notFoundContent={
+                  isLoadingProvinces ? <Spin size="small" /> : null
+                }
               >
                 {provinces.map((province) => (
                   <Option key={province.code} value={province.code}>
@@ -705,7 +705,9 @@ const Order = () => {
                 value={selectedDistrict}
                 disabled={!selectedProvince || isLoadingDistricts}
                 className={styles.modalSelect}
-                notFoundContent={isLoadingDistricts ? <Spin size="small" /> : null}
+                notFoundContent={
+                  isLoadingDistricts ? <Spin size="small" /> : null
+                }
               >
                 {districtsCache[selectedProvince]?.map((district) => (
                   <Option key={district.code} value={district.code}>
@@ -735,9 +737,14 @@ const Order = () => {
             <Form.Item
               name="detailedAddress"
               label="Địa chỉ chi tiết"
-              rules={[{ required: true, message: "Vui lòng nhập địa chỉ chi tiết" }]}
+              rules={[
+                { required: true, message: "Vui lòng nhập địa chỉ chi tiết" },
+              ]}
             >
-              <Input placeholder="Số nhà, tên đường..." className={styles.modalInput} />
+              <Input
+                placeholder="Số nhà, tên đường..."
+                className={styles.modalInput}
+              />
             </Form.Item>
             <div className={styles.modalButtons}>
               <Button
@@ -754,7 +761,11 @@ const Order = () => {
               >
                 Hủy
               </Button>
-              <Button type="primary" htmlType="submit" className={styles.modalSubmitButton}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                className={styles.modalSubmitButton}
+              >
                 Xác nhận
               </Button>
             </div>
