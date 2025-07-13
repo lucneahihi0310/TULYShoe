@@ -75,7 +75,7 @@
   border-radius: 50%;
   padding: 0.5rem;
   width: 40px;
-  height: 40px;
+  height: 35px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -104,8 +104,8 @@
 
 .formGrid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .gender {
@@ -250,10 +250,9 @@
   display: flex;
   justify-content: flex-end;
   gap: 1.5rem;
-  margin-top: 2rem;
+  margin: 2rem;
 }
 
-/* Updated styles for order detail card */
 .orderCard {
   border: none;
   border-radius: 0.75rem;
@@ -261,8 +260,8 @@
   padding: 2rem;
   background: linear-gradient(145deg, #ffffff, #f8f8f8);
   transition: transform 0.2s;
-  width: 80vw;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 95%;
   margin: 0 auto;
 }
 
@@ -434,4 +433,54 @@
   color: red;
   font-size: 12px;
   border: 1px solid #ccc;
+}
+:global(.readOnlyRadio .ant-radio-wrapper-disabled) {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+:global(.readOnlyRadio .ant-radio-wrapper-disabled .ant-radio-inner::after) {
+  background-color: #000000 !important;
+}
+
+:global(
+    .readOnlyRadio
+      .ant-radio-wrapper-disabled.ant-radio-checked
+      .ant-radio-inner
+  ) {
+  border-color: #1890ff !important;
+}
+
+/* INPUT không bị mờ khi disabled */
+:global(.ant-input[disabled]),
+:global(.ant-input-disabled) {
+  background-color: #fff !important;
+  color: #000 !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+
+/* SELECT không bị mờ khi disabled */
+:global(.ant-select-disabled .ant-select-selector) {
+  background-color: #fff !important;
+  color: #000 !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+
+/* DATE PICKER không bị mờ khi disabled */
+:global(.ant-picker.ant-picker-disabled) {
+  background-color: #fff !important;
+  color: #000 !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+:global(.ant-picker.ant-picker-disabled .ant-picker-input > input) {
+  color: #000 !important;
+}
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
 }

@@ -3,7 +3,7 @@ const Gender = require("./gender.model");
 const AddressShipping = require("./address_shipping.model");
 
 const accountSchema = new mongoose.Schema({
-    first_name: { type: String, required: true },
+    first_name: { type: String },
     last_name: { type: String, required: true },
     dob: { type: Date, required: true },
     gender: { type: String, required: true },

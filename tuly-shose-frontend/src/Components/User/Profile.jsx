@@ -53,12 +53,12 @@ const Profile = () => {
               {
                 key: "profile",
                 icon: <UserOutlined />,
-                label: "Profile",
+                label: "Thông Tin Cá Nhân",
               },
               {
                 key: "orders",
                 icon: <ShoppingCartOutlined />,
-                label: "Orders",
+                label: "Đơn Hàng Đã Đặt",
               },
             ]}
           />
@@ -70,7 +70,7 @@ const Profile = () => {
             items={[
               {
                 key: "profile",
-                label: "Profile",
+                label: "Thông Tin Cá Nhân",
                 children: (
                   <ProfileSection
                     user={user}
@@ -83,7 +83,7 @@ const Profile = () => {
               },
               {
                 key: "orders",
-                label: "Orders",
+                label: "Đơn Hàng Đã Đặt",
                 children: (
                   <OrdersSection
                     user={user}

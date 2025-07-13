@@ -51,7 +51,7 @@ exports.updateProfileUser = async (req, res) => {
 
         if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
 
-        user.first_name = first_name || user.first_name;
+        user.first_name = first_name || "";
         user.last_name = last_name || user.last_name;
         user.dob = dob || user.dob;
         user.gender = gender || user.gender;
