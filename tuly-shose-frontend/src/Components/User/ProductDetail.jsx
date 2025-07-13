@@ -14,6 +14,7 @@ import {
   Modal,
   Image,
   notification,
+  InputNumber,
 } from "antd";
 import {
   ShoppingCartOutlined,
@@ -29,7 +30,6 @@ const { Title, Paragraph, Text } = Typography;
 function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const carouselRef = useRef(null);
   const imageContainerRef = useRef(null);
   const { user } = useContext(AuthContext);
 
@@ -43,6 +43,7 @@ function ProductDetail() {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [zoomStyle, setZoomStyle] = useState({
     transform: "scale(1)",
@@ -100,10 +101,11 @@ function ProductDetail() {
       navigate(`/products/${match._id}`);
     }
   };
+
   const handleBuyNow = () => {
     const orderItem = {
       pdetail_id: productDetail._id,
-      quantity: 1,
+      quantity: quantity,
     };
 
     navigate("/order", {
@@ -113,6 +115,7 @@ function ProductDetail() {
       },
     });
   };
+
   const handleSizeClick = async (sizeId) => {
     setSelectedSize(sizeId);
     const match = variants.find(
@@ -142,13 +145,13 @@ function ProductDetail() {
   const handleAddToCart = async () => {
     const cartItem = {
       pdetail_id: productDetail._id,
-      quantity: 1,
+      quantity: quantity,
     };
 
     const notifyAddSuccess = () => {
       notification.success({
         message: "Đã thêm vào giỏ hàng!",
-        description: `Sản phẩm "${productDetail.product_id.productName}" đã được thêm.`,
+        description: `Sản phẩm "${productDetail.product_id.productName}" (x${quantity}) đã được thêm.`,
         placement: "bottomLeft",
         duration: 2,
       });
@@ -172,7 +175,7 @@ function ProductDetail() {
       );
 
       if (existingIndex >= 0) {
-        guestCart[existingIndex].quantity += 1;
+        guestCart[existingIndex].quantity += quantity;
       } else {
         guestCart.push(cartItem);
       }
@@ -237,9 +240,6 @@ function ProductDetail() {
       });
     }
   };
-
-  const handlePrev = () => carouselRef.current?.prev();
-  const handleNext = () => carouselRef.current?.next();
 
   if (loading || !productDetail || !productDetail.product_id) {
     return (
@@ -383,6 +383,24 @@ function ProductDetail() {
                 style={{ width: "100%", borderRadius: "8px" }}
               />
             </Modal>
+          </div>
+
+          <div className={styles.selection}>
+            <Text strong>Số lượng</Text>
+            <div
+              className={`${styles.quantitySelector} ${styles.whiteNumberInput}`}
+            >
+              <InputNumber
+                min={1}
+                max={productDetail.quantity}
+                value={quantity}
+                onChange={(value) => setQuantity(value)}
+                className={styles.quantityInput}
+              />
+              <Text type="secondary" style={{ marginLeft: "12px" }}>
+                Còn {productDetail.inventory_number} sản phẩm
+              </Text>
+            </div>
           </div>
 
           <div className={styles.actions}>
@@ -543,95 +561,77 @@ function ProductDetail() {
           <Title level={3} className={styles.titleBorder}>
             Sản phẩm liên quan
           </Title>
-          <div className={styles.carouselWrapper}>
-            <Button
-              icon={<LeftOutlined />}
-              onClick={handlePrev}
-              className={`${styles.carouselNav} ${styles.prev}`}
-            />
-            <Carousel
-              ref={carouselRef}
-              dots={false}
-              slidesToShow={3}
-              slidesToScroll={1}
-              className={styles.carousel}
-            >
-              {related.map((prod) => (
-                <div
-                  key={prod._id}
-                  className={styles.carouselItem}
-                  onClick={() => navigate(`/products/${prod._id}`)}
-                >
-                  <div className={styles.sameHeightWrapper}>
-                    <Card
-                      hoverable
-                      cover={
-                        <img
-                          src={prod.images[0]}
-                          alt={prod.product_id.productName}
-                          className={styles.relatedImage}
-                        />
-                      }
-                      className={styles.relatedCard}
-                    >
-                      {prod.discount_id.percent_discount > 0 && (
-                        <Tag color="orange" className={styles.discountTag}>
-                          -{prod.discount_id.percent_discount}%
-                        </Tag>
-                      )}
-                      <Card.Meta
-                        title={prod.product_id.productName}
-                        description={
-                          <>
-                            <Paragraph ellipsis={{ rows: 2 }}>
-                              {prod.product_id.description}
-                            </Paragraph>
-                            <div className={styles.priceContainer}>
-                              <div className={styles.priceRow}>
-                                <div className={styles.priceColumn}>
-                                  {prod.discount_id.percent_discount > 0 ? (
-                                    <>
-                                      <Text
-                                        className={styles.originalPrice}
-                                        delete
-                                      >
-                                        {formatVND(prod.product_id.price)}
-                                      </Text>
-                                      <Text className={styles.salePrice}>
-                                        {formatVND(prod.price_after_discount)}
-                                      </Text>
-                                    </>
-                                  ) : (
-                                    <Text className={styles.salePrice}>
+          <div className={styles.scrollContainer}>
+            {related.map((prod) => (
+              <div
+                key={prod._id}
+                className={styles.scrollItem}
+                onClick={() => navigate(`/products/${prod._id}`)}
+              >
+                <div style={{ position: "relative" }}>
+                  {prod.discount_id?.percent_discount > 0 && (
+                    <Tag color="orange" className={styles.discountTag}>
+                      -{prod.discount_id.percent_discount}%
+                    </Tag>
+                  )}
+                  <Card
+                    hoverable
+                    cover={
+                      <img
+                        src={prod.images[0]}
+                        alt={prod.product_id.productName}
+                        className={styles.relatedImage}
+                      />
+                    }
+                    className={styles.relatedCard}
+                  >
+                    <Card.Meta
+                      title={prod.product_id.productName}
+                      description={
+                        <>
+                          <Paragraph ellipsis={{ rows: 2 }}>
+                            {prod.product_id.description}
+                          </Paragraph>
+                          <div className={styles.priceContainer}>
+                            <div className={styles.priceRow}>
+                              <div className={styles.priceColumn}>
+                                {prod.discount_id?.percent_discount > 0 ? (
+                                  <>
+                                    <Text
+                                      className={styles.originalPrice}
+                                      delete
+                                    >
                                       {formatVND(prod.product_id.price)}
                                     </Text>
-                                  )}
-                                </div>
-
-                                <Button
-                                  type="text"
-                                  className={styles.cartIconButton}
-                                  icon={<ShoppingCartOutlined />}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddRelatedToCart(prod);
-                                  }}
-                                />
+                                    <Text className={styles.salePrice}>
+                                      {formatVND(prod.price_after_discount)}
+                                    </Text>
+                                  </>
+                                ) : (
+                                  <Text className={styles.salePrice}>
+                                    {formatVND(prod.product_id.price)}
+                                  </Text>
+                                )}
                               </div>
+
+                              <Button
+                                type="text"
+                                className={styles.cartIconButton}
+                                icon={<ShoppingCartOutlined />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddRelatedToCart(prod);
+                                }}
+                              />
                             </div>
-                          </>
-                        }
-                      />
-                    </Card>
-                  </div>
+                          </div>
+                        </>
+                      }
+                    />
+                  </Card>
                 </div>
-              ))}
-            </Carousel>
-            <Button
-              icon={<RightOutlined />}
-              onClick={handleNext}
-              className={`${styles.carouselNav} ${styles.next}`}
-            />
+              </div>
+            ))}
           </div>
         </div>
       )}

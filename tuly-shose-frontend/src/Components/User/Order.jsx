@@ -285,7 +285,7 @@ const Order = () => {
           setOrderItems([
             {
               pdetail_id: item.pdetail_id,
-              quantity: 1,
+              quantity: item.quantity,
               image: data.images[0],
               size_name: data.size_id?.size_name,
               color_code: data.color_id?.color_code, 
