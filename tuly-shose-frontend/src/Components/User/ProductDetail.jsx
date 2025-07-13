@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Button,
@@ -6,7 +6,6 @@ import {
   Col,
   Rate,
   Typography,
-  Carousel,
   Card,
   Space,
   Tag,
@@ -16,12 +15,7 @@ import {
   notification,
   InputNumber,
 } from "antd";
-import {
-  ShoppingCartOutlined,
-  ThunderboltOutlined,
-  LeftOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
+import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
 import styles from "../../CSS/ProductDetail.module.css";
 import { AuthContext } from "../API/AuthContext";
 import { fetchData, postData } from "../API/ApiService";
@@ -45,6 +39,7 @@ function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [isVariantLoading, setIsVariantLoading] = useState(false);
   const [zoomStyle, setZoomStyle] = useState({
     transform: "scale(1)",
     transformOrigin: "center center",
@@ -55,28 +50,37 @@ function ProductDetail() {
       try {
         setLoading(true);
 
+        // Lấy chi tiết sản phẩm hiện tại
         const resDetail = await fetchData(`productDetail/customers/${id}`);
         setProductDetail(resDetail);
         setMainImage(resDetail.images[0]);
         setSelectedColor(resDetail.color_id._id);
         setSelectedSize(resDetail.size_id._id);
 
+        // Lấy tất cả biến thể với thông tin đầy đủ
         const resVariants = await fetchData(
-          `productDetail/customers/product/${resDetail.product_id._id}`
+          `productDetail/customers/product/full/${resDetail.product_id._id}`
         );
         setVariants(resVariants);
 
+        // Lấy đánh giá
         const resReviews = await fetchData(
           `reviews/customers/detail/${resDetail._id}`
         );
         setReviews(resReviews);
 
+        // Lấy sản phẩm liên quan
         const resRelated = await fetchData(
           `productDetail/customers/related/${id}`
         );
         setRelated(resRelated);
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu ProductDetail:", err);
+        notification.error({
+          message: "Lỗi tải dữ liệu",
+          description: "Không thể tải thông tin sản phẩm. Vui lòng thử lại.",
+          placement: "bottomLeft",
+        });
       } finally {
         setLoading(false);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -86,23 +90,66 @@ function ProductDetail() {
     fetchDataAsync();
   }, [id]);
 
+  // Tải lại đánh giá khi productDetail thay đổi
+  useEffect(() => {
+    if (productDetail?._id) {
+      const fetchReviews = async () => {
+        try {
+          const resReviews = await fetchData(
+            `reviews/customers/detail/${productDetail._id}`
+          );
+          setReviews(resReviews);
+        } catch (err) {
+          console.error("Lỗi khi tải đánh giá:", err);
+        }
+      };
+      fetchReviews();
+    }
+  }, [productDetail?._id]);
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
   const handleColorClick = (colorId) => {
+    setIsVariantLoading(true);
     setSelectedColor(colorId);
-    setSelectedSize(null);
+    setSelectedSize(null); // Reset kích thước khi chọn màu mới
+    // Tìm biến thể đầu tiên có màu được chọn
+    const match = variants.find((v) => v.color_id._id === colorId);
+    if (match) {
+      setProductDetail(match);
+      setMainImage(match.images[0]);
+      window.history.pushState({}, "", `/products/${match._id}`);
+    } else {
+      notification.error({
+        message: "Không tìm thấy biến thể",
+        description: "Không có sản phẩm nào phù hợp với màu đã chọn.",
+        placement: "bottomLeft",
+      });
+    }
+    setIsVariantLoading(false);
   };
 
-  const handleSizeClick = async (sizeId) => {
+  const handleSizeClick = (sizeId) => {
+    setIsVariantLoading(true);
     setSelectedSize(sizeId);
+    // Tìm biến thể có cả màu và kích thước được chọn
     const match = variants.find(
       (v) => v.color_id._id === selectedColor && v.size_id._id === sizeId
     );
     if (match) {
-      navigate(`/products/${match._id}`);
+      setProductDetail(match);
+      setMainImage(match.images[0]);
+      window.history.pushState({}, "", `/products/${match._id}`);
+    } else {
+      notification.error({
+        message: "Không tìm thấy biến thể",
+        description: "Không có sản phẩm nào phù hợp với kích thước đã chọn.",
+        placement: "bottomLeft",
+      });
     }
+    setIsVariantLoading(false);
   };
 
   const handleMouseMove = (e) => {
@@ -122,6 +169,8 @@ function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
+    if (!productDetail) return;
+
     const cartItem = {
       pdetail_id: productDetail._id,
       quantity: quantity,
@@ -136,35 +185,44 @@ function ProductDetail() {
       });
     };
 
-    if (user) {
-      try {
+    try {
+      if (user && user._id) {
         await postData("/cartItem/customers", {
           ...cartItem,
           user_id: user._id,
         });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
-      } catch (err) {
-        console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
-      }
-    } else {
-      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-      const existingIndex = guestCart.findIndex(
-        (item) => item.pdetail_id === cartItem.pdetail_id
-      );
-
-      if (existingIndex >= 0) {
-        guestCart[existingIndex].quantity += quantity;
       } else {
-        guestCart.push(cartItem);
+        const guestCart = JSON.parse(
+          localStorage.getItem("guest_cart") || "[]"
+        );
+        const existingIndex = guestCart.findIndex(
+          (item) => item.pdetail_id === cartItem.pdetail_id
+        );
+
+        if (existingIndex >= 0) {
+          guestCart[existingIndex].quantity += quantity;
+        } else {
+          guestCart.push(cartItem);
+        }
+        window.dispatchEvent(new Event("cartUpdated"));
+        localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+        notifyAddSuccess();
       }
-      window.dispatchEvent(new Event("cartUpdated"));
-      localStorage.setItem("guest_cart", JSON.stringify(guestCart));
-      notifyAddSuccess();
+    } catch (err) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      notification.error({
+        message: "Thêm giỏ hàng thất bại!",
+        description: err.message || "Vui lòng thử lại sau.",
+        placement: "bottomLeft",
+      });
     }
   };
 
   const handleBuyNow = () => {
+    if (!productDetail) return;
+
     const orderItem = {
       pdetail_id: productDetail._id,
       quantity: quantity,
@@ -236,6 +294,18 @@ function ProductDetail() {
       currency: "VND",
     }).format(price);
 
+  // Tối ưu danh sách kích thước bằng useMemo
+  const availableSizes = useMemo(
+    () => [
+      ...new Map(
+        variants
+          .filter((v) => v.color_id._id === selectedColor)
+          .map((v) => [v.size_id._id, v.size_id])
+      ).values(),
+    ],
+    [variants, selectedColor]
+  );
+
   if (loading || !productDetail || !productDetail.product_id) {
     return (
       <div className={styles.loadingWrapper}>
@@ -247,16 +317,13 @@ function ProductDetail() {
   const isOutOfStock = productDetail.inventory_number === 0;
   const hasDiscount = productDetail.discount_id?.percent_discount > 0;
 
-  const availableSizes = [
-    ...new Map(
-      variants
-        .filter((v) => v.color_id._id === selectedColor)
-        .map((v) => [v.size_id._id, v.size_id])
-    ).values(),
-  ];
-
   return (
     <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
+      {isVariantLoading && (
+        <div className={styles.variantLoading}>
+          <Spin tip="Đang cập nhật biến thể..." />
+        </div>
+      )}
       <Row gutter={32} className={styles.main}>
         <Col xs={24} lg={12}>
           <div
@@ -285,6 +352,7 @@ function ProductDetail() {
                 src={img}
                 className={styles.thumbnail}
                 onClick={() => setMainImage(img)}
+                alt={`thumbnail-${i}`}
               />
             ))}
           </div>
@@ -309,7 +377,7 @@ function ProductDetail() {
           </Space>
 
           <div className={styles.price}>
-            {hasDiscount > 0 ? (
+            {hasDiscount ? (
               <>
                 <Text className={styles.salePrice}>
                   {formatVND(productDetail.price_after_discount)}
@@ -372,6 +440,7 @@ function ProductDetail() {
                     selectedSize === size._id ? styles.sizeSelected : ""
                   }`}
                   onClick={() => handleSizeClick(size._id)}
+                  disabled={isVariantLoading}
                 >
                   {size.size_name}
                 </Button>
@@ -404,7 +473,7 @@ function ProductDetail() {
                 value={quantity}
                 onChange={(value) => setQuantity(value)}
                 className={styles.quantityInput}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || isVariantLoading}
               />
               <Text type="secondary" style={{ marginLeft: "12px" }}>
                 {isOutOfStock
@@ -420,10 +489,12 @@ function ProductDetail() {
               icon={<ThunderboltOutlined />}
               size="large"
               className={
-                isOutOfStock ? styles.buyButtonDisabled : styles.buyButton
+                isOutOfStock || isVariantLoading
+                  ? styles.buyButtonDisabled
+                  : styles.buyButton
               }
-              onClick={isOutOfStock ? null : handleBuyNow}
-              disabled={isOutOfStock}
+              onClick={isOutOfStock || isVariantLoading ? null : handleBuyNow}
+              disabled={isOutOfStock || isVariantLoading}
             >
               Mua ngay
             </Button>
@@ -431,10 +502,14 @@ function ProductDetail() {
               icon={<ShoppingCartOutlined />}
               size="large"
               className={
-                isOutOfStock ? styles.cartButtonDisabled : styles.cartButton
+                isOutOfStock || isVariantLoading
+                  ? styles.cartButtonDisabled
+                  : styles.cartButton
               }
-              onClick={isOutOfStock ? null : handleAddToCart}
-              disabled={isOutOfStock}
+              onClick={
+                isOutOfStock || isVariantLoading ? null : handleAddToCart
+              }
+              disabled={isOutOfStock || isVariantLoading}
             >
               Giỏ hàng
             </Button>
@@ -514,6 +589,7 @@ function ProductDetail() {
                             width={80}
                             height={80}
                             style={{ borderRadius: 4 }}
+                            alt={`review-image-${i}`}
                           />
                         ))}
                       </div>

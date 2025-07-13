@@ -55,6 +55,32 @@ exports.getProductDetailsByProduct = async (req, res) => {
   }
 };
 
+exports.getProductDetailsByProductFull = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const details = await ProductDetail.find({ product_id: productId })
+      .populate({
+        path: 'product_id',
+        select: 'productName description price brand_id material_id form_id gender_id categories_id sold_number',
+        populate: [
+          { path: 'brand_id', select: 'brand_name' },
+          { path: 'material_id', select: 'material_name' },
+          { path: 'form_id', select: 'form_name' },
+          { path: 'gender_id', select: 'gender_name' },
+          { path: 'categories_id', select: 'category_name' }
+        ]
+      })
+      .populate('color_id', 'color_name color_code')
+      .populate('size_id', 'size_name')
+      .populate('discount_id', 'percent_discount')
+      .populate('product_detail_status', 'productdetail_status_name')
+      .select('price_after_discount images inventory_number sold_number');
+    res.json(details);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.getRelatedProducts = async (req, res) => {
   try {
     const pd = await ProductDetail.findById(req.params.detailId).populate('product_id');
