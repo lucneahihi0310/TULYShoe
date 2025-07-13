@@ -49,10 +49,11 @@ const OrdersSection = ({
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (user) fetchOrders();
   }, [user]);
-  
+
   const handleOrderClick = async (orderCode) => {
     setOrderLoading(true);
     try {
@@ -122,10 +123,6 @@ const OrdersSection = ({
       );
       if (!item) continue;
 
-      const isReviewed = !!item.review;
-      const isEditing = editingReviews[orderdetail_id];
-      if (isReviewed && !isEditing) continue;
-
       const review = reviews[orderdetail_id];
       if (!review.rating || !review.content) continue;
 
@@ -139,10 +136,8 @@ const OrdersSection = ({
 
       allImages.slice(0, 3).forEach((img) => {
         if (img instanceof File) {
-          // Ảnh mới
           formData.append("images", img);
         } else if (typeof img === "string") {
-          // Ảnh cũ
           formData.append("images_old", img);
         }
       });
@@ -210,7 +205,7 @@ const OrdersSection = ({
                   loading={orderLoading}
                   disabled={orderLoading}
                   onClick={(e) => {
-                    e.stopPropagation(); // Ngăn sự kiện onClick của List.Item
+                    e.stopPropagation();
                     handleOrderClick(item.order_code);
                   }}
                 >
@@ -235,6 +230,7 @@ const OrdersSection = ({
         onCancel={() => {
           setIsOrderModalVisible(false);
           setReviews({});
+          setEditingReviews({});
         }}
         footer={null}
         className={styles.orderModal}
@@ -263,9 +259,9 @@ const OrdersSection = ({
                       </li>
                       <li>
                         <Text strong>Ngày giao dự kiến:</Text>{" "}
-                        {new Date(selectedOrder.delivery_date).toLocaleDateString(
-                          "vi-VN"
-                        )}
+                        {new Date(
+                          selectedOrder.delivery_date
+                        ).toLocaleDateString("vi-VN")}
                       </li>
                       <li>
                         <Text strong>Ghi chú:</Text>{" "}
@@ -320,7 +316,7 @@ const OrdersSection = ({
                         <Text strong>Phí vận chuyển:</Text>{" "}
                         {formatCurrency(selectedOrder.shippingFee)}
                       </li>
-                      <li className={styles.total}>
+                      <li style={{ color: "red" }} className={styles.total}>
                         <Text strong>Tổng cộng:</Text>{" "}
                         {formatCurrency(selectedOrder.total_amount)}
                       </li>
@@ -331,6 +327,8 @@ const OrdersSection = ({
                 <Title level={3}>Sản phẩm đã đặt</Title>
                 {selectedOrder.items.map((item) => {
                   const isReviewed = !!item.review;
+                  const isEditing = editingReviews[item.orderdetail_id];
+
                   return (
                     <Card
                       key={item.orderdetail_id}
@@ -352,11 +350,13 @@ const OrdersSection = ({
                             <Title level={4} className={styles.productName}>
                               {item.name}
                             </Title>
-                            <Text>Màu:</Text>
-                            <span
-                              style={{ backgroundColor: item.color }}
-                              className={styles.colorSwatch}
-                            />
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                              <Text>Màu:</Text>
+                              <span
+                                style={{ backgroundColor: item.color }}
+                                className={styles.colorSwatch}
+                              />
+                            </div>
                             <p>Size: {item.size}</p>
                             <Text strong>
                               {formatCurrency(item.price_at_order)}
@@ -366,13 +366,15 @@ const OrdersSection = ({
                           {selectedOrder.order_status === "Hoàn thành" && (
                             <div className={styles.reviewSection}>
                               <Text strong>Đánh giá sản phẩm</Text>
-                              {isReviewed &&
-                              !editingReviews[item.orderdetail_id] ? (
+                              {isReviewed && !isEditing ? (
                                 <div>
                                   <Rate disabled value={item.review.rating} />
                                   <p>{item.review.review_content}</p>
                                   <p
-                                    style={{ fontStyle: "italic", color: "#888" }}
+                                    style={{
+                                      fontStyle: "italic",
+                                      color: "#888",
+                                    }}
                                   >
                                     Đánh giá lúc:{" "}
                                     {new Date(
@@ -380,14 +382,16 @@ const OrdersSection = ({
                                     ).toLocaleString("vi-VN")}
                                   </p>
                                   <div className={styles.imagePreview}>
-                                    {(item.review.images || []).map((img, i) => (
-                                      <Image
-                                        key={i}
-                                        src={img}
-                                        width={80}
-                                        height={80}
-                                      />
-                                    ))}
+                                    {(item.review.images || []).map(
+                                      (img, i) => (
+                                        <Image
+                                          key={i}
+                                          src={img}
+                                          width={80}
+                                          height={80}
+                                        />
+                                      )
+                                    )}
                                   </div>
                                   <Button
                                     type="link"
@@ -413,9 +417,7 @@ const OrdersSection = ({
                                 <div>
                                   <Rate
                                     value={
-                                      reviews[item.orderdetail_id]?.rating ??
-                                      item.review?.rating ??
-                                      0
+                                      reviews[item.orderdetail_id]?.rating ?? 0
                                     }
                                     onChange={(value) =>
                                       handleReviewChange(
@@ -430,7 +432,6 @@ const OrdersSection = ({
                                     placeholder="Viết nhận xét của bạn..."
                                     value={
                                       reviews[item.orderdetail_id]?.content ??
-                                      item.review?.review_content ??
                                       ""
                                     }
                                     onChange={(e) =>
@@ -442,9 +443,6 @@ const OrdersSection = ({
                                     }
                                   />
                                   <Upload
-                                    disabled={
-                                      !editingReviews[item.orderdetail_id]
-                                    }
                                     beforeUpload={(file) => {
                                       const current =
                                         reviews[item.orderdetail_id]?.images
@@ -471,18 +469,13 @@ const OrdersSection = ({
                                     <Button
                                       icon={<CameraOutlined />}
                                       style={{ marginTop: "0.5rem" }}
-                                      disabled={
-                                        !editingReviews[item.orderdetail_id]
-                                      }
                                     >
                                       Thêm ảnh (tối đa 3)
                                     </Button>
                                   </Upload>
                                   <div className={styles.imagePreview}>
                                     {(
-                                      reviews[item.orderdetail_id]?.images ||
-                                      item.review?.images ||
-                                      []
+                                      reviews[item.orderdetail_id]?.images || []
                                     ).map((img, i) => {
                                       const isFile = !(typeof img === "string");
                                       const previewUrl = isFile
@@ -499,47 +492,45 @@ const OrdersSection = ({
                                             height={80}
                                             className={styles.previewImage}
                                           />
-                                          {editingReviews[
-                                            item.orderdetail_id
-                                          ] && (
-                                            <CloseOutlined
-                                              onClick={() => {
-                                                const updatedImages = (
-                                                  reviews[item.orderdetail_id]
-                                                    ?.images || []
-                                                ).filter(
-                                                  (_, index) => index !== i
-                                                );
-                                                handleReviewChange(
-                                                  item.orderdetail_id,
-                                                  "images",
-                                                  updatedImages
-                                                );
-                                              }}
-                                              className={styles.removeIcon}
-                                            />
-                                          )}
+                                          <CloseOutlined
+                                            onClick={() => {
+                                              const updatedImages = (
+                                                reviews[item.orderdetail_id]
+                                                  ?.images || []
+                                              ).filter(
+                                                (_, index) => index !== i
+                                              );
+                                              handleReviewChange(
+                                                item.orderdetail_id,
+                                                "images",
+                                                updatedImages
+                                              );
+                                            }}
+                                            className={styles.removeIcon}
+                                          />
                                         </div>
                                       );
                                     })}
                                   </div>
-                                  <Button
-                                    danger
-                                    style={{ marginTop: "0.5rem" }}
-                                    onClick={() => {
-                                      setEditingReviews((prev) => ({
-                                        ...prev,
-                                        [item.orderdetail_id]: false,
-                                      }));
-                                      setReviews((prev) => {
-                                        const updated = { ...prev };
-                                        delete updated[item.orderdetail_id];
-                                        return updated;
-                                      });
-                                    }}
-                                  >
-                                    Hủy chỉnh sửa
-                                  </Button>
+                                  {isEditing && (
+                                    <Button
+                                      danger
+                                      style={{ marginTop: "0.5rem" }}
+                                      onClick={() => {
+                                        setEditingReviews((prev) => ({
+                                          ...prev,
+                                          [item.orderdetail_id]: false,
+                                        }));
+                                        setReviews((prev) => {
+                                          const updated = { ...prev };
+                                          delete updated[item.orderdetail_id];
+                                          return updated;
+                                        });
+                                      }}
+                                    >
+                                      Hủy chỉnh sửa
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -556,6 +547,7 @@ const OrdersSection = ({
                     onClick={() => {
                       setIsOrderModalVisible(false);
                       setReviews({});
+                      setEditingReviews({});
                     }}
                   >
                     Hủy

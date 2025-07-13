@@ -547,9 +547,9 @@ const LoginRegister = () => {
                     isInvalid={!!validationErrors.gender}
                   >
                     <option value="">* Giới tính</option>
-                    <option value="Male">Nam</option>
-                    <option value="Female">Nữ</option>
-                    <option value="Other">Khác</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
                   </Form.Control>
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.gender}

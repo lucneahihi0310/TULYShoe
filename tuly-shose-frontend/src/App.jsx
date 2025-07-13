@@ -79,7 +79,7 @@ function App() {
         <Route path="/orderdetail/:orderCode" element={<OrderDetail />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/order-failure" element={<OrderFailure />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profileUser" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
 
         <Route

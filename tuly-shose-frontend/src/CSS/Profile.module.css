@@ -271,10 +271,10 @@
 }
 
 .sectionTitle {
-  text-align: center;
-  color: #111111;
-  margin-bottom: 1.5rem;
-  font-weight: 700;
+  text-align: center !important;
+  color: #715ad6 !important;
+  margin-bottom: 1.5rem !important;
+  font-weight: 700 !important; 
 }
 
 .orderInfo {

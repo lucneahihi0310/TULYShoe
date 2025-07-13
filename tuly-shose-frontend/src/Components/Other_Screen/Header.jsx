@@ -120,7 +120,7 @@ const Header = () => {
       key: "profile",
       label: "Thông tin cá nhân",
       icon: <ProfileOutlined />,
-      onClick: () => navigate("/profile"),
+      onClick: () => navigate("/profileUser"),
     },
     {
       key: "logout",

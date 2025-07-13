@@ -82,8 +82,10 @@ const OrderDetail = () => {
                   {new Date(order.delivery_date).toLocaleDateString("vi-VN")}
                 </li>
                 <li>
-                  <Text strong>Ghi chú:</Text> {order.order_note}
+                  <Text strong>Ghi chú:</Text>{" "}
+                  {order.order_note ? order.order_note : "Không có ghi chú"}
                 </li>
+
                 <li>
                   <Text strong>Trạng thái:</Text>{" "}
                   <Text className={styles.status}>
