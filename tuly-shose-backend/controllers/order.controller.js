@@ -9,7 +9,7 @@ const CartItem = require("../models/cartItem.model");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 const User = require('../models/account.modle');
-require("../models/orderStatus.model");
+const OrderStatus = require("../models/orderStatus.model");
 require("../models/account.modle");
 require("../models/address_shipping.model");
 
@@ -348,19 +348,18 @@ exports.createOrder = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find()
+    const orders = await Order.find()
       .populate('order_status_id')
-      .populate('address_shipping_id')
       .populate('accepted_by')
       .populate('user_id');
 
     const formattedOrders = orders.map(order => ({
       _id: order._id,
-      userName: order.user_id ? `${order.user_id.first_name} ${order.user_id.last_name}` : 'Unknown',
+      userName: order.shipping_info.full_name,
       order_code: order.order_code,
       order_date: order.order_date,
       order_status: order.order_status_id ? order.order_status_id.order_status_name : 'Không có trạng thái',
-      address_shipping: order.address_shipping_id ? order.address_shipping_id.address : 'Không có địa chỉ',
+      address_shipping: order.shipping_info.address,
       delivery_date: order.delivery_date,
       order_note: order.order_note,
       total_amount: order.total_amount,
@@ -385,19 +384,21 @@ exports.confirmOrder = async (req, res) => {
     const { orderId } = req.params;
     const { staffId } = req.body;
 
-    // Kiểm tra staff tồn tại
     const staff = await User.findById(staffId);
     if (!staff) return res.status(404).json({ message: 'Nhân viên không tồn tại' });
 
-    // Tìm đơn hàng
-    const order = await orderModel.findById(orderId);
+    const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: 'Đơn hàng không tồn tại' });
 
-    // Kiểm tra nếu đơn hàng đã xác nhận
-    if (order.accepted_by) return res.status(400).json({ message: 'Đơn hàng đã được xác nhận trước đó' });
+    if (order.accepted_by) return res.status(400).json({ message: 'Đơn hàng đã xác nhận' });
 
-    // Xác nhận đơn hàng
+    // 🔽 Tìm ID trạng thái \"Đã xác nhận\"
+    const confirmedStatus = await OrderStatus.findOne({ order_status_name: "Đã xác nhận" });
+    if (!confirmedStatus) return res.status(404).json({ message: 'Không tìm thấy trạng thái Đã xác nhận' });
+
+    // ✅ Cập nhật đơn hàng
     order.accepted_by = staffId;
+    order.order_status_id = confirmedStatus._id;
     order.update_at = Date.now();
     await order.save();
 
@@ -405,5 +406,45 @@ exports.confirmOrder = async (req, res) => {
   } catch (error) {
     console.error('Lỗi xác nhận đơn hàng:', error);
     res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { newStatusName } = req.body;
+
+    if (!newStatusName) {
+      return res.status(400).json({ message: "Thiếu tên trạng thái mới" });
+    }
+
+    // Tìm trạng thái mới trong bảng OrderStatus
+    const newStatus = await OrderStatus.findOne({ order_status_name: newStatusName });
+
+    if (!newStatus) {
+      return res.status(404).json({ message: `Không tìm thấy trạng thái: ${newStatusName}` });
+    }
+
+    // Tìm đơn hàng
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    }
+
+    // Cập nhật trạng thái
+    order.order_status_id = newStatus._id;
+    order.update_at = new Date();
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Đã cập nhật trạng thái đơn hàng thành: ${newStatusName}`,
+      order
+    });
+  } catch (error) {
+    console.error("Lỗi cập nhật trạng thái đơn hàng:", error);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
