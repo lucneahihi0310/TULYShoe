@@ -1,4 +1,4 @@
-const product_detail = require('../models/product_detail.model');
+const product_detail = require('../models/productDetail.model');
 const formatDateTime = (date) => {
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, "0");
