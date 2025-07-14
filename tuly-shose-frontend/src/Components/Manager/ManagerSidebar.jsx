@@ -5,13 +5,13 @@ const ManagerSidebar = () => {
     const navigate = useNavigate();
 
     const menu = [
-        { key: 'brands', label: 'Brand Management' },
-        { key: 'categories', label: 'Category Management' },
-        { key: 'colors', label: 'Color Management' },
-        { key: 'forms', label: 'Form Management' },
-        { key: 'materials', label: 'Material Management' },
-        { key: 'sizes', label: 'Size Management' },
-        { key: 'products', label: 'Product Management' }
+        { key: 'brands', label: 'Quản lý brand' },
+        { key: 'categories', label: 'Quản lý category' },
+        { key: 'colors', label: 'Quản lý màu sắc' },
+        { key: 'forms', label: 'Quản lý form' },
+        { key: 'materials', label: 'Quản lý vật liệu' },
+        { key: 'sizes', label: 'Quản lý size' },
+        { key: 'products', label: 'Quản lý sản phẩm' }
     ];
 
     return (

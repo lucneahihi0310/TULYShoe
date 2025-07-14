@@ -314,3 +314,36 @@ exports.create_product = async (req, res, next) => {
     next(error);
   }
 }
+
+exports.edit_product = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const { productName, description, price, categories_id, brand_id, material_id, form_id } = req.body;
+    const newProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        productName,
+        description,
+        price,
+        categories_id,
+        brand_id,
+        material_id,
+        form_id,
+        update_at: new Date().toISOString()
+      }
+    )
+    res.status(201).json(newProduct);
+  } catch (error) {
+    next(error);
+  }
+}
+
+exports.delete_product = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const newProduct = await Product.findByIdAndDelete(id);
+    res.status(201).json(newProduct);
+  } catch (error) {
+    next(error);
+  }
+}

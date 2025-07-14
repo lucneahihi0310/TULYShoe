@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerColor = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerColor = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/colors/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/colors/edit/${edittingRow}`, {
+            //     color_code: record.color_code,
+            //     is_active: record.status
+            // });
+            await updateData('/colors/manager/edit_color', edittingRow, {
                 color_code: record.color_code,
                 is_active: record.status
-            });
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
@@ -49,7 +54,8 @@ const ManagerColor = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/colors/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/colors/delete/${id}`);
+        await deleteData('/colors/manager/delete_color', id, true);
         fetchCategories();
     };
 
@@ -58,8 +64,9 @@ const ManagerColor = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/colors`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/colors`);
+        const res = await fetchData('/colors/manager/list_color', true);
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
@@ -286,10 +293,14 @@ const ManagerColor = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/colors/create', {
+                                    // await axios.post('http://localhost:9999/manager/colors/create', {
+                                    //     color_code: values.color_code,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/colors/manager/create_color', {
                                         color_code: values.color_code,
                                         is_active: values.is_active
-                                    });
+                                    }, true)
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();

@@ -26,7 +26,7 @@ const ManagerDashboardContent = () => {
         case 'sizes':
             return <ManagerSize />;
         case 'products':
-            return <ManagerProduct />
+            return <ManagerProduct />;
         default:
             return <div>Welcome to Manager Dashboard</div>;
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerSize = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerSize = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/sizes/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/sizes/edit/${edittingRow}`, {
+            //     size_name: record.size_name,
+            //     is_active: record.status
+            // });
+            await updateData('/sizes/manager/edit_size', edittingRow, {
                 size_name: record.size_name,
                 is_active: record.status
-            });
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
@@ -49,7 +54,8 @@ const ManagerSize = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/sizes/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/sizes/delete/${id}`);
+        await deleteData('/sizes/manager/delete_size', id, true);
         fetchCategories();
     };
 
@@ -58,8 +64,9 @@ const ManagerSize = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/sizes`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/sizes`);
+        const res = await fetchData('/sizes/manager/list_size');
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
@@ -268,10 +275,15 @@ const ManagerSize = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/sizes/create', {
+                                    // await axios.post('http://localhost:9999/manager/sizes/create', {
+                                    //     size_name: values.size_name,
+                                    //     is_active: values.is_active
+                                    // });
+
+                                    await postData('/sizes/manager/create_size', {
                                         size_name: values.size_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
