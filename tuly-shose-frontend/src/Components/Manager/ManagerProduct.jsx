@@ -28,24 +28,9 @@ const ManagerProduct = () => {
     // const [messageApi, contextHolder] = message.useMessage();
     const [listProductDetail, setListProductDetail] = useState(false);
     const [addProductDetail, setAddProductDetail] = useState(false);
-    //state ảnh
-    // const props = {
-    //     name: 'file',
-    //     action: 'https://api.cloudinary.com/v1_1/demo/image/upload',
-    //     headers: {
-    //         authorization: 'authorization-text',
-    //     },
-    //     onChange(info) {
-    //         if (info.file.status !== 'uploading') {
-    //             console.log(info.file, info.fileList);
-    //         }
-    //         if (info.file.status === 'done') {
-    //             message.success(`${info.file.name} file uploaded successfully`);
-    //         } else if (info.file.status === 'error') {
-    //             message.error(`${info.file.name} file upload failed.`);
-    //         }
-    //     },
-    // };
+    const [currentProductId, setCurrentProductId] = useState(null);
+    const [currentProductPrice, setCurrentProductPrice] = useState(0);
+
     // State cho upload ảnh
     const [imageUrls, setImageUrls] = useState([]);
     const [fileList, setFileList] = useState([]);
@@ -83,8 +68,6 @@ const ManagerProduct = () => {
         setImageUrls(prev => prev.filter(u => u !== file.url));
         setFileList(prev => prev.filter(f => f.url !== file.url));
     };
-
-
 
     //show add category
     const showAddCategoryModal = () => {
@@ -133,10 +116,12 @@ const ManagerProduct = () => {
         console.log("delete")
     };
 
-    const showProductDetail = async (productId) => {
+    const showProductDetail = async (productId, record) => {
         const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
         // console.log(res);
         setDetailData(res);
+        setCurrentProductPrice(record.price);
+        setCurrentProductId(productId);
         setListProductDetail(true);
     };
 
@@ -156,7 +141,7 @@ const ManagerProduct = () => {
         fetchSizes();
         fetchDiscounts();
         fetchProductDetailStatuses();
-        fetchProductDetails
+        // fetchProductDetails(currentProductId);
     }, [])
     const fetchCategories = async () => {
         const res = await fetchData('/products/manager/list_product');
@@ -194,10 +179,10 @@ const ManagerProduct = () => {
         const res = await fetchData('/product_detail_status/manager/list_product_detail_status');
         setProduct_detail_statuses(res);
     }
-    const fetchProductDetails = async () => {
-        const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
-        setProduct_detail_by_ids(res);
-    }
+    // const fetchProductDetails = async (productId) => {
+    //     const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
+    //     setProduct_detail_by_ids(res);
+    // }
     const searchCategory = categories.filter((c) => {
         const findCategoryByName = c.productName.toLowerCase().includes(filterCategoryName.toLowerCase());
         return findCategoryByName;
@@ -409,6 +394,7 @@ const ManagerProduct = () => {
                         <div>
                             <Row>
                                 <Button
+                                    style={{ margin: '5px' }}
                                     color="primary"
                                     variant="solid"
                                     icon={<UnorderedListOutlined />}
@@ -423,7 +409,7 @@ const ManagerProduct = () => {
                                         //     material_id: record.material_id,
                                         //     form_id: record.form_id
                                         // })
-                                        showProductDetail(record._id);
+                                        showProductDetail(record._id, record);
                                         console.log(record);
                                     }}>
                                     Product Detail
@@ -436,16 +422,17 @@ const ManagerProduct = () => {
                                         handleCancelShowProductDetail()
                                     }}
                                     footer={null}
-                                    width={800}>
+                                    width={800}
+                                    destroyOnClose
+                                >
                                     <Button
                                         style={{ width: '200px', marginBottom: '15px' }}
                                         shape="round"
                                         icon={<PlusOutlined />}
                                         onClick={() => {
                                             form_add_product_detail.setFieldsValue({
-                                                product_id: detailData[0].product_id._id
+                                                product_id: currentProductId
                                             });
-                                            console.log(detailData[0].product_id._id);
                                             setAddProductDetail(true);
                                         }}>
                                         Add New Product Detail
@@ -457,6 +444,7 @@ const ManagerProduct = () => {
                                         onCancel={() => setAddProductDetail(false)}
                                         footer={null}
                                         width={800}
+                                        destroyOnClose
                                     >
                                         <Form
                                             form={form_add_product_detail}
@@ -482,11 +470,13 @@ const ManagerProduct = () => {
                                                 await postData('/product_details/manager/create_product_detail', payload, true);
                                                 form_add_product_detail.resetFields();
                                                 console.log(values);
-                                                fetchProductDetails();
+                                                showProductDetail(currentProductId, {
+                                                    price: currentProductPrice
+                                                });
                                             }}
                                         >
                                             <Form.Item
-                                                label="Product name"
+                                                label="Id sản phẩm"
                                                 name="product_id"
                                                 rules={[
                                                     { required: true, message: "Please enter product name" }
@@ -502,7 +492,20 @@ const ManagerProduct = () => {
                                                     allowClear
                                                     options={colors.map((c) => {
                                                         return {
-                                                            label: c.color_code,
+                                                            label: (
+                                                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                                    <div
+                                                                        style={{
+                                                                            width: "20px",
+                                                                            height: "20px",
+                                                                            backgroundColor: c.color_code,
+                                                                            border: "1px solid #ddd",
+                                                                            borderRadius: "4px",
+                                                                        }}
+                                                                    />
+                                                                    <span>{c.color_code}</span>
+                                                                </div>
+                                                            ),
                                                             value: c._id
                                                         }
                                                     })}
@@ -526,42 +529,65 @@ const ManagerProduct = () => {
                                             <Form.Item
                                                 label="Discount"
                                                 name="discount"
-                                                rules={[{ required: true, message: "Please select discount" }]}>
+                                                rules={[{ required: true, message: "Please select discount" }]}
+                                            >
                                                 <Select
                                                     placeholder="Select discount"
                                                     allowClear
-                                                    options={discounts.map((d) => {
-                                                        return {
-                                                            label: d.percent_discount,
-                                                            value: d._id
+                                                    options={discounts.map((d) => ({
+                                                        label: `${d.percent_discount}%`,
+                                                        value: d._id
+                                                    }))}
+                                                    onChange={(selectedDiscountId) => {
+                                                        const selectedDiscount = discounts.find((d) => d._id === selectedDiscountId);
+                                                        if (selectedDiscount) {
+                                                            const priceAfter = currentProductPrice * (1 - selectedDiscount.percent_discount / 100);
+                                                            form_add_product_detail.setFieldsValue({
+                                                                price_after_discount: Math.round(priceAfter)
+                                                            });
                                                         }
-                                                    })}
+                                                    }}
                                                 />
                                             </Form.Item>
+
                                             <Form.Item
                                                 label="Inventory number"
                                                 name="inventory_number"
                                                 rules={[
-                                                    { required: true, message: "Please enter inventory number" },
-                                                ]}>
-                                                <Input placeholder="Enter inventory number" />
+                                                    { required: true, message: "Hãy điền inventory number" }
+                                                ]}
+                                            >
+                                                <InputNumber
+                                                    placeholder="Enter inventory number"
+                                                    style={{ width: "100%" }}
+                                                    min={1}
+                                                    precision={0} // ép thành số nguyên, không cho nhập số thập phân
+                                                />
                                             </Form.Item>
+
                                             <Form.Item
                                                 label="Sold number"
                                                 name="sold_number"
                                                 rules={[
                                                     { required: true, message: "Please enter sold number" },
                                                 ]}>
-                                                <InputNumber placeholder="Enter sold number" />
+                                                <InputNumber
+                                                    placeholder="Enter sold number"
+                                                    style={{ width: "100%" }}
+                                                />
                                             </Form.Item>
                                             <Form.Item
                                                 label="Price after discount"
                                                 name="price_after_discount"
-                                                rules={[
-                                                    { required: true, message: "Please enter price after discount" },
-                                                ]}>
-                                                <InputNumber placeholder="Enter price after discount" />
+                                                rules={[{ required: true, message: "Please enter price after discount" }]}
+                                            >
+                                                <InputNumber
+                                                    placeholder="Auto calculated"
+                                                    disabled
+                                                    style={{ width: '100%' }}
+                                                />
                                             </Form.Item>
+
 
                                             {/* lưu ảnh */}
                                             {/* <Form.Item
@@ -698,7 +724,8 @@ const ManagerProduct = () => {
                             </Row>
                             <Row>
                                 <Button
-                                    color="primary"
+                                    style={{ margin: '5px' }}
+                                    color="yellow"
                                     variant="solid"
                                     icon={<EditOutlined />}
                                     onClick={() => {
@@ -729,6 +756,7 @@ const ManagerProduct = () => {
                                     cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
                                 >
                                     <Button
+                                        style={{ margin: '5px' }}
                                         color="danger"
                                         variant="solid"
                                         icon={<DeleteOutlined />}>
