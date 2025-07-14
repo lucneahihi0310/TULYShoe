@@ -23,7 +23,10 @@ function CartItem() {
     setLoading(true);
     try {
       if (user) {
-        const data = await fetchData(`cartItem/customers/user/${user._id}`, true);
+        const data = await fetchData(
+          `cartItem/customers/user/${user._id}`,
+          true
+        );
         const mapped = data.map((item) => ({
           _id: item._id,
           pdetail_id: item.pdetail_id,
@@ -34,6 +37,7 @@ function CartItem() {
           color_code: item.pdetail_id.color_id?.color_code,
           productName: item.pdetail_id.product_id?.productName,
           title: item.pdetail_id.product_id?.title,
+          inventory_number: item.pdetail_id.inventory_number,
         }));
         setCartItems(mapped);
       } else {
@@ -41,7 +45,9 @@ function CartItem() {
         const details = await Promise.all(
           guest.map(async (item) => {
             try {
-              const data = await fetchData(`productDetail/customers/${item.pdetail_id}`);
+              const data = await fetchData(
+                `productDetail/customers/${item.pdetail_id}`
+              );
               return {
                 _id: item.pdetail_id,
                 pdetail_id: item.pdetail_id,
@@ -52,6 +58,7 @@ function CartItem() {
                 color_code: data.color_id?.color_code,
                 productName: data.product_id?.productName,
                 title: data.product_id?.title,
+                inventory_number: data.inventory_number,
               };
             } catch (err) {
               console.error("Lỗi lấy chi tiết:", item.pdetail_id, err);
@@ -73,12 +80,23 @@ function CartItem() {
   }, [user]);
 
   const onQuantityChange = async (record, newQty) => {
+    if (record.inventory_number === 0) {
+      notification.error({
+        message: "Sản phẩm đã hết hàng, không thể thay đổi số lượng!",
+      });
+      return;
+    }
     if (newQty === 0) {
       setSelectedRecord(record);
       setIsModalVisible(true);
     } else {
       if (user) {
-        await updateData("/cartItem/customers", record._id, { quantity: newQty }, true);
+        await updateData(
+          "/cartItem/customers",
+          record._id,
+          { quantity: newQty },
+          true
+        );
       } else {
         let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         guest = guest.map((item) =>
@@ -116,14 +134,52 @@ function CartItem() {
     }
   };
 
+  const handleCheckout = () => {
+    const outOfStockItems = cartItems.filter(
+      (item) => item.inventory_number === 0
+    );
+    if (outOfStockItems.length > 0) {
+      const outOfStockNames = outOfStockItems
+        .map((item) => item.productName)
+        .join(", ");
+      notification.error({
+        message: "Có sản phẩm hết hàng!",
+        description: `Vui lòng xóa các sản phẩm hết hàng: ${outOfStockNames} trước khi thanh toán.`,
+      });
+      return;
+    }
+    navigate("/order", {
+      state: {
+        fromCart: true,
+        orderItems: cartItems.map((item) => ({
+          pdetail_id: item.pdetail_id._id || item.pdetail_id,
+          quantity: item.quantity,
+        })),
+      },
+    });
+  };
+
   const columns = [
     {
       title: "Sản phẩm",
       dataIndex: "",
       key: "product",
       render: (record) => (
-        <div className={styles.productContainer}>
-          <img src={record.image} alt={record.productName} className={styles.productImage} />
+        <div
+          className={`${styles.productContainer} ${
+            record.inventory_number === 0 ? styles.outOfStock : ""
+          }`}
+        >
+          <div className={styles.imageWrapper}>
+            <img
+              src={record.image}
+              alt={record.productName}
+              className={styles.productImage}
+            />
+            {record.inventory_number === 0 && (
+              <div className={styles.outOfStockBadge}>Hết hàng</div>
+            )}
+          </div>
           <div>
             <h3 className={styles.productName}>{record.productName}</h3>
             <p className={styles.productDescription}>{record.title}</p>
@@ -159,8 +215,13 @@ function CartItem() {
         <InputNumber
           min={0}
           value={qty}
-          className={styles.quantityInput}
+          className={
+            record.inventory_number === 0
+              ? styles.quantityInputDisabled
+              : styles.quantityInput
+          }
           onChange={(val) => onQuantityChange(record, val)}
+          disabled={record.inventory_number === 0}
         />
       ),
     },
@@ -262,17 +323,7 @@ function CartItem() {
           </div>
           <Button
             className={styles.checkoutButton}
-            onClick={() =>
-              navigate("/order", {
-                state: {
-                  fromCart: true,
-                  orderItems: cartItems.map((item) => ({
-                    pdetail_id: item.pdetail_id._id || item.pdetail_id,
-                    quantity: item.quantity,
-                  })),
-                },
-              })
-            }
+            onClick={handleCheckout}
             disabled={cartItems.length === 0}
           >
             Thanh toán

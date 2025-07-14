@@ -45,7 +45,7 @@ const Order = () => {
   const [isLoadingWards, setIsLoadingWards] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
-
+  const [hasFetchedProvinces, setHasFetchedProvinces] = useState(false);
   const fetchProvinces = async () => {
     setIsLoadingProvinces(true);
     try {
@@ -135,9 +135,14 @@ const Order = () => {
 
   useEffect(() => {
     if (user) {
-      Promise.all([fetchUserInfo(), fetchProvinces()]);
+      fetchUserInfo();
     }
-  }, [user]);
+
+    if (!hasFetchedProvinces) {
+      fetchProvinces();
+      setHasFetchedProvinces(true);
+    }
+  }, [user, hasFetchedProvinces]);
 
   useEffect(() => {
     if (isAddressModalVisible && provinces.length > 0 && !initialLoadComplete) {
@@ -362,114 +367,109 @@ const Order = () => {
       return message.warning("Không có sản phẩm để đặt hàng.");
     }
 
-    const values = form.getFieldsValue();
-    const nameParts = values.fullName.trim().split(/\s+/);
-    let firstName = "";
-    let lastName = "";
+    try {
+      const values = await form.validateFields();
 
-    if (nameParts.length === 1) {
-      lastName = nameParts[0] || "";
-    } else if (nameParts.length === 2) {
-      firstName = nameParts[0] || "";
-      lastName = nameParts[1] || "";
-    } else if (nameParts.length >= 3) {
-      firstName = nameParts.slice(0, 2).join(" ") || "";
-      lastName = nameParts.slice(2).join(" ") || "";
-    }
+      const nameParts = values.fullName.trim().split(/\s+/);
+      let firstName = "",
+        lastName = "";
 
-    const payload = {
-      user_id: user?._id || null,
-      orderItems: orderItems.map((item) => ({
-        pdetail_id: item.pdetail_id,
-        quantity: item.quantity,
-        price_after_discount: item.price_after_discount,
-        productName: item.productName,
-        size_name: item.size_name,
-      })),
-      userInfo: {
-        fullName: values.fullName,
-        phone: values.phone,
-        email: values.email,
-        address: values.address,
-        first_name: firstName,
-        last_name: lastName,
-      },
-      paymentMethod,
-      orderNote,
-      shippingFee,
-      isFromCart: location.state?.fromCart === true,
-    };
+      if (nameParts.length === 1) {
+        lastName = nameParts[0];
+      } else if (nameParts.length === 2) {
+        [firstName, lastName] = nameParts;
+      } else {
+        firstName = nameParts.slice(0, 2).join(" ");
+        lastName = nameParts.slice(2).join(" ");
+      }
 
-    if (paymentMethod === "cod") {
-      Modal.confirm({
+      const payload = {
+        user_id: user?._id || null,
+        orderItems: orderItems.map((item) => ({
+          pdetail_id: item.pdetail_id,
+          quantity: item.quantity,
+          price_after_discount: item.price_after_discount,
+          productName: item.productName,
+          size_name: item.size_name,
+        })),
+        userInfo: {
+          fullName: values.fullName,
+          phone: values.phone,
+          email: values.email,
+          address: values.address,
+          first_name: firstName,
+          last_name: lastName,
+        },
+        paymentMethod,
+        orderNote,
+        shippingFee,
+        isFromCart: location.state?.fromCart === true,
+      };
+
+      const confirmOptions = {
         title: "Xác nhận đặt hàng",
-        content: "Bạn có chắc chắn muốn đặt hàng với phương thức COD?",
+        content:
+          paymentMethod === "cod"
+            ? "Bạn có chắc chắn muốn đặt hàng với phương thức COD?"
+            : "Bạn có chắc chắn muốn thanh toán với VNPay?",
         okText: "Xác nhận",
         icon: <QuestionCircleOutlined />,
         cancelButtonProps: { style: { display: "none" } },
         closable: true,
         async onOk() {
           try {
-            const data = await postData("/orders/customers", payload, true);
+            if (paymentMethod === "cod") {
+              const data = await postData("/orders/customers", payload, true);
 
-            if (data?.order_code) {
-              message.success("Đặt hàng thành công!");
-              if (!user && location.state?.fromCart) {
-                localStorage.removeItem("guest_cart");
-                sessionStorage.removeItem("guest_cart");
+              if (data?.order_code) {
+                message.success("Đặt hàng thành công!");
+                if (!user && location.state?.fromCart) {
+                  localStorage.removeItem("guest_cart");
+                  sessionStorage.removeItem("guest_cart");
+                }
+                window.dispatchEvent(new Event("cartUpdated"));
+                navigate("/order-success", {
+                  state: { order_code: data.order_code },
+                });
+              } else {
+                message.error(data?.message || "Đặt hàng thất bại");
               }
-              window.dispatchEvent(new Event("cartUpdated"));
-              navigate("/order-success", {
-                state: { order_code: data.order_code },
-              });
             } else {
-              message.error(data?.message || "Đặt hàng thất bại");
+              const data = await postData(
+                "vnpay/create",
+                {
+                  ...payload,
+                  amount: totalAmount,
+                  paymentMethod: "online",
+                },
+                true
+              );
+
+              if (data?.paymentUrl) {
+                if (!user && location.state?.fromCart) {
+                  localStorage.removeItem("guest_cart");
+                  sessionStorage.removeItem("guest_cart");
+                }
+                window.dispatchEvent(new Event("cartUpdated"));
+                sessionStorage.setItem("order_code", data.order_code);
+                window.location.href = data.paymentUrl;
+              } else {
+                message.error(
+                  data?.message || "Không thể tạo liên kết thanh toán."
+                );
+              }
             }
-          } catch (error) {
-            console.error("Lỗi khi gửi đơn hàng:", error);
+          } catch (err) {
+            console.error("Lỗi khi gửi đơn hàng:", err);
             message.error("Lỗi kết nối đến server.");
           }
         },
-      });
-    } else {
-      Modal.confirm({
-        title: "Xác nhận đặt hàng",
-        content: "Bạn có chắc chắn muốn thanh toán với VNPay?",
-        okText: "Xác nhận",
-        icon: <QuestionCircleOutlined />,
-        cancelButtonProps: { style: { display: "none" } },
-        closable: true,
-        async onOk() {
-          try {
-            const data = await postData(
-              "vnpay/create",
-              {
-                ...payload,
-                amount: totalAmount,
-                paymentMethod: "online",
-              },
-              true
-            );
+      };
 
-            if (data?.paymentUrl) {
-              window.dispatchEvent(new Event("cartUpdated"));
-              if (!user && location.state?.fromCart) {
-                localStorage.removeItem("guest_cart");
-                sessionStorage.removeItem("guest_cart");
-              }
-              sessionStorage.setItem("order_code", data.order_code);
-              window.location.href = data.paymentUrl;
-            } else {
-              message.error(
-                data?.message || "Không thể tạo liên kết thanh toán."
-              );
-            }
-          } catch (err) {
-            console.error("Lỗi khi gọi VNPay:", err);
-            message.error("Lỗi kết nối đến VNPay.");
-          }
-        },
-      });
+      Modal.confirm(confirmOptions);
+    } catch (errorInfo) {
+      message.error("Vui lòng điền đầy đủ và chính xác thông tin giao hàng.");
+      console.warn("Form validation error:", errorInfo);
     }
   };
 
@@ -515,7 +515,13 @@ const Order = () => {
                   },
                 ]}
               >
-                <Input placeholder="Email" className={styles.input} />
+                <Input
+                  placeholder="Email"
+                  className={styles.input}
+                  onChange={(e) =>
+                    form.setFieldsValue({ email: e.target.value.toLowerCase() })
+                  }
+                />
               </Form.Item>
 
               <Form.Item

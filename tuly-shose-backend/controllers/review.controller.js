@@ -29,7 +29,7 @@ exports.createOrUpdateReview = async (req, res) => {
     }
 
     // Lấy ảnh cũ từ body (nếu có)
-    const oldImages = req.body.images_old; // <-- đã đổi từ "images_old[]" sang "images_old"
+    const oldImages = req.body.images_old;
     let imagesOld = [];
 
     if (Array.isArray(oldImages)) {
@@ -85,8 +85,6 @@ exports.createOrUpdateReview = async (req, res) => {
   }
 };
 
-
-
 exports.getAllReviews = async (req, res) => {
   try {
     const reviews = await Review.find()
@@ -137,5 +135,47 @@ exports.getReviewsByProductDetailId = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi lấy đánh giá:", error);
     res.status(500).json({ message: "Lỗi khi lấy đánh giá", error: error.message });
+  }
+};
+
+exports.getRandomReviews = async (req, res) => {
+  try {
+    const { rating = 5, limit = 3 } = req.query;
+
+    const reviews = await Review.aggregate([
+      { $match: { rating: parseInt(rating), is_approved: true } },
+      {
+        $group: {
+          _id: '$user_id', // Nhóm theo user_id để đảm bảo mỗi khách hàng chỉ xuất hiện một lần
+          review: { $first: '$$ROOT' }, // Lấy một đánh giá ngẫu nhiên từ mỗi user_id
+        },
+      },
+      { $sample: { size: parseInt(limit) } }, // Lấy ngẫu nhiên 3 nhóm (tương ứng 3 user_id)
+      {
+        $lookup: {
+          from: 'accounts',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'user_id',
+        },
+      },
+      { $unwind: { path: '$user_id', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: '$review._id',
+          user_id: {
+            first_name: '$user_id.first_name',
+            last_name: '$user_id.last_name',
+            avatar_image: '$user_id.avatar_image',
+          },
+          review_content: '$review.review_content',
+        },
+      },
+    ]);
+
+    res.json(reviews);
+  } catch (error) {
+    console.error('Lỗi khi lấy đánh giá ngẫu nhiên:', error);
+    res.status(500).json({ message: 'Lỗi khi lấy đánh giá ngẫu nhiên', error: error.message });
   }
 };

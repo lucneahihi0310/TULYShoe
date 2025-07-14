@@ -372,7 +372,6 @@
   justify-content: center;
 }
 
-
 .reply {
   display: flex;
   gap: 12px;
@@ -550,4 +549,14 @@
 .whiteNumberInput :global(.ant-input-number-disabled .ant-input-number-input) {
   background-color: transparent !important;
   color: #999 !important;
+}
+.variantLoading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 8px;
 }

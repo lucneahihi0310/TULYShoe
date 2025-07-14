@@ -20,7 +20,7 @@ exports.getFilteredProducts = async (req, res) => {
       material,
       gender,
       search,
-      sortBy = 'default', // default | price-asc | price-desc
+      sortBy = 'default', // default | price-asc | price-desc | sold-desc
       page = 1,
       limit = 12,
     } = req.query;
@@ -48,7 +48,7 @@ exports.getFilteredProducts = async (req, res) => {
             {
               $match: { $expr: { $eq: ['$product_id', '$$productId'] } },
             },
-            { $sort: { inventory_number: -1 } }, // Prioritize details with stock
+            { $sort: { inventory_number: -1 } }, // Ưu tiên chi tiết sản phẩm có hàng
             { $limit: 1 },
             {
               $lookup: {
@@ -75,6 +75,7 @@ exports.getFilteredProducts = async (req, res) => {
                 color: '$colors.color_name',
                 discount_percent: '$discount.percent_discount',
                 inventory_number: 1,
+                sold_number: 1,
               },
             },
           ],
@@ -82,7 +83,7 @@ exports.getFilteredProducts = async (req, res) => {
         },
       },
       { $unwind: { path: '$detail', preserveNullAndEmptyArrays: true } },
-      { $match: { detail: { $ne: null } } }, // Only include products with at least one detail
+      { $match: { detail: { $ne: null } } }, // Chỉ lấy sản phẩm có ít nhất một chi tiết
       {
         $addFields: {
           sort_price: {
@@ -96,14 +97,15 @@ exports.getFilteredProducts = async (req, res) => {
       },
     ];
 
-    // Total count of records
+    // Tổng số bản ghi
     const totalFiltered = await Product.aggregate([...basePipeline, { $count: 'total' }]);
     const totalCount = totalFiltered[0]?.total || 0;
 
-    // Handle sort stage
+    // Xử lý sắp xếp
     let sortStage = {};
     if (sortBy === 'price-asc') sortStage = { sort_price: 1 };
     else if (sortBy === 'price-desc') sortStage = { sort_price: -1 };
+    else if (sortBy === 'sold-desc') sortStage = { 'detail.sold_number': -1 };
     else sortStage = { _id: -1 };
 
     const paginatedPipeline = [
@@ -134,8 +136,8 @@ exports.getFilteredProducts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error filtering products:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error('Lỗi khi lọc sản phẩm:', error);
+    res.status(500).json({ message: 'Lỗi server nội bộ', error: error.message });
   }
 };
 
@@ -175,7 +177,7 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
             {
               $match: { $expr: { $eq: ['$product_id', '$$productId'] } },
             },
-            { $sort: { inventory_number: -1 } }, // Prioritize details with stock
+            { $sort: { inventory_number: -1 } }, // Ưu tiên chi tiết sản phẩm có hàng
             { $limit: 1 },
             {
               $lookup: {
@@ -202,6 +204,7 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
                 color: '$colors.color_name',
                 discount_percent: '$discount.percent_discount',
                 inventory_number: 1,
+                sold_number: 1,
               },
             },
           ],
@@ -209,7 +212,7 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
         },
       },
       { $unwind: { path: '$detail', preserveNullAndEmptyArrays: true } },
-      { $match: { detail: { $ne: null } } }, // Only include products with at least one detail
+      { $match: { detail: { $ne: null } } }, // Chỉ lấy sản phẩm có ít nhất một chi tiết
       {
         $addFields: {
           sort_price: {
@@ -228,11 +231,11 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
       },
     ];
 
-    // Total count of records
+    // Tổng số bản ghi
     const totalFiltered = await Product.aggregate([...basePipeline, { $count: 'total' }]);
     const totalCount = totalFiltered[0]?.total || 0;
 
-    // Handle sort stage
+    // Xử lý sắp xếp
     let sortStage = {};
     if (sortBy === 'price-asc') sortStage = { sort_price: 1 };
     else if (sortBy === 'price-desc') sortStage = { sort_price: -1 };
@@ -266,8 +269,8 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error filtering products:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error('Lỗi khi lọc sản phẩm:', error);
+    res.status(500).json({ message: 'Lỗi server nội bộ', error: error.message });
   }
 };
 

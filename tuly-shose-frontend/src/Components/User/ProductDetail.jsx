@@ -321,7 +321,7 @@ function ProductDetail() {
     <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
       {isVariantLoading && (
         <div className={styles.variantLoading}>
-          <Spin tip="Đang cập nhật biến thể..." />
+          <Spin tip="Đang cập nhật dữ liệu..." />
         </div>
       )}
       <Row gutter={32} className={styles.main}>
