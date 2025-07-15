@@ -16,6 +16,8 @@ import ListProductByOnSale from "./Components/User/ListProductByOnSale";
 import OrderDetail from "./Components/User/OrderDetail";
 import Profile from "./Components/User/Profile";
 import OrderFailure from "./Components/User/OrderFailure";
+import AboutUs from "./Components/User/AboutUs";
+import Instruct from "./Components/User/Instruct";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
@@ -81,6 +83,8 @@ function App() {
         <Route path="/order-failure" element={<OrderFailure />} />
         <Route path="/profileUser" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/instruct" element={<Instruct />} />
 
         <Route
           path="/manager"

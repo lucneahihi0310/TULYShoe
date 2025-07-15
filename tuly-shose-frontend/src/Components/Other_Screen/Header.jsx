@@ -48,7 +48,7 @@ const Header = () => {
     { key: "products", label: "SẢN PHẨM" },
     { key: "sale", label: "ĐANG SALE" },
     { key: "info", label: "THÔNG TIN" },
-    { key: "contact", label: "LIÊN HỆ" },
+    { key: "instruct", label: "HƯỚNG DẪN" },
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -56,15 +56,20 @@ const Header = () => {
       navigate("/products");
     } else if (key === "sale") {
       navigate("/productsbyonsale");
+    } else if (key === "info") {
+      navigate("/aboutus");
+    } else if (key === "instruct") {
+      navigate("/instruct");
     }
+
     setIsDrawerOpen(false);
   };
 
   const selectedKey = (() => {
     if (location.pathname.startsWith("/productsbyonsale")) return "sale";
     if (location.pathname.startsWith("/products")) return "products";
-    if (location.pathname.startsWith("/about")) return "info";
-    if (location.pathname.startsWith("/contact")) return "contact";
+    if (location.pathname.startsWith("/aboutus")) return "info";
+    if (location.pathname.startsWith("/instruct")) return "instruct";
     return "";
   })();
 

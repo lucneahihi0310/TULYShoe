@@ -438,6 +438,26 @@ const HomePage = () => {
               <Input
                 placeholder="you@example.com"
                 className={styles.formInput}
+                onChange={(e) =>
+                  form.setFieldsValue({ email: e.target.value.toLowerCase() })
+                }
+              />
+            </Form.Item>
+            <Form.Item
+              label="Số điện thoại"
+              name="phone"
+              rules={[
+                { required: true, message: "Vui lòng nhập số điện thoại!" },
+                {
+                  pattern: /^0\d{9}$/,
+                  message: "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0!",
+                },
+              ]}
+            >
+              <Input
+                placeholder="0xxxxxxxxx"
+                className={styles.formInput}
+                maxLength={10}
               />
             </Form.Item>
             <Form.Item
