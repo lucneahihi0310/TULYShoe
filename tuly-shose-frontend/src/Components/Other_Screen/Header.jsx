@@ -41,6 +41,7 @@ const Header = () => {
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
+  const userRole = user?.role;
 
   const screens = Grid.useBreakpoint();
 
@@ -184,38 +185,39 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <AntHeader className={styles.mainHeader}>
-        <div className={styles.logo} onClick={() => navigate("/")}>
-          <img src="../../image/logo_den.png" alt="Logo" />
-        </div>
+      {userRole !== "staff" && userRole !== "manager" && (
+        <AntHeader className={styles.mainHeader}>
+          <div className={styles.logo} onClick={() => navigate("/")}>
+            <img src="../../image/logo_den.png" alt="Logo" />
+          </div>
 
-        {screens.md ? (
-          <Menu
-            mode="horizontal"
-            className={styles.menu}
-            selectedKeys={[selectedKey]}
-            selectable={false}
-            items={navItems}
-            onClick={handleMenuClick}
-          />
-        ) : (
-          <MenuOutlined
-            className={styles.menuIcon}
-            onClick={() => setIsDrawerOpen(true)}
-          />
-        )}
-
-        <Space size="large">
-          <SearchOutlined className={styles.icon} />
-          <Badge count={cartCount} showZero>
-            <ShoppingCartOutlined
-              className={styles.icon}
-              onClick={() => navigate("/cart")}
+          {screens.md ? (
+            <Menu
+              mode="horizontal"
+              className={styles.menu}
+              selectedKeys={[selectedKey]}
+              selectable={false}
+              items={navItems}
+              onClick={handleMenuClick}
             />
-          </Badge>
-        </Space>
-      </AntHeader>
+          ) : (
+            <MenuOutlined
+              className={styles.menuIcon}
+              onClick={() => setIsDrawerOpen(true)}
+            />
+          )}
 
+          <Space size="large">
+            <SearchOutlined className={styles.icon} />
+            <Badge count={cartCount} showZero>
+              <ShoppingCartOutlined
+                className={styles.icon}
+                onClick={() => navigate("/cart")}
+              />
+            </Badge>
+          </Space>
+        </AntHeader>
+      )}
       <Drawer
         title="Danh mục"
         placement="left"

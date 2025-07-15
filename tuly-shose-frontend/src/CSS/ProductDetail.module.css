@@ -560,3 +560,53 @@
   padding: 16px;
   border-radius: 8px;
 }
+.thumbnailWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.thumbnailScroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scroll-snap-type: x mandatory;
+  max-width: 400px;
+  scroll-behavior: smooth;
+}
+
+.thumbnailScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.arrowButton {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.arrowButton:hover {
+  background-color: #f3f4f6;
+}
+
+.leftArrow {
+  margin-right: 12px;
+}
+
+.rightArrow {
+  margin-left: 12px;
+}

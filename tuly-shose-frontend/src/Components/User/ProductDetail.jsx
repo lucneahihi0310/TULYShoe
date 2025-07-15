@@ -15,7 +15,12 @@ import {
   notification,
   InputNumber,
 } from "antd";
-import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import {
+  ShoppingCartOutlined,
+  ThunderboltOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import styles from "../../CSS/ProductDetail.module.css";
 import { AuthContext } from "../API/AuthContext";
 import { fetchData, postData } from "../API/ApiService";
@@ -163,7 +168,6 @@ function ProductDetail() {
       });
     }
   };
-
   const handleMouseLeave = () => {
     setZoomStyle({ transform: "scale(1)", transformOrigin: "center center" });
   };
@@ -345,16 +349,42 @@ function ProductDetail() {
               <div className={styles.outOfStockOverlay}>Hết hàng</div>
             )}
           </div>
-          <div className={styles.thumbnails}>
-            {productDetail.images.map((img, i) => (
-              <img
-                key={i}
-                src={img}
-                className={styles.thumbnail}
-                onClick={() => setMainImage(img)}
-                alt={`thumbnail-${i}`}
-              />
-            ))}
+          <div className={styles.thumbnailWrapper}>
+            <button
+              className={`${styles.arrowButton} ${styles.leftArrow}`}
+              onClick={() =>
+                imageContainerRef.current.scrollBy({
+                  left: -100,
+                  behavior: "smooth",
+                })
+              }
+            >
+              <LeftOutlined />
+            </button>
+
+            <div className={styles.thumbnailScroll} ref={imageContainerRef}>
+              {productDetail.images.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  className={styles.thumbnail}
+                  onClick={() => setMainImage(img)}
+                  alt={`thumbnail-${i}`}
+                />
+              ))}
+            </div>
+
+            <button
+              className={`${styles.arrowButton} ${styles.rightArrow}`}
+              onClick={() =>
+                imageContainerRef.current.scrollBy({
+                  left: 100,
+                  behavior: "smooth",
+                })
+              }
+            >
+              <RightOutlined />
+            </button>
           </div>
         </Col>
 

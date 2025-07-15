@@ -43,22 +43,35 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
   }, [token]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
 
-  if (!token || !userRole) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!allowedRoles.includes(userRole)) {
-    return <Navigate to="/" replace />;
-  }
+  if (!token || !userRole) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(userRole)) return <Navigate to="/" replace />;
 
   return children;
 };
 
 function App() {
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
+      } catch (error) {
+        console.error("Invalid token:", error);
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        setUserRole(null);
+      }
+    } else {
+      setUserRole(null);
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Header />
@@ -112,7 +125,8 @@ function App() {
           }
         />
       </Routes>
-      <Footer />
+
+      {userRole !== "staff" && userRole !== "manager" && <Footer />}
     </BrowserRouter>
   );
 }
