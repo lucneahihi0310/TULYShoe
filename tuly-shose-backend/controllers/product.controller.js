@@ -281,6 +281,7 @@ exports.list_product = async (req, res, next) => {
       return {
         _id: p.id,
         productName: p.productName,
+        title: p.title,
         description: p.description,
         price: p.price,
         categories_id: p.categories_id,
@@ -301,6 +302,7 @@ exports.create_product = async (req, res, next) => {
   try {
     const newProduct = new Product({
       productName: req.body.productName,
+      title: req.body.title,
       description: req.body.description,
       price: req.body.price,
       categories_id: req.body.categories_id,
@@ -318,11 +320,12 @@ exports.create_product = async (req, res, next) => {
 exports.edit_product = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const { productName, description, price, categories_id, brand_id, material_id, form_id } = req.body;
+    const { productName, title, description, price, categories_id, brand_id, material_id, form_id } = req.body;
     const newProduct = await Product.findByIdAndUpdate(
       id,
       {
         productName,
+        title,
         description,
         price,
         categories_id,

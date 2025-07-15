@@ -224,6 +224,32 @@ const ManagerProduct = () => {
             }
         },
         {
+            title: 'Title',
+            dataIndex: 'title',
+            key: 'title',
+            width: 200,
+            render: (value, record) => {
+                if (record._id == edittingRow) {
+                    return (
+                        <Form.Item
+                            name="title"
+                            rules={[
+                                { required: true, message: "Please enter title" },
+                            ]}>
+                            <Input />
+                        </Form.Item>
+                    )
+                }
+                else {
+                    return (
+                        <div>
+                            {value}
+                        </div>
+                    )
+                }
+            }
+        },
+        {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
@@ -399,16 +425,6 @@ const ManagerProduct = () => {
                                     variant="solid"
                                     icon={<UnorderedListOutlined />}
                                     onClick={() => {
-                                        // setEdittingRow(record._id);
-                                        // form.setFieldsValue({
-                                        //     productName: record.productName,
-                                        //     description: record.description,
-                                        //     price: record.price,
-                                        //     categories_id: record.categories_id,
-                                        //     brand_id: record.brand_id,
-                                        //     material_id: record.material_id,
-                                        //     form_id: record.form_id
-                                        // })
                                         showProductDetail(record._id, record);
                                         console.log(record);
                                     }}>
@@ -423,7 +439,6 @@ const ManagerProduct = () => {
                                     }}
                                     footer={null}
                                     width={800}
-                                    destroyOnClose
                                 >
                                     <Button
                                         style={{ width: '200px', marginBottom: '15px' }}
@@ -444,7 +459,6 @@ const ManagerProduct = () => {
                                         onCancel={() => setAddProductDetail(false)}
                                         footer={null}
                                         width={800}
-                                        destroyOnClose
                                     >
                                         <Form
                                             form={form_add_product_detail}
@@ -588,17 +602,8 @@ const ManagerProduct = () => {
                                                 />
                                             </Form.Item>
 
-
                                             {/* lưu ảnh */}
-                                            {/* <Form.Item
-                                                label="Images"
-                                                name="images"
-                                                rules={[{ required: true, message: 'Please upload at least one image' }]}
-                                            >
-                                                <Upload {...props}>
-                                                    <Button icon={<UploadOutlined />}>Click to Upload</Button>
-                                                </Upload>
-                                            </Form.Item> */}
+
                                             <Form.Item
                                                 label="Images"
                                                 name="images"
@@ -733,6 +738,7 @@ const ManagerProduct = () => {
                                         console.log(record);
                                         form.setFieldsValue({
                                             productName: record.productName,
+                                            title: record.title,
                                             description: record.description,
                                             price: record.price,
                                             categories_id: record.categories_id._id,
@@ -811,6 +817,7 @@ const ManagerProduct = () => {
                                     console.log(values);
                                     await postData('/products/manager/create_product', {
                                         productName: values.productName,
+                                        title: values.title,
                                         description: values.description,
                                         price: values.price,
                                         categories_id: values.categories_id,
@@ -858,6 +865,27 @@ const ManagerProduct = () => {
                                     }
                                 ]}>
                                 <Input placeholder="Enter product name" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Title"
+                                name="title"
+                                rules={[
+                                    { required: true, message: "Please enter title" },
+                                    {
+                                        validator: (_, value) => {
+                                            const isDuplicate = categories.some(
+                                                (cat) =>
+                                                    cat.title.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                                    cat._id !== edittingRow
+                                            );
+                                            return isDuplicate
+                                                ? Promise.reject("This title already exists!")
+                                                : Promise.resolve();
+                                        }
+                                    }
+                                ]}>
+                                <Input placeholder="Enter title" />
                             </Form.Item>
 
                             <Form.Item
