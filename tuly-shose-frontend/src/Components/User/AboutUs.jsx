@@ -1,10 +1,21 @@
-import React from "react";
-import { Form, Input, Button, Typography, Card, Row, Col } from "antd";
+import React, { useState } from "react";
+import {
+  Form,
+  Input,
+  Button,
+  Typography,
+  Card,
+  Row,
+  Col,
+  notification,
+  Spin,
+} from "antd";
 import {
   EnvironmentOutlined,
   PhoneOutlined,
   MailOutlined,
 } from "@ant-design/icons";
+import axios from "axios";
 import styles from "../../CSS/AboutUs.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,7 +23,6 @@ import {
   faInstagram,
   faTwitter,
 } from "@fortawesome/free-brands-svg-icons";
-
 import {
   faHistory,
   faBullseye,
@@ -25,8 +35,34 @@ import {
 const { Title, Paragraph } = Typography;
 
 const AboutUs = () => {
-  const onFinish = (values) => {
-    console.log("Received values:", values);
+  const [form] = Form.useForm();
+  const [loadingSupport, setLoadingSupport] = useState(false);
+
+  const handleSupportSubmit = async (values) => {
+    setLoadingSupport(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:9999/support/submit",
+        values
+      );
+      notification.success({
+        message: "Gửi yêu cầu thành công!",
+        description: response.data.message,
+        placement: "bottomRight",
+        duration: 3,
+      });
+      form.resetFields();
+    } catch (err) {
+      notification.error({
+        message: "Lỗi khi gửi yêu cầu",
+        description:
+          err.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
+        placement: "bottomRight",
+        duration: 3,
+      });
+    } finally {
+      setLoadingSupport(false);
+    }
   };
 
   const cards = [
@@ -69,7 +105,7 @@ const AboutUs = () => {
   ];
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.fadeIn}`}>
       <section id="about" className={styles.aboutSection}>
         <Title level={2} className={styles.sectionTitle}>
           Giới <span className={styles.highlight}>Thiệu TULY Shoe</span>
@@ -103,11 +139,12 @@ const AboutUs = () => {
 
       <section id="contact" className={styles.contactSection}>
         <Title level={2} className={styles.sectionTitle}>
-          Liên <span className={styles.highlight}>Hệ Với Chúng Tôi</span>
+          Bạn Cần TULY Shoe Hỗ Trợ
         </Title>
         <Form
+          form={form}
           name="contact"
-          onFinish={onFinish}
+          onFinish={handleSupportSubmit}
           layout="vertical"
           className={styles.form}
           aria-label="Form liên hệ của TULY Shoe"
@@ -123,31 +160,49 @@ const AboutUs = () => {
             label="Email"
             name="email"
             rules={[
+              { required: true, message: "Vui lòng nhập email!" },
+              { type: "email", message: "Vui lòng nhập email hợp lệ!" },
+            ]}
+          >
+            <Input
+              placeholder="you@example.com"
+              onChange={(e) =>
+                form.setFieldsValue({ email: e.target.value.toLowerCase() })
+              }
+            />
+          </Form.Item>
+          <Form.Item
+            label="Số điện thoại"
+            name="phone"
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại!" },
               {
-                required: true,
-                type: "email",
-                message: "Vui lòng nhập email hợp lệ!",
+                pattern: /^0\d{9}$/,
+                message: "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0!",
               },
             ]}
           >
-            <Input placeholder="email@example.com" />
-          </Form.Item>
-          <Form.Item label="Số Điện Thoại" name="phone">
-            <Input placeholder="+84 123 456 789" />
+            <Input placeholder="0xxxxxxxxx" maxLength={10} />
           </Form.Item>
           <Form.Item
-            label="Tin Nhắn"
+            label="Nội dung yêu cầu"
             name="message"
-            rules={[{ required: true, message: "Vui lòng nhập tin nhắn!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
           >
             <Input.TextArea
-              placeholder="Viết tin nhắn của bạn ở đây..."
+              placeholder="Viết nội dung yêu cầu của bạn..."
               rows={5}
             />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Gửi Tin Nhắn
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={loadingSupport}
+              disabled={loadingSupport}
+            >
+              Gửi
             </Button>
           </Form.Item>
         </Form>

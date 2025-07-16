@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useContext } from "react";
+import { AuthContext } from "./Components/API/AuthContext";
+import { Spin } from "antd";
 import Header from "./Components/Other_Screen/Header";
 import Footer from "./Components/Other_Screen/Footer";
 import HomePage from "./Components/User/HomePage";
@@ -18,59 +19,33 @@ import Profile from "./Components/User/Profile";
 import OrderFailure from "./Components/User/OrderFailure";
 import AboutUs from "./Components/User/AboutUs";
 import Instruct from "./Components/User/Instruct";
+import OrderSearch from "./Components/User/OrderSearch";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const [userRole, setUserRole] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
+  const { user, isAuthLoading } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
+  if (isAuthLoading)
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh",
+        }}
+      >
+        <Spin size="large" tip="Đang tải dữ liệu sản phẩm..." />
+      </div>
+    );
 
-    try {
-      const decoded = jwtDecode(token);
-      setUserRole(decoded.role);
-    } catch (error) {
-      console.error("Invalid token:", error);
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("token");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  if (isLoading) return <div>Loading...</div>;
-
-  if (!token || !userRole) return <Navigate to="/login" replace />;
-  if (!allowedRoles.includes(userRole)) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
 
   return children;
 };
 
 function App() {
-  const [userRole, setUserRole] = useState(null);
-
-  useEffect(() => {
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserRole(decoded.role);
-      } catch (error) {
-        console.error("Invalid token:", error);
-        localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
-        setUserRole(null);
-      }
-    } else {
-      setUserRole(null);
-    }
-  }, []);
+  const { user, isAuthLoading } = useContext(AuthContext);
 
   return (
     <BrowserRouter>
@@ -86,6 +61,7 @@ function App() {
             />
           }
         />
+
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
         <Route path="/productsbyonsale" element={<ListProductByOnSale />} />
@@ -98,6 +74,7 @@ function App() {
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/instruct" element={<Instruct />} />
+        <Route path="/order-search" element={<OrderSearch />} />
 
         <Route
           path="/manager"
@@ -126,7 +103,9 @@ function App() {
         />
       </Routes>
 
-      {userRole !== "staff" && userRole !== "manager" && <Footer />}
+      {!isAuthLoading && user?.role !== "staff" && user?.role !== "manager" && (
+        <Footer />
+      )}
     </BrowserRouter>
   );
 }

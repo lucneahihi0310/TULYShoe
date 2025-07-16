@@ -208,7 +208,10 @@ const Header = () => {
           )}
 
           <Space size="large">
-            <SearchOutlined className={styles.icon} />
+            <SearchOutlined
+              className={styles.icon}
+              onClick={() => navigate("/order-search")}
+            />
             <Badge count={cartCount} showZero>
               <ShoppingCartOutlined
                 className={styles.icon}

@@ -186,7 +186,7 @@ exports.createOrder = async (req, res) => {
     if (!orderItems || orderItems.length === 0)
       return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ." });
 
-    // ✅ Kiểm tra tồn kho trước khi đặt
+    // Kiểm tra tồn kho trước khi đặt
     for (const item of orderItems) {
       const detail = await ProductDetail.findById(item.pdetail_id);
       if (!detail) return res.status(404).json({ message: "Không tìm thấy sản phẩm." });
@@ -238,7 +238,7 @@ exports.createOrder = async (req, res) => {
 
     await OrderDetail.insertMany(orderDetails);
 
-    // ✅ Cập nhật tồn kho: tăng sold, giảm inventory
+    // Cập nhật tồn kho: tăng sold, giảm inventory
     await Promise.all(orderItems.map(async (item) => {
       await ProductDetail.findByIdAndUpdate(
         item.pdetail_id,
@@ -252,12 +252,12 @@ exports.createOrder = async (req, res) => {
       );
     }));
 
-    // ✅ Xoá giỏ hàng nếu cần
+    // Xoá giỏ hàng nếu cần
     if (user_id && isFromCart) {
       await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
     }
 
-    // ✅ Gửi mail xác nhận
+    // Gửi mail xác nhận
     if (userInfo.email) {
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -392,11 +392,11 @@ exports.confirmOrder = async (req, res) => {
 
     if (order.accepted_by) return res.status(400).json({ message: 'Đơn hàng đã xác nhận' });
 
-    // 🔽 Tìm ID trạng thái \"Đã xác nhận\"
+    // Tìm ID trạng thái \"Đã xác nhận\"
     const confirmedStatus = await OrderStatus.findOne({ order_status_name: "Đã xác nhận" });
     if (!confirmedStatus) return res.status(404).json({ message: 'Không tìm thấy trạng thái Đã xác nhận' });
 
-    // ✅ Cập nhật đơn hàng
+    // Cập nhật đơn hàng
     order.accepted_by = staffId;
     order.order_status_id = confirmedStatus._id;
     order.update_at = Date.now();

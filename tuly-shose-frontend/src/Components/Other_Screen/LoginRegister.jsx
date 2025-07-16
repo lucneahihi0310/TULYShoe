@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Card, Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import styles from "../../CSS/LoginRegister.module.css";
 import { postData } from "../API/ApiService";
+import { AuthContext } from "../API/AuthContext.jsx";
+import { jwtDecode } from "jwt-decode";
 const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
   const [email, setEmail] = useState("");
@@ -29,6 +31,7 @@ const LoginRegister = () => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupContent, setPopupContent] = useState({ title: "", message: "" });
   const [resetValidationErrors, setResetValidationErrors] = useState({});
+  const { fetchUser } = useContext(AuthContext);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -56,8 +59,8 @@ const LoginRegister = () => {
     setErrorMessage("");
 
     try {
-      const data = await postData("account/login", { email, password }); // ← postData
-      // lưu token
+      const data = await postData("account/login", { email, password });
+
       if (remember) {
         const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
         localStorage.setItem("token", data.token);
@@ -67,10 +70,23 @@ const LoginRegister = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("expires_at");
       }
+
       window.dispatchEvent(
         new StorageEvent("storage", { key: "token", newValue: data.token })
       );
-      navigate("/");
+
+      await fetchUser();
+
+      const decoded = jwtDecode(data.token);
+      const role = decoded.role;
+
+      if (role === "manager") {
+        navigate("/manager/brands", { replace: true });
+      } else if (role === "staff") {
+        navigate("/dashboard/feedbacks", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
     } finally {
@@ -125,21 +141,30 @@ const LoginRegister = () => {
     return Object.keys(validationErrors).length === 0;
   };
 
-  
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!(await validateFields())) return;
-    setIsSubmitting(true); setErrorMessage("");
+    setIsSubmitting(true);
+    setErrorMessage("");
 
     try {
       await postData("account/register", {
-        first_name, last_name, email, password, phone, dob, gender, address,
+        first_name,
+        last_name,
+        email,
+        password,
+        phone,
+        dob,
+        gender,
+        address,
       });
       setShowSuccessModal(true);
       setCurrentForm("login");
     } catch (err) {
       setErrorMessage(err.message || "Đăng ký thất bại!");
-    } finally { setIsSubmitting(false); }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const validateResetPassword = () => {
@@ -175,13 +200,17 @@ const LoginRegister = () => {
     setIsSubmitting(true);
 
     try {
-      const data = await postData("account/forgot-password", { email: email.trim() });
+      const data = await postData("account/forgot-password", {
+        email: email.trim(),
+      });
       setPopupContent({ title: "Yêu cầu thành công", message: data.message });
       setPopupVisible(true);
       setCurrentForm("resetPassword");
     } catch (err) {
       setErrorMessage(err.message || "Lỗi khi gửi yêu cầu đặt lại mật khẩu!");
-    } finally { setIsSubmitting(false); }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleResetPassword = async (e) => {
@@ -194,7 +223,10 @@ const LoginRegister = () => {
         resetToken: resetToken.toUpperCase(),
         newPassword,
       });
-      setPopupContent({ title: "Đổi mật khẩu thành công", message: data.message });
+      setPopupContent({
+        title: "Đổi mật khẩu thành công",
+        message: data.message,
+      });
       setPopupVisible(true);
       setCurrentForm("login");
     } catch (err) {

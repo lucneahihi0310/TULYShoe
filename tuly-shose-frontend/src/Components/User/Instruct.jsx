@@ -34,7 +34,7 @@ const columns = [
 
 const Instruct = () => {
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.fadeIn}`}>
       <main className={styles.main}>
         {/* About Us Section */}
         <section id="about" className={styles.section}>

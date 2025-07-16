@@ -1,15 +1,21 @@
 import { createContext, useState, useEffect } from "react";
 import { fetchData, postData } from "../API/ApiService";
+
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const syncGuestCart = async (userId) => {
     const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
     for (let item of guestCart) {
       try {
-        await postData("cartItem/customers", { ...item, user_id: userId }, true);
+        await postData(
+          "cartItem/customers",
+          { ...item, user_id: userId },
+          true
+        );
       } catch (err) {
         console.error("Lỗi khi đồng bộ giỏ hàng:", err);
       }
@@ -28,13 +34,18 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("expires_at");
       localStorage.removeItem("rememberedEmail");
       setUser(null);
+      setIsAuthLoading(false);
       window.dispatchEvent(
         new StorageEvent("storage", { key: "token", newValue: null })
       );
       return;
     }
 
-    if (!token) return;
+    if (!token) {
+      setUser(null);
+      setIsAuthLoading(false);
+      return;
+    }
 
     try {
       const data = await fetchData("account/user", true);
@@ -49,6 +60,8 @@ export const AuthProvider = ({ children }) => {
       window.dispatchEvent(
         new StorageEvent("storage", { key: "token", newValue: null })
       );
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 
@@ -56,21 +69,7 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
 
     const handleStorageChange = () => {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
-      const expiresAt = localStorage.getItem("expires_at");
-
-      if (!token || (expiresAt && Date.now() > parseInt(expiresAt))) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("expires_at");
-        localStorage.removeItem("rememberedEmail");
-        setUser(null);
-        window.dispatchEvent(
-          new StorageEvent("storage", { key: "token", newValue: null })
-        );
-      } else {
-        fetchUser();
-      }
+      fetchUser();
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -78,7 +77,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, fetchUser }}>
+    <AuthContext.Provider value={{ user, setUser, fetchUser, isAuthLoading }}>
       {children}
     </AuthContext.Provider>
   );
