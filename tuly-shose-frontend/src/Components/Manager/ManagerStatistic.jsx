@@ -27,8 +27,13 @@ const ManagerStatistic = () => {
                         borderRadius: '20px',
                         padding: '20px'
                     }}>
-                        <h5>Tổng doanh thu</h5>
-                        <h4>3000000vvnd</h4>
+                        <h6 style={{ fontWeight: 'normal' }}>Tổng doanh thu</h6>
+                        <h5 style={{
+                            color: "#1e1e2f",
+                            fontWeight: "bold"
+                        }}>
+                            3000000 ₫
+                        </h5>
                     </div>
                 </Col>
                 <Col span={6}>
@@ -37,8 +42,15 @@ const ManagerStatistic = () => {
                         borderRadius: '20px',
                         padding: '20px'
                     }}>
-                        <h5>Đơn hàng hôm này</h5>
-                        <h4>3000000vvnd</h4>
+                        <h6 style={{ fontWeight: 'normal' }}>
+                            Đơn hàng hôm này
+                        </h6>
+                        <h5 style={{
+                            color: "#1e1e2f",
+                            fontWeight: "bold"
+                        }}>
+                            0
+                        </h5>
                     </div>
                 </Col>
                 <Col span={6}>
@@ -47,8 +59,15 @@ const ManagerStatistic = () => {
                         borderRadius: '20px',
                         padding: '20px'
                     }}>
-                        <h5>Doanh thu hôm nay</h5>
-                        <h4>3000000vvnd</h4>
+                        <h6 style={{ fontWeight: 'normal' }}>
+                            Doanh thu hôm nay
+                        </h6>
+                        <h5 style={{
+                            color: "#1e1e2f",
+                            fontWeight: "bold"
+                        }}>
+                            0 ₫
+                        </h5>
                     </div>
                 </Col>
                 <Col span={6}>
@@ -57,8 +76,15 @@ const ManagerStatistic = () => {
                         borderRadius: '20px',
                         padding: '20px'
                     }}>
-                        <h5>Giá trị đơn trung bình</h5>
-                        <h4>3000000vvnd</h4>
+                        <h6 style={{ fontWeight: 'normal' }}>
+                            Giá trị đơn trung bình
+                        </h6>
+                        <h5 style={{
+                            color: "#1e1e2f",
+                            fontWeight: "bold"
+                        }}>
+                            3000000 ₫
+                        </h5>
                     </div>
                 </Col>
             </Row>
@@ -69,8 +95,81 @@ const ManagerStatistic = () => {
                         borderRadius: '20px',
                         padding: '20px'
                     }}>
-                        <h5>Thống kê đơn hàng</h5>
-                        <h4>3000000vvnd</h4>
+                        <h5 style={{ fontWeight: 'bold', paddingBottom: '5px' }}>
+                            Thống kê đơn hàng
+                        </h5>
+                        <Row gutter={16}>
+                            <Col span={6}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "normal"
+                                }}>
+                                    Tổng số đơn hàng
+                                </h6>
+                            </Col>
+                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "bold"
+                                }}>
+                                    6
+                                </h6>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={6}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "normal"
+                                }}>
+                                    Đơn đã giao
+                                </h6>
+                            </Col>
+                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
+                                <h6 style={{
+                                    color: "#21e288ff",
+                                    fontWeight: "bold"
+                                }}>
+                                    6
+                                </h6>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={6}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "normal"
+                                }}>
+                                    Đơn đang chờ
+                                </h6>
+                            </Col>
+                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
+                                <h6 style={{
+                                    color: "#cdd61cff",
+                                    fontWeight: "bold"
+                                }}>
+                                    6
+                                </h6>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={6}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "normal"
+                                }}>
+                                    Đơn đã hủy
+                                </h6>
+                            </Col>
+                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
+                                <h6 style={{
+                                    color: "#da1c1cff",
+                                    fontWeight: "bold"
+                                }}>
+                                    6
+                                </h6>
+                            </Col>
+                        </Row>
                     </div>
                 </Col>
                 <Col span={12}>
@@ -79,7 +178,45 @@ const ManagerStatistic = () => {
                         borderRadius: '20px',
                         padding: '20px'
                     }}>
-                        h
+                        <h5 style={{ fontWeight: 'bold', paddingBottom: '5px' }}>
+                            Thống kê thanh toán
+                        </h5>
+                        <Row gutter={16}>
+                            <Col span={6}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "normal"
+                                }}>
+                                    Tổng số sản phẩm
+                                </h6>
+                            </Col>
+                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "bold"
+                                }}>
+                                    6
+                                </h6>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "normal"
+                                }}>
+                                    Tổng số người dùng
+                                </h6>
+                            </Col>
+                            <Col span={4} offset={12} style={{ textAlign: 'right' }}>
+                                <h6 style={{
+                                    color: "#1e1e2f",
+                                    fontWeight: "bold"
+                                }}>
+                                    6
+                                </h6>
+                            </Col>
+                        </Row>
                     </div>
                 </Col>
             </Row>
