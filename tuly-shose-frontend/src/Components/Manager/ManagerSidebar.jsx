@@ -5,6 +5,7 @@ const ManagerSidebar = () => {
     const navigate = useNavigate();
 
     const menu = [
+        { key: 'statistic', label: 'Thống kê' },
         { key: 'brands', label: 'Quản lý brand' },
         { key: 'categories', label: 'Quản lý category' },
         { key: 'colors', label: 'Quản lý màu sắc' },

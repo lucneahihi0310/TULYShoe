@@ -7,12 +7,15 @@ import ManagerForm from './ManagerForm';
 import ManagerMaterial from './ManagerMaterial';
 import ManagerSize from './ManagerSize';
 import ManagerProduct from './ManagerProduct';
+import ManagerStatistic from './ManagerStatistic';
 
 
 const ManagerDashboardContent = () => {
     const { section } = useParams();
 
     switch (section) {
+        case 'statistic':
+            return <ManagerStatistic />;
         case 'brands':
             return <ManagerBrand />;
         case 'categories':
@@ -28,7 +31,7 @@ const ManagerDashboardContent = () => {
         case 'products':
             return <ManagerProduct />;
         default:
-            return <div>Welcome to Manager Dashboard</div>;
+            return <ManagerStatistic />;
     }
 };
 
