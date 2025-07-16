@@ -118,7 +118,7 @@ const Header = () => {
       new StorageEvent("storage", { key: "token", newValue: null })
     );
     setUser(null);
-    navigate("/login");
+    navigate("/");
   };
 
   const menuItems = [
