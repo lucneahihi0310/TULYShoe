@@ -275,10 +275,11 @@ function ListProductByOnSale() {
                   >
                     <Card
                       hoverable
+                      className={styles.sameHeightCard}
                       style={{
-                        height: "100%",
                         display: "flex",
                         flexDirection: "column",
+                        height: "100%",
                       }}
                       onClick={() =>
                         navigate(`/products/${product.detail._id}`)
@@ -291,7 +292,7 @@ function ListProductByOnSale() {
                               product.detail?.images?.[0] ||
                               "/placeholder-image.jpg"
                             }
-                            className={`${styles.productImage} ${styles.sameHeightCard}`}
+                            className={styles.productImage}
                             style={{
                               filter: isOutOfStock ? "grayscale(50%)" : "none",
                             }}

@@ -112,8 +112,9 @@
 
 .productImage {
   width: 100%;
-  height: 256px;
+  height: 260px; /* hoặc 100% nếu bạn muốn ảnh chiếm đều */
   object-fit: cover;
+  border-radius: 4px 4px 0 0;
 }
 
 .outOfStockOverlay {
@@ -158,10 +159,11 @@
 
 .productDescription {
   color: #4b5563;
-  min-height: 60px;
-  width: auto;
   font-size: 14px;
   flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 50px !important;
 }
 
 .priceAndCartContainer {
@@ -239,13 +241,14 @@
 
 .sameHeightCol {
   display: flex;
+  flex-direction: column;
+  min-height: 420px;
 }
 
 .sameHeightCard {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  height: 256px;
+  height: 100%;
 }
 
 .loadingContainer {
