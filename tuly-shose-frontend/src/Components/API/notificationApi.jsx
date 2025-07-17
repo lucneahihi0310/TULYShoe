@@ -5,14 +5,14 @@ const BASE_URL =
     : "https://tulyshoe.onrender.com");
 // Lấy tất cả thông báo của user
 export const fetchNotifications = async (userId) => {
-    const response = await fetch(`${API_URL}/staff/${userId}`);
+    const response = await fetch(`${BASE_URL}/staff/notifications/${userId}`);
     const data = await response.json();
     return data.data;
 };
 
 // Đánh dấu một thông báo đã đọc
 export const markAsRead = async (id) => {
-    await fetch(`${API_URL}/staff/mark-as-read/${id}`, {
+    await fetch(`${BASE_URL}/staff/notifications/mark-as-read/${id}`, {
         method: 'PUT'
     });
 };
