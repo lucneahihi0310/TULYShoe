@@ -108,7 +108,7 @@ const AboutUs = () => {
     <div className={`${styles.container} ${styles.fadeIn}`}>
       <section id="about" className={styles.aboutSection}>
         <Title level={2} className={styles.sectionTitle}>
-          Giới <span className={styles.highlight}>Thiệu TULY Shoe</span>
+          Giới Thệu <span className={styles.highlight}>TULY Shoe</span>
         </Title>
         <Row gutter={[32, 32]} align="stretch">
           <Col xs={24} md={12}>

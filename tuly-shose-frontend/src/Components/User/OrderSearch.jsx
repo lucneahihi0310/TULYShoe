@@ -213,20 +213,20 @@ const OrderSearch = () => {
                 Về TULY Shoe
               </Title>
               <Paragraph className={styles.aboutParagraph}>
-                Tại <Text strong>TULY Shoe</Text>, chúng tôi đam mê mang đến
+                Tại <Text className={styles.boldText} strong>TULY Shoe</Text>, chúng tôi đam mê mang đến
                 trải nghiệm sneaker tuyệt vời nhất cho mọi khách hàng. Được
                 thành lập với tầm nhìn kết hợp phong cách, sự thoải mái và đổi
                 mới, bộ sưu tập của chúng tôi bao gồm những xu hướng mới nhất và
                 những mẫu kinh điển vượt thời gian.
               </Paragraph>
               <Paragraph className={styles.aboutParagraph}>
-                Chúng tôi tin rằng giày sneaker không chỉ là đôi giày — mà còn
+                Chúng tôi tin rằng giày sneaker không chỉ là đôi giày - mà còn
                 là tuyên ngôn cá tính và phong cách sống. Đội ngũ chuyên gia của
                 chúng tôi lựa chọn kỹ càng từng đôi giày để đảm bảo chất lượng
                 cao cấp, độ bền và thiết kế độc đáo.
               </Paragraph>
               <Paragraph className={styles.aboutParagraph}>
-                Hãy gia nhập đại gia đình <Text strong>TULY Shoe</Text> và bước
+                Hãy gia nhập đại gia đình <Text className={styles.boldText} strong>TULY Shoe</Text> và bước
                 vào thế giới nơi thời trang gặp gỡ chức năng. Đôi sneaker hoàn
                 hảo đang chờ bạn.
               </Paragraph>

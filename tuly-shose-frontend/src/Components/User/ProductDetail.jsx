@@ -329,7 +329,7 @@ function ProductDetail() {
         </div>
       )}
       <Row gutter={32} className={styles.main}>
-        <Col xs={24} lg={12}>
+        <Col style={{ justifyItems: "center" }} xs={24} lg={12}>
           <div
             className={styles.imageContainer}
             ref={imageContainerRef}
@@ -726,7 +726,10 @@ function ProductDetail() {
                         title={prod.product_id.productName}
                         description={
                           <>
-                            <Paragraph ellipsis={{ rows: 2 }}>
+                            <Paragraph
+                              style={{ minHeight: "50px" }}
+                              ellipsis={{ rows: 2 }}
+                            >
                               {prod.product_id.description}
                             </Paragraph>
                             <div className={styles.priceContainer}>
@@ -745,9 +748,22 @@ function ProductDetail() {
                                       </Text>
                                     </>
                                   ) : (
-                                    <Text className={styles.salePrice}>
-                                      {formatVND(prod.product_id.price)}
-                                    </Text>
+                                    <>
+                                      <Text
+                                        className={styles.originalPrice}
+                                        delete
+                                        style={{
+                                          visibility: hasDiscount
+                                            ? "visible"
+                                            : "hidden",
+                                        }}
+                                      >
+                                        {formatVND(prod.product_id.price)}
+                                      </Text>
+                                      <Text className={styles.salePrice}>
+                                        {formatVND(prod.product_id.price)}
+                                      </Text>
+                                    </>
                                   )}
                                 </div>
                                 <Button

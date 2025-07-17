@@ -159,7 +159,7 @@
 .productDescription {
   color: #4b5563;
   min-height: 60px;
-  width: 250px;
+  width: auto;
   font-size: 14px;
   flex-grow: 1;
 }

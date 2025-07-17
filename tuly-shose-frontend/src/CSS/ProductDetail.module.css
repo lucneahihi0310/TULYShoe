@@ -72,8 +72,8 @@
 }
 
 .thumbnail {
-  width: 80px;
-  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
   border-radius: 8px;
   object-fit: cover;
   cursor: pointer;
@@ -284,7 +284,8 @@
 .relatedCard {
   border: 1px solid #d1d5db !important;
   border-radius: 12px !important;
-  width: 100%;
+  width: 250px;
+  min-height: 400px;
   max-width: 340px;
   position: relative;
   transition: box-shadow 0.3s ease;
@@ -519,7 +520,7 @@
 }
 
 .scrollItem {
-  width: 100%;
+  width: auto;
   max-width: 360px;
   flex: 0 0 auto;
   scroll-snap-align: start;
