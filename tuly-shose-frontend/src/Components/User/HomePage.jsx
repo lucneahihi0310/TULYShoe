@@ -12,7 +12,6 @@ import {
   Spin,
   notification,
 } from "antd";
-import axios from "axios";
 import { AuthContext } from "../API/AuthContext";
 import { fetchData, postData } from "../API/ApiService";
 import styles from "../../CSS/HomePage.module.css";
@@ -125,10 +124,7 @@ const HomePage = () => {
   const handleSupportSubmit = async (values) => {
     setLoadingSupport(true);
     try {
-      const response = await axios.post(
-        "http://localhost:9999/support/submit",
-        values
-      );
+      const response = await postData("/support/submit", values);
       notification.success({
         message: "Gửi yêu cầu thành công!",
         description: response.data.message,

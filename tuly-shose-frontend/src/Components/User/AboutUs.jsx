@@ -15,7 +15,6 @@ import {
   PhoneOutlined,
   MailOutlined,
 } from "@ant-design/icons";
-import axios from "axios";
 import styles from "../../CSS/AboutUs.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -31,6 +30,7 @@ import {
   faUsers,
   faLeaf,
 } from "@fortawesome/free-solid-svg-icons";
+import { postData } from "../API/ApiService";
 
 const { Title, Paragraph } = Typography;
 
@@ -41,10 +41,7 @@ const AboutUs = () => {
   const handleSupportSubmit = async (values) => {
     setLoadingSupport(true);
     try {
-      const response = await axios.post(
-        "http://localhost:9999/support/submit",
-        values
-      );
+      const response = await postData("/support/submit", values);
       notification.success({
         message: "Gửi yêu cầu thành công!",
         description: response.data.message,
