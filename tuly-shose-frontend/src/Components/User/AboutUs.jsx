@@ -30,30 +30,51 @@ import {
   faUsers,
   faLeaf,
 } from "@fortawesome/free-solid-svg-icons";
-import { postData } from "../API/ApiService";
+import { postData, fetchData } from "../API/ApiService";
 
 const { Title, Paragraph } = Typography;
 
 const AboutUs = () => {
   const [form] = Form.useForm();
   const [loadingSupport, setLoadingSupport] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   const handleSupportSubmit = async (values) => {
     setLoadingSupport(true);
     try {
-      const response = await postData("/support/submit", values);
+      // Kiểm tra thời gian chờ trước khi gửi
+      const email = values.email;
+      const response = await fetchData(
+        `/support/check-cooldown?email=${encodeURIComponent(email)}`
+      );
+      if (response.cooldown) {
+        setTimeLeft(response.minutesLeft);
+        notification.warning({
+          message: "Yêu cầu hỗ trợ bị hạn chế",
+          description: `Bạn vừa gửi yêu cầu hỗ trợ. Vui lòng đợi ${response.minutesLeft} phút trước khi gửi lại.`,
+          placement: "bottomRight",
+          duration: 3,
+        });
+        setLoadingSupport(false);
+        return;
+      }
+
+      // Gửi yêu cầu hỗ trợ nếu không có thời gian chờ
+      const submitResponse = await postData("/support/submit", values);
+      setTimeLeft(30); // Đặt lại thời gian chờ
       notification.success({
         message: "Gửi yêu cầu thành công!",
-        description: response.message,
+        description: submitResponse.message,
         placement: "bottomRight",
         duration: 3,
       });
       form.resetFields();
+      setTimeLeft(null); // Xóa thông báo thời gian chờ sau khi gửi thành công
     } catch (err) {
       notification.error({
         message: "Lỗi khi gửi yêu cầu",
         description:
-          err.response?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
+          err.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
         placement: "bottomRight",
         duration: 3,
       });
@@ -105,7 +126,7 @@ const AboutUs = () => {
     <div className={`${styles.container} ${styles.fadeIn}`}>
       <section id="about" className={styles.aboutSection}>
         <Title level={2} className={styles.sectionTitle}>
-          Giới Thệu <span className={styles.highlight}>TULY Shoe</span>
+          Giới Thiệu <span className={styles.highlight}>TULY Shoe</span>
         </Title>
         <Row gutter={[32, 32]} align="stretch">
           <Col xs={24} md={12}>
@@ -197,7 +218,7 @@ const AboutUs = () => {
               htmlType="submit"
               block
               loading={loadingSupport}
-              disabled={loadingSupport}
+              disabled={loadingSupport || timeLeft}
             >
               Gửi
             </Button>

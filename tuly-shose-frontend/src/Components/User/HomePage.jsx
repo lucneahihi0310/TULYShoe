@@ -28,8 +28,10 @@ const HomePage = () => {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [form] = Form.useForm();
   const [loadingSupport, setLoadingSupport] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
+    // Xử lý hiệu ứng fade cho các slide
     const fadeSlides = document.querySelectorAll(`.${styles.fadeSlide}`);
     fadeSlides.forEach((el, index) => {
       setTimeout(() => {
@@ -67,6 +69,7 @@ const HomePage = () => {
       }
     };
 
+    // Gọi các hàm bất đồng bộ
     fetchBestSellers();
     fetchTestimonials();
   }, []);
@@ -124,19 +127,39 @@ const HomePage = () => {
   const handleSupportSubmit = async (values) => {
     setLoadingSupport(true);
     try {
-      const response = await postData("/support/submit", values);
+      // Kiểm tra thời gian chờ trước khi gửi
+      const email = values.email;
+      const response = await fetchData(
+        `/support/check-cooldown?email=${encodeURIComponent(email)}`
+      );
+      if (response.cooldown) {
+        setTimeLeft(response.minutesLeft);
+        notification.warning({
+          message: "Yêu cầu hỗ trợ bị hạn chế",
+          description: `Bạn vừa gửi yêu cầu hỗ trợ. Vui lòng đợi ${response.minutesLeft} phút trước khi gửi lại.`,
+          placement: "bottomRight",
+          duration: 3,
+        });
+        setLoadingSupport(false);
+        return;
+      }
+
+      // Gửi yêu cầu hỗ trợ nếu không có thời gian chờ
+      const submitResponse = await postData("/support/submit", values);
+      setTimeLeft(30); // Đặt lại thời gian chờ
       notification.success({
         message: "Gửi yêu cầu thành công!",
-        description: response.message,
+        description: submitResponse.message,
         placement: "bottomRight",
         duration: 3,
       });
       form.resetFields();
+      setTimeLeft(null); // Xóa thông báo thời gian chờ sau khi gửi thành công
     } catch (err) {
       notification.error({
         message: "Lỗi khi gửi yêu cầu",
         description:
-          err.response?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
+          err.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
         placement: "bottomRight",
         duration: 3,
       });
@@ -473,7 +496,7 @@ const HomePage = () => {
                 htmlType="submit"
                 className={styles.submitButton}
                 loading={loadingSupport}
-                disabled={loadingSupport}
+                disabled={loadingSupport || timeLeft}
               >
                 Gửi
               </Button>

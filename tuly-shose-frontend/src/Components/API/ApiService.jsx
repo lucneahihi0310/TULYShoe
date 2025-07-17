@@ -23,7 +23,7 @@ export const setLoadingCallback = (callbackFn) => {
 // Tạo instance axios
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
 );
 
 // ----------------------
-// ✅ Các hàm API chính
+// Các hàm API chính
 // ----------------------
 
 // GET

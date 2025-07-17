@@ -10,5 +10,5 @@ const limiter = rateLimit({
 });
 
 router.post("/submit", limiter, supportController.submitSupportForm);
-
+router.get("/check-cooldown", supportController.checkCooldown);
 module.exports = router;

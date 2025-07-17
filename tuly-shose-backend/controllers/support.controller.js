@@ -22,12 +22,28 @@ exports.submitSupportForm = async (req, res) => {
       return res.status(400).json({ message: "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0!" });
     }
 
+    // Kiểm tra thời gian gửi yêu cầu trước đó
+    const lastRequest = await Support.findOne({ email }).sort({ lastSupportRequest: -1 });
+    if (lastRequest && lastRequest.lastSupportRequest) {
+      const lastTime = new Date(lastRequest.lastSupportRequest);
+      const now = new Date();
+      const diffMs = now - lastTime;
+      const cooldownMs = 30 * 60 * 1000; // 30 phút
+      if (diffMs < cooldownMs) {
+        const remainingMinutes = Math.ceil((cooldownMs - diffMs) / (60 * 1000));
+        return res.status(429).json({
+          message: `Bạn vừa gửi yêu cầu hỗ trợ. Vui lòng đợi ${remainingMinutes} phút trước khi gửi lại.`,
+        });
+      }
+    }
+
     // Lưu thông tin vào MongoDB
     const supportRequest = new Support({
       name,
       email,
       phone,
       message,
+      lastSupportRequest: new Date(),
     });
     await supportRequest.save();
 
@@ -110,5 +126,34 @@ exports.submitSupportForm = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi gửi yêu cầu hỗ trợ:", error);
     res.status(500).json({ message: "Lỗi server khi gửi yêu cầu hỗ trợ", error: error.message });
+  }
+};
+
+exports.checkCooldown = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ message: "Vui lòng cung cấp email!" });
+    }
+
+    const lastRequest = await Support.findOne({ email }).sort({ lastSupportRequest: -1 });
+    if (lastRequest && lastRequest.lastSupportRequest) {
+      const lastTime = new Date(lastRequest.lastSupportRequest);
+      const now = new Date();
+      const diffMs = now - lastTime;
+      const cooldownMs = 30 * 60 * 1000; // 30 phút
+      if (diffMs < cooldownMs) {
+        const remainingMinutes = Math.ceil((cooldownMs - diffMs) / (60 * 1000));
+        return res.status(200).json({
+          cooldown: true,
+          minutesLeft: remainingMinutes,
+        });
+      }
+    }
+
+    return res.status(200).json({ cooldown: false });
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra thời gian chờ:", error);
+    res.status(500).json({ message: "Lỗi server khi kiểm tra thời gian chờ", error: error.message });
   }
 };
