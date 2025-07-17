@@ -9,7 +9,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-
 app.use(
     cors({
         origin: ["http://localhost:5173", "https://tulyshoe-front.onrender.com"],
@@ -35,28 +34,21 @@ app.use('/cartItem', require('./routes/cartItem.route'));
 app.use('/api/filters', require('./routes/filter.route'));
 app.use('/reviews', require('./routes/review.route'));
 app.use("/vnpay", require("./routes/vnpay.route"));
-
-
+app.use('/support', require('./routes/support.route'));
 app.use('/categories', require('./routes/category.route'));
-
 app.use('/brands', require('./routes/brand.route'));
-
 app.use('/colors', require('./routes/color.route'));
-
 app.use('/forms', require('./routes/form.route'));
-
 app.use('/materials', require('./routes/material.route'));
-
 app.use('/sizes', require('./routes/size.route'));
-
+app.use('/discounts', require('./routes/discount.route'));
+app.use('/product_detail_status', require('./routes/product_detail_status.route'));
 app.use('/product_details', require('./routes/product_detail.route'));
-
-app.use('/manager', require('./routes/category.route'));
 app.use('/staff/inventory', require('./routes/inventory.routes'));
 app.use('/staff/orders', require('./routes/order.routes'));
 app.use('/staff/schedules', require('./routes/workSchedule.route'));
-app.use('/staff/notifications', require('./routes/notification.router'))
-app.use('/upload', require('./routes/upload'))
+app.use('/staff/notifications', require('./routes/notification.router'));
+app.use('/upload', require('./routes/upload'));
 
 app.get('/robots.txt', (req, res) => {
     res.type('text/plain');
@@ -79,7 +71,7 @@ const PORT = process.env.PORT || 9999;
 connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
-        cleanExpiredTokens(); // Cronjob chỉ chạy khi server đã kết nối DB
+        cleanExpiredTokens();
     });
 }).catch((error) => {
     console.error('MongoDB connection failed:', error);

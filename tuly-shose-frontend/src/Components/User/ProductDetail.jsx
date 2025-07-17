@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Button,
@@ -6,20 +6,16 @@ import {
   Col,
   Rate,
   Typography,
-  Carousel,
   Card,
   Space,
   Tag,
   Spin,
   Modal,
+  Image,
   notification,
+  InputNumber,
 } from "antd";
-import {
-  ShoppingCartOutlined,
-  ThunderboltOutlined,
-  LeftOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
+import { ShoppingCartOutlined, ThunderboltOutlined } from "@ant-design/icons";
 import styles from "../../CSS/ProductDetail.module.css";
 import { AuthContext } from "../API/AuthContext";
 import { fetchData, postData } from "../API/ApiService";
@@ -28,7 +24,6 @@ const { Title, Paragraph, Text } = Typography;
 function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const carouselRef = useRef(null);
   const imageContainerRef = useRef(null);
   const { user } = useContext(AuthContext);
 
@@ -42,7 +37,9 @@ function ProductDetail() {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [isVariantLoading, setIsVariantLoading] = useState(false);
   const [zoomStyle, setZoomStyle] = useState({
     transform: "scale(1)",
     transformOrigin: "center center",
@@ -53,26 +50,37 @@ function ProductDetail() {
       try {
         setLoading(true);
 
-        const resDetail = await fetchData(`productDetail/${id}`);
+        // Lấy chi tiết sản phẩm hiện tại
+        const resDetail = await fetchData(`productDetail/customers/${id}`);
         setProductDetail(resDetail);
         setMainImage(resDetail.images[0]);
-        console.log("resDetail:", resDetail);
-        console.log("resDetail._id:", resDetail._id);
+        setSelectedColor(resDetail.color_id._id);
+        setSelectedSize(resDetail.size_id._id);
+
+        // Lấy tất cả biến thể với thông tin đầy đủ
         const resVariants = await fetchData(
-          `productDetail/product/${resDetail.product_id._id}`
+          `productDetail/customers/product/full/${resDetail.product_id._id}`
         );
         setVariants(resVariants);
 
-        const resReviews = await fetchData(`reviews/detail/${resDetail._id}`);
+        // Lấy đánh giá
+        const resReviews = await fetchData(
+          `reviews/customers/detail/${resDetail._id}`
+        );
         setReviews(resReviews);
 
-        const resRelated = await fetchData(`productDetail/related/${id}`);
+        // Lấy sản phẩm liên quan
+        const resRelated = await fetchData(
+          `productDetail/customers/related/${id}`
+        );
         setRelated(resRelated);
-
-        setSelectedColor(resDetail.color_id[0]._id);
-        setSelectedSize(resDetail.size_id._id);
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu ProductDetail:", err);
+        notification.error({
+          message: "Lỗi tải dữ liệu",
+          description: "Không thể tải thông tin sản phẩm. Vui lòng thử lại.",
+          placement: "bottomLeft",
+        });
       } finally {
         setLoading(false);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -82,40 +90,66 @@ function ProductDetail() {
     fetchDataAsync();
   }, [id]);
 
+  // Tải lại đánh giá khi productDetail thay đổi
+  useEffect(() => {
+    if (productDetail?._id) {
+      const fetchReviews = async () => {
+        try {
+          const resReviews = await fetchData(
+            `reviews/customers/detail/${productDetail._id}`
+          );
+          setReviews(resReviews);
+        } catch (err) {
+          console.error("Lỗi khi tải đánh giá:", err);
+        }
+      };
+      fetchReviews();
+    }
+  }, [productDetail?._id]);
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const handleColorClick = async (colorId) => {
+  const handleColorClick = (colorId) => {
+    setIsVariantLoading(true);
     setSelectedColor(colorId);
-    const match = variants.find(
-      (v) => v.color_id[0]._id === colorId && v.size_id._id === selectedSize
-    );
+    setSelectedSize(null); // Reset kích thước khi chọn màu mới
+    // Tìm biến thể đầu tiên có màu được chọn
+    const match = variants.find((v) => v.color_id._id === colorId);
     if (match) {
-      navigate(`/products/${match._id}`);
+      setProductDetail(match);
+      setMainImage(match.images[0]);
+      window.history.pushState({}, "", `/products/${match._id}`);
+    } else {
+      notification.error({
+        message: "Không tìm thấy biến thể",
+        description: "Không có sản phẩm nào phù hợp với màu đã chọn.",
+        placement: "bottomLeft",
+      });
     }
+    setIsVariantLoading(false);
   };
-  const handleBuyNow = () => {
-    const orderItem = {
-      pdetail_id: productDetail._id,
-      quantity: 1,
-    };
 
-    navigate("/order", {
-      state: {
-        fromDetail: true,
-        orderItems: [orderItem],
-      },
-    });
-  };
-  const handleSizeClick = async (sizeId) => {
+  const handleSizeClick = (sizeId) => {
+    setIsVariantLoading(true);
     setSelectedSize(sizeId);
+    // Tìm biến thể có cả màu và kích thước được chọn
     const match = variants.find(
-      (v) => v.size_id._id === sizeId && v.color_id[0]._id === selectedColor
+      (v) => v.color_id._id === selectedColor && v.size_id._id === sizeId
     );
     if (match) {
-      navigate(`/products/${match._id}`);
+      setProductDetail(match);
+      setMainImage(match.images[0]);
+      window.history.pushState({}, "", `/products/${match._id}`);
+    } else {
+      notification.error({
+        message: "Không tìm thấy biến thể",
+        description: "Không có sản phẩm nào phù hợp với kích thước đã chọn.",
+        placement: "bottomLeft",
+      });
     }
+    setIsVariantLoading(false);
   };
 
   const handleMouseMove = (e) => {
@@ -135,52 +169,76 @@ function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
+    if (!productDetail) return;
+
     const cartItem = {
       pdetail_id: productDetail._id,
-      quantity: 1,
+      quantity: quantity,
     };
 
     const notifyAddSuccess = () => {
       notification.success({
         message: "Đã thêm vào giỏ hàng!",
-        description: `Sản phẩm "${productDetail.product_id.productName}" đã được thêm.`,
+        description: `Sản phẩm "${productDetail.product_id.productName}" (x${quantity}) đã được thêm.`,
         placement: "bottomLeft",
         duration: 2,
       });
     };
 
-    if (user) {
-      try {
-        await postData("cartItem", { ...cartItem, user_id: user._id });
+    try {
+      if (user && user._id) {
+        await postData("/cartItem/customers", {
+          ...cartItem,
+          user_id: user._id,
+        });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
-      } catch (err) {
-        console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
-      }
-    } else {
-      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-      const existingIndex = guestCart.findIndex(
-        (item) => item.pdetail_id === cartItem.pdetail_id
-      );
-
-      if (existingIndex >= 0) {
-        guestCart[existingIndex].quantity += 1;
       } else {
-        guestCart.push(cartItem);
+        const guestCart = JSON.parse(
+          localStorage.getItem("guest_cart") || "[]"
+        );
+        const existingIndex = guestCart.findIndex(
+          (item) => item.pdetail_id === cartItem.pdetail_id
+        );
+
+        if (existingIndex >= 0) {
+          guestCart[existingIndex].quantity += quantity;
+        } else {
+          guestCart.push(cartItem);
+        }
+        window.dispatchEvent(new Event("cartUpdated"));
+        localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+        notifyAddSuccess();
       }
-      window.dispatchEvent(new Event("cartUpdated"));
-      localStorage.setItem("guest_cart", JSON.stringify(guestCart));
-      notifyAddSuccess();
+    } catch (err) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      notification.error({
+        message: "Thêm giỏ hàng thất bại!",
+        description: err.message || "Vui lòng thử lại sau.",
+        placement: "bottomLeft",
+      });
     }
   };
 
-  const formatVND = (price) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
+  const handleBuyNow = () => {
+    if (!productDetail) return;
+
+    const orderItem = {
+      pdetail_id: productDetail._id,
+      quantity: quantity,
+    };
+
+    navigate("/order", {
+      state: {
+        fromDetail: true,
+        orderItems: [orderItem],
+      },
+    });
+  };
 
   const handleAddRelatedToCart = async (prod) => {
+    if (prod.inventory_number === 0) return;
+
     const cartItem = {
       pdetail_id: prod._id,
       quantity: 1,
@@ -197,7 +255,10 @@ function ProductDetail() {
 
     try {
       if (user && user._id) {
-        await postData("cartItem", { ...cartItem, user_id: user._id });
+        await postData("/cartItem/customers", {
+          ...cartItem,
+          user_id: user._id,
+        });
         window.dispatchEvent(new Event("cartUpdated"));
         notifyAddSuccess();
       } else {
@@ -227,8 +288,23 @@ function ProductDetail() {
     }
   };
 
-  const handlePrev = () => carouselRef.current?.prev();
-  const handleNext = () => carouselRef.current?.next();
+  const formatVND = (price) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
+  // Tối ưu danh sách kích thước bằng useMemo
+  const availableSizes = useMemo(
+    () => [
+      ...new Map(
+        variants
+          .filter((v) => v.color_id._id === selectedColor)
+          .map((v) => [v.size_id._id, v.size_id])
+      ).values(),
+    ],
+    [variants, selectedColor]
+  );
 
   if (loading || !productDetail || !productDetail.product_id) {
     return (
@@ -238,22 +314,36 @@ function ProductDetail() {
     );
   }
 
+  const isOutOfStock = productDetail.inventory_number === 0;
+  const hasDiscount = productDetail.discount_id?.percent_discount > 0;
+
   return (
     <div className={`${styles.container} ${isVisible ? styles.fadeIn : ""}`}>
+      {isVariantLoading && (
+        <div className={styles.variantLoading}>
+          <Spin tip="Đang cập nhật dữ liệu..." />
+        </div>
+      )}
       <Row gutter={32} className={styles.main}>
         <Col xs={24} lg={12}>
           <div
             className={styles.imageContainer}
             ref={imageContainerRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
+            onMouseMove={isOutOfStock ? null : handleMouseMove}
+            onMouseLeave={isOutOfStock ? null : handleMouseLeave}
           >
             <img
               src={mainImage}
               className={styles.mainImage}
-              style={zoomStyle}
+              style={{
+                ...zoomStyle,
+                filter: isOutOfStock ? "grayscale(50%)" : "none",
+              }}
               alt="main product"
             />
+            {isOutOfStock && (
+              <div className={styles.outOfStockOverlay}>Hết hàng</div>
+            )}
           </div>
           <div className={styles.thumbnails}>
             {productDetail.images.map((img, i) => (
@@ -262,6 +352,7 @@ function ProductDetail() {
                 src={img}
                 className={styles.thumbnail}
                 onClick={() => setMainImage(img)}
+                alt={`thumbnail-${i}`}
               />
             ))}
           </div>
@@ -274,7 +365,7 @@ function ProductDetail() {
               allowHalf
               value={
                 reviews.reduce((total, review) => total + review.rating, 0) /
-                reviews.length
+                (reviews.length || 1)
               }
               disabled
             />
@@ -286,7 +377,7 @@ function ProductDetail() {
           </Space>
 
           <div className={styles.price}>
-            {productDetail.discount_id?.percent_discount > 0 ? (
+            {hasDiscount ? (
               <>
                 <Text className={styles.salePrice}>
                   {formatVND(productDetail.price_after_discount)}
@@ -310,7 +401,7 @@ function ProductDetail() {
             <div className={styles.colorOptions}>
               {[
                 ...new Map(
-                  variants.map((v) => [v.color_id[0]._id, v.color_id[0]])
+                  variants.map((v) => [v.color_id._id, v.color_id])
                 ).values(),
               ].map((color) => (
                 <div
@@ -342,17 +433,14 @@ function ProductDetail() {
             </div>
 
             <div className={styles.sizeOptions}>
-              {[
-                ...new Map(
-                  variants.map((v) => [v.size_id._id, v.size_id])
-                ).values(),
-              ].map((size) => (
+              {availableSizes.map((size) => (
                 <Button
                   key={size._id}
                   className={`${styles.sizeButton} ${
                     selectedSize === size._id ? styles.sizeSelected : ""
                   }`}
                   onClick={() => handleSizeClick(size._id)}
+                  disabled={isVariantLoading}
                 >
                   {size.size_name}
                 </Button>
@@ -374,21 +462,54 @@ function ProductDetail() {
             </Modal>
           </div>
 
+          <div className={styles.selection}>
+            <Text strong>Số lượng</Text>
+            <div
+              className={`${styles.quantitySelector} ${styles.whiteNumberInput}`}
+            >
+              <InputNumber
+                min={1}
+                max={productDetail.inventory_number}
+                value={quantity}
+                onChange={(value) => setQuantity(value)}
+                className={styles.quantityInput}
+                disabled={isOutOfStock || isVariantLoading}
+              />
+              <Text type="secondary" style={{ marginLeft: "12px" }}>
+                {isOutOfStock
+                  ? "Hết hàng"
+                  : `Còn ${productDetail.inventory_number} sản phẩm`}
+              </Text>
+            </div>
+          </div>
+
           <div className={styles.actions}>
             <Button
               type="primary"
               icon={<ThunderboltOutlined />}
               size="large"
-              className={styles.buyButton}
-              onClick={handleBuyNow}
+              className={
+                isOutOfStock || isVariantLoading
+                  ? styles.buyButtonDisabled
+                  : styles.buyButton
+              }
+              onClick={isOutOfStock || isVariantLoading ? null : handleBuyNow}
+              disabled={isOutOfStock || isVariantLoading}
             >
               Mua ngay
             </Button>
             <Button
               icon={<ShoppingCartOutlined />}
               size="large"
-              className={styles.cartButton}
-              onClick={handleAddToCart}
+              className={
+                isOutOfStock || isVariantLoading
+                  ? styles.cartButtonDisabled
+                  : styles.cartButton
+              }
+              onClick={
+                isOutOfStock || isVariantLoading ? null : handleAddToCart
+              }
+              disabled={isOutOfStock || isVariantLoading}
             >
               Giỏ hàng
             </Button>
@@ -443,6 +564,7 @@ function ProductDetail() {
                   <img
                     src={r.user_id?.avatar_image}
                     className={styles.avatar}
+                    alt="user"
                   />
                   <div>
                     <Text strong>
@@ -457,6 +579,29 @@ function ProductDetail() {
                       />
                     </div>
                     <Paragraph>{r.review_content}</Paragraph>
+
+                    {r.images && r.images.length > 0 && (
+                      <div className={styles.imagePreview}>
+                        {r.images.map((img, i) => (
+                          <Image
+                            key={i}
+                            src={img}
+                            width={80}
+                            height={80}
+                            style={{ borderRadius: 4 }}
+                            alt={`review-image-${i}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <Paragraph
+                      type="secondary"
+                      style={{ fontSize: "13px", fontStyle: "italic" }}
+                    >
+                      Đánh giá lúc:{" "}
+                      {new Date(r.review_date).toLocaleString("vi-VN")}
+                    </Paragraph>
                   </div>
                 </div>
 
@@ -466,6 +611,7 @@ function ProductDetail() {
                       <img
                         src={rep.replier_id?.avatar_image}
                         className={styles.replyAvatar}
+                        alt="reply user"
                       />
                       <div className={styles.replyContent}>
                         <Text strong>
@@ -473,6 +619,16 @@ function ProductDetail() {
                           {rep.replier_id?.last_name}:
                         </Text>{" "}
                         {rep.reply_content}
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#999",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          Phản hồi lúc:{" "}
+                          {new Date(rep.reply_date).toLocaleString("vi-VN")}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -498,42 +654,44 @@ function ProductDetail() {
           <Title level={3} className={styles.titleBorder}>
             Sản phẩm liên quan
           </Title>
-          <div className={styles.carouselWrapper}>
-            <Button
-              icon={<LeftOutlined />}
-              onClick={handlePrev}
-              className={`${styles.carouselNav} ${styles.prev}`}
-            />
-            <Carousel
-              ref={carouselRef}
-              dots={false}
-              slidesToShow={3}
-              slidesToScroll={1}
-              className={styles.carousel}
-            >
-              {related.map((prod) => (
+          <div className={styles.scrollContainer}>
+            {related.map((prod) => {
+              const hasDiscount = prod.discount_id?.percent_discount > 0;
+              const isOutOfStock = prod.inventory_number === 0;
+
+              return (
                 <div
                   key={prod._id}
-                  className={styles.carouselItem}
+                  className={styles.scrollItem}
                   onClick={() => navigate(`/products/${prod._id}`)}
                 >
-                  <div className={styles.sameHeightWrapper}>
+                  <div style={{ position: "relative" }}>
+                    {hasDiscount && (
+                      <Tag color="orange" className={styles.discountTag}>
+                        -{prod.discount_id.percent_discount}%
+                      </Tag>
+                    )}
                     <Card
                       hoverable
-                      cover={
-                        <img
-                          src={prod.images[0]}
-                          alt={prod.product_id.productName}
-                          className={styles.relatedImage}
-                        />
-                      }
                       className={styles.relatedCard}
+                      cover={
+                        <div className={styles.imageWrapper}>
+                          <img
+                            src={prod.images[0]}
+                            alt={prod.product_id.productName}
+                            className={styles.relatedImage}
+                            style={{
+                              filter: isOutOfStock ? "grayscale(50%)" : "none",
+                            }}
+                          />
+                          {isOutOfStock && (
+                            <div className={styles.outOfStockOverlay}>
+                              Hết hàng
+                            </div>
+                          )}
+                        </div>
+                      }
                     >
-                      {prod.discount_id.percent_discount > 0 && (
-                        <Tag color="orange" className={styles.discountTag}>
-                          -{prod.discount_id.percent_discount}%
-                        </Tag>
-                      )}
                       <Card.Meta
                         title={prod.product_id.productName}
                         description={
@@ -544,7 +702,7 @@ function ProductDetail() {
                             <div className={styles.priceContainer}>
                               <div className={styles.priceRow}>
                                 <div className={styles.priceColumn}>
-                                  {prod.discount_id.percent_discount > 0 ? (
+                                  {hasDiscount ? (
                                     <>
                                       <Text
                                         className={styles.originalPrice}
@@ -562,15 +720,19 @@ function ProductDetail() {
                                     </Text>
                                   )}
                                 </div>
-
                                 <Button
                                   type="text"
-                                  className={styles.cartIconButton}
+                                  className={
+                                    isOutOfStock
+                                      ? styles.cartButtonDisabled
+                                      : styles.cartIconButton
+                                  }
                                   icon={<ShoppingCartOutlined />}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleAddRelatedToCart(prod);
                                   }}
+                                  disabled={isOutOfStock}
                                 />
                               </div>
                             </div>
@@ -580,13 +742,8 @@ function ProductDetail() {
                     </Card>
                   </div>
                 </div>
-              ))}
-            </Carousel>
-            <Button
-              icon={<RightOutlined />}
-              onClick={handleNext}
-              className={`${styles.carouselNav} ${styles.next}`}
-            />
+              );
+            })}
           </div>
         </div>
       )}

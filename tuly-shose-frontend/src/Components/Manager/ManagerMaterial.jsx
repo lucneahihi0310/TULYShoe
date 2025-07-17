@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerMaterial = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerMaterial = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/materials/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/materials/edit/${edittingRow}`, {
+            //     material_name: record.material_name,
+            //     is_active: record.status
+            // });
+            await updateData('/materials/manager/edit_material', edittingRow, {
                 material_name: record.material_name,
                 is_active: record.status
-            });
+            }, true);
             setEdittingRow(null);
             fetchCategories();
         }
@@ -49,7 +54,8 @@ const ManagerMaterial = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/materials/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/materials/delete/${id}`);
+        await deleteData('/materials/manager/delete_material', id, true);
         fetchCategories();
     };
 
@@ -58,8 +64,9 @@ const ManagerMaterial = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/materials`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/materials`);
+        const res = await fetchData('/materials/manager/list_material');
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
@@ -268,10 +275,14 @@ const ManagerMaterial = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/materials/create', {
+                                    // await axios.post('http://localhost:9999/manager/materials/create', {
+                                    //     material_name: values.material_name,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/materials/manager/create_material', {
                                         material_name: values.material_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();

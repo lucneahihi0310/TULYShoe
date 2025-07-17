@@ -66,14 +66,18 @@ axiosInstance.interceptors.response.use(
 // GET
 export const fetchData = async (endpoint, includeAuth = false) => {
   try {
-    const config = includeAuth
-      ? { headers: { Authorization: `Bearer ${getToken()}` } }
-      : {};
-    const response = await axiosInstance.get(endpoint, config);
+    const headers = {
+      "Cache-Control": "no-cache",
+    };
+
+    if (includeAuth) {
+      headers.Authorization = `Bearer ${getToken()}`;
+    }
+
+    const response = await axiosInstance.get(endpoint, { headers });
     return response.data;
   } catch (error) {
-    const message =
-      error.response?.data?.message || "Request failed.";
+    const message = error.response?.data?.message || "Request failed.";
     throw new Error(message);
   }
 };
@@ -87,8 +91,7 @@ export const postData = async (endpoint, data, includeAuth = false) => {
     const response = await axiosInstance.post(endpoint, data, config);
     return response.data;
   } catch (error) {
-    const message =
-      error.response?.data?.message || "Request failed.";
+    const message = error.response?.data?.message || "Request failed.";
     throw new Error(message);
   }
 };
@@ -102,8 +105,7 @@ export const updateData = async (endpoint, id, data, includeAuth = false) => {
     const response = await axiosInstance.put(`${endpoint}/${id}`, data, config);
     return response.data;
   } catch (error) {
-    const message =
-      error.response?.data?.message || "Failed to update.";
+    const message = error.response?.data?.message || "Failed to update.";
     throw new Error(message);
   }
 };
@@ -117,8 +119,40 @@ export const deleteData = async (endpoint, id, includeAuth = false) => {
     const response = await axiosInstance.delete(`${endpoint}/${id}`, config);
     return response.data;
   } catch (error) {
-    const message =
-      error.response?.data?.message || "Failed to delete.";
+    const message = error.response?.data?.message || "Failed to delete.";
     throw new Error(message);
+  }
+};
+export const uploadAvatar = async (formData) => {
+  try {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    const res = await axios.put(`${BASE_URL}/account/upload/avatar`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.log("Upload Avatar Error:", err.response?.data);
+    const message = err.response?.data?.message || "Lỗi upload avatar";
+    throw new Error(message);
+  }
+};
+
+export const uploadReview = async (formData) => {
+  try {
+    const token = getToken();
+    const res = await axios.post(`${BASE_URL}/reviews/customers`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Lỗi upload review:", err.response?.data);
+    throw new Error(err.response?.data?.message || "Lỗi khi đánh giá");
   }
 };

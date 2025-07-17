@@ -9,10 +9,15 @@ import ListProduct from "./Components/User/ListProduct";
 import StaffDashboard from "./Components/Staff/StaffDashboard/StaffMenu";
 import Cart from "./Components/User/Cart_Item";
 import Order from "./Components/User/Order";
-import Profile from "./Components/Staff/StaffMenuList/StaffProfile";
 import LoginRegister from "./Components/Other_Screen/LoginRegister";
 import OrderSuccess from "./Components/User/OrderSuccess";
 import ManagerDashboard from "./Components/Manager/ManagerDashboard";
+import ListProductByOnSale from "./Components/User/ListProductByOnSale";
+import OrderDetail from "./Components/User/OrderDetail";
+import Profile from "./Components/User/Profile";
+import OrderFailure from "./Components/User/OrderFailure";
+import AboutUs from "./Components/User/AboutUs";
+import Instruct from "./Components/User/Instruct";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [userRole, setUserRole] = useState(null);
@@ -70,11 +75,16 @@ function App() {
         />
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
+        <Route path="/productsbyonsale" element={<ListProductByOnSale />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/orderdetail/:orderCode" element={<OrderDetail />} />
         <Route path="/order-success" element={<OrderSuccess />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/order-failure" element={<OrderFailure />} />
+        <Route path="/profileUser" element={<Profile />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/instruct" element={<Instruct />} />
 
         <Route
           path="/manager"

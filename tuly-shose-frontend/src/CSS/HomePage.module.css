@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap&subset=vietnamese');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&subset=vietnamese&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap&subset=vietnamese");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&subset=vietnamese&display=swap");
 
 .main {
   /* font-family: 'Poppins', sans-serif; */
@@ -109,12 +109,14 @@
   padding: 1rem 2rem !important;
   border-radius: 0.5rem !important;
   max-width: 8rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
 .shopButton:hover {
   background-color: #111827 !important;
   border-color: #111827 !important;
+  color: #ffffff !important;
 }
 
 .heroImageContainer {
@@ -135,7 +137,8 @@
   max-width: 600px;
   height: auto;
   border-radius: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   margin: 0 auto;
   display: block;
 }
@@ -183,14 +186,16 @@
 .collectionItem {
   background-color: #fff;
   border-radius: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   border: 1px solid #e5e7eb;
   transition: box-shadow 0.3s ease;
 }
 
 .collectionItem:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .collectionImage {
@@ -268,7 +273,8 @@
   max-width: 600px;
   height: auto;
   border-radius: 1.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   margin: 0 auto;
   display: block;
 }
@@ -314,7 +320,8 @@
 .testimonialItem {
   background-color: #fff;
   border-radius: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -329,7 +336,8 @@
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .testimonialComment {
@@ -393,7 +401,8 @@
   font-weight: 700 !important;
   padding: 1rem 2.5rem !important;
   border-radius: 0.5rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   width: 100% !important;
 }
 

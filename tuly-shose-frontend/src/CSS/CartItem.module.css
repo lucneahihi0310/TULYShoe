@@ -56,6 +56,36 @@
   transition: background-color 0.2s ease;
 }
 
+.outOfStock {
+  opacity: 0.5;
+  position: relative;
+}
+
+.outOfStockBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 8rem;
+  height: 8rem;
+  flex-shrink: 0;
+}
 .productContainer {
   display: flex;
   align-items: center;
@@ -63,8 +93,8 @@
 }
 
 .productImage {
-  width: 5rem;
-  height: 5rem;
+  width: 8rem;
+  height: 8rem;
   object-fit: contain;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -90,6 +120,13 @@
 .quantityInput {
   width: 4rem;
   text-align: center;
+}
+
+.quantityInputDisabled {
+  width: 4rem;
+  text-align: center;
+  background-color: #e2e8f0;
+  cursor: not-allowed;
 }
 
 .removeIcon {
@@ -195,6 +232,7 @@
   background-color: #c53030;
   border-color: #c53030;
 }
+
 /* Modal custom */
 .customModal .ant-modal-footer .ant-btn {
   margin: 0;
@@ -212,6 +250,7 @@
 .customModal .ant-modal-close {
   color: #718096;
 }
+
 .colorWrapper {
   display: flex;
   align-items: center;

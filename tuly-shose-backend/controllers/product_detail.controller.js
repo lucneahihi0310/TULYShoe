@@ -1,4 +1,4 @@
-const product_detail = require('../models/product_detail.model');
+const product_detail = require('../models/productDetail.model');
 const formatDateTime = (date) => {
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, "0");
@@ -13,41 +13,91 @@ const formatDateTime = (date) => {
 
 exports.list_product_detail = async (req, res, next) => {
     try {
-        const newProductDetail = await product_detail.find();
-        // const listProduct = newProduct.map((p) => {
-        //     return {
-        //         _id: p.id,
-        //         productName: p.productName,
-        //         description: p.description,
-        //         price: p.price,
-        //         categories_id: p.categories_id,
-        //         brand_id: p.brand_id,
-        //         material_id: p.material_id,
-        //         form_id: p.form_id,
-        //         create_at: formatDateTime(p.create_at),
-        //         update_at: formatDateTime(p.update_at)
-        //     }
-        // })
-        res.status(201).json(newProductDetail);
+        const newProductDetail = await product_detail.find().populate("product_id").populate("color_id").populate("size_id").populate("discount_id").populate("product_detail_status");
+        const listProductDetail = newProductDetail.map((p) => {
+            return {
+                _id: p.id,
+                product_id: p.product_id,
+                color_id: p.color_id,
+                size_id: p.size_id,
+                discount_id: p.discount_id,
+                inventory_numer: p.inventory_numer,
+                sold_number: p.sold_number,
+                price_after_discount: p.price_after_discount,
+                images: p.images,
+                product_detail_status: p.product_detail_status,
+                create_at: formatDateTime(p.create_at),
+                update_at: formatDateTime(p.update_at)
+            }
+        })
+        res.status(201).json(listProductDetail);
     } catch (error) {
         next(error);
     }
 }
 
-// exports.create_product = async (req, res, next) => {
-//     try {
-//         const newProduct = new product({
-//             productName: req.body.productName,
-//             description: req.body.description,
-//             price: req.body.price,
-//             categories_id: req.body.categories_id,
-//             brand_id: req.body.brand_id,
-//             material_id: req.body.material_id,
-//             form_id: req.body.form_id
-//         })
-//         const insertProduct = await newProduct.save();
-//         res.status(201).json(insertProduct);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
+exports.list_product_detail_by_id = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const newProductDetail = await product_detail.find({ product_id: id }).populate("product_id").populate("color_id").populate("size_id").populate("discount_id").populate("product_detail_status");
+        const listProductDetail = newProductDetail.map((p) => {
+            return {
+                _id: p.id,
+                product_id: p.product_id,
+                color_id: p.color_id,
+                size_id: p.size_id,
+                discount_id: p.discount_id,
+                inventory_numer: p.inventory_numer,
+                sold_number: p.sold_number,
+                price_after_discount: p.price_after_discount,
+                images: p.images,
+                product_detail_status: p.product_detail_status,
+                create_at: formatDateTime(p.create_at),
+                update_at: formatDateTime(p.update_at)
+            }
+        })
+        res.status(201).json(listProductDetail);
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.create_product_detail = async (req, res, next) => {
+    try {
+        const {
+            product_id,
+            color_id,
+            size_id,
+            discount_id,
+            inventory_number,
+            price_after_discount,
+            sold_number,
+            product_detail_status,
+            images, // mảng URL ảnh từ frontend
+        } = req.body;
+
+        // Kiểm tra bắt buộc
+        if (!images || !Array.isArray(images) || images.length === 0) {
+            return res.status(400).json({ message: 'Images array is required' });
+        }
+
+        const newDetail = new product_detail({
+            product_id,
+            color_id,
+            size_id,
+            discount_id,
+            inventory_number,
+            price_after_discount,
+            sold_number,
+            product_detail_status,
+            images,
+            create_at: new Date().toISOString(),
+            update_at: new Date().toISOString(),
+        });
+
+        const savedDetail = await newDetail.save();
+        return res.status(201).json(savedDetail);
+    } catch (error) {
+        next(error);
+    }
+};

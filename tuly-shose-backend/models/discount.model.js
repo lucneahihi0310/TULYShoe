@@ -9,14 +9,6 @@ const discountSchema = new mongoose.Schema({
         type: Boolean,
         required: true
     },
-    size_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "size"
-    },
-    discount_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "material"
-    },
     create_at: {
         type: String,
         default: () => new Date().toISOString()

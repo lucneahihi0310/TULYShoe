@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerBrand = () => {
     const [categories, setCategories] = useState([]);
@@ -28,11 +29,10 @@ const ManagerBrand = () => {
         try {
             const record = await form.validateFields();
             console.log("Edit:", record);
-
-            await axios.put(`http://localhost:9999/manager/brands/edit/${edittingRow}`, {
+            await updateData('/brands/manager/edit_brand', edittingRow, {
                 brand_name: record.brand_name,
                 is_active: record.status
-            });
+            }, true)
             setEdittingRow(null);
             fetchCategories();
         }
@@ -49,7 +49,7 @@ const ManagerBrand = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/brands/delete/${id}`);
+        await deleteData('/brands/manager/delete_brand', id, true)
         fetchCategories();
     };
 
@@ -58,11 +58,11 @@ const ManagerBrand = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/brands`);
-        setCategories(res.data);
-        console.log('a');
+        const res = await fetchData('/brands/manager/list_brand');
+        setCategories(res);
+        console.log(res);
     }
-    const searchCategory = categories.filter((c) => {
+    const searchCategory = categories.filter(c => {
         const findCategoryByName = c.brand_name.toLowerCase().includes(filterCategoryName.toLowerCase());
         const findCategoryByStatus = filterCategoryStatus === undefined || c.status === filterCategoryStatus;
         return findCategoryByName && findCategoryByStatus;
@@ -121,7 +121,6 @@ const ManagerBrand = () => {
                     return (
                         <Form.Item
                             name="status"
-                            initialValue={record.status}
                             rules={[{ required: true, message: "Please select status" }]}>
                             <Select
                                 placeholder="Select status"
@@ -192,24 +191,10 @@ const ManagerBrand = () => {
                                     brand_name: record.brand_name,
                                     status: record.status
                                 })
+                                console.log(record)
                             }}>
                             Edit
                         </Button>
-                        {/* <Popconfirm
-                            title="Are you sure to delete this brand?"
-                            onConfirm={() => {
-                                handleDeleteCategory(record._id)
-                            }}
-                            okText="Yes"
-                            cancelText="No"
-                            overlayStyle={{maxWidth: '220px', fontSize: '13px', textAlign: 'center'}}>
-                            <Button
-                                color="danger"
-                                variant="solid"
-                                icon={<DeleteOutlined />}>
-                                Delete
-                            </Button>
-                        </Popconfirm> */}
                         <Popconfirm
                             title="Are you sure to delete this brand?"
                             onConfirm={() => {
@@ -284,10 +269,11 @@ const ManagerBrand = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/brands/create', {
+                                    await postData('/brands/manager/create_brand', {
                                         brand_name: values.brand_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true)
+
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();

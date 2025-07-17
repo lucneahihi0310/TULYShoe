@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerCategory = () => {
     const [categories, setCategories] = useState([]);
@@ -29,10 +30,14 @@ const ManagerCategory = () => {
             const record = await form.validateFields();
             console.log("Edit:", record);
 
-            await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
+            // await axios.put(`http://localhost:9999/manager/categories/edit/${edittingRow}`, {
+            //     category_name: record.category_name,
+            //     is_active: record.status
+            // });
+            await updateData('/categories/manager/edit_category', edittingRow, {
                 category_name: record.category_name,
                 is_active: record.status
-            });
+            }, true)
             setEdittingRow(null);
             fetchCategories();
         }
@@ -49,7 +54,8 @@ const ManagerCategory = () => {
     //delete category
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        await axios.delete(`http://localhost:9999/manager/categories/delete/${id}`);
+        // await axios.delete(`http://localhost:9999/manager/categories/delete/${id}`);
+        await deleteData('/categories/manager/delete_category', id, true);
         fetchCategories();
     };
 
@@ -58,8 +64,9 @@ const ManagerCategory = () => {
         fetchCategories();
     }, [])
     const fetchCategories = async () => {
-        const res = await axios.get(`http://localhost:9999/manager/categories`);
-        setCategories(res.data);
+        // const res = await axios.get(`http://localhost:9999/manager/categories`);
+        const res = await fetchData('/categories/manager/list_category');
+        setCategories(res);
         console.log('a');
     }
     const searchCategory = categories.filter((c) => {
@@ -268,10 +275,14 @@ const ManagerCategory = () => {
                             onFinish={async (values) => {
                                 try {
                                     console.log(values);
-                                    await axios.post('http://localhost:9999/manager/categories/create', {
+                                    // await axios.post('http://localhost:9999/manager/categories/create', {
+                                    //     category_name: values.category_name,
+                                    //     is_active: values.is_active
+                                    // });
+                                    await postData('/categories/manager/create_category', {
                                         category_name: values.category_name,
                                         is_active: values.is_active
-                                    });
+                                    }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();

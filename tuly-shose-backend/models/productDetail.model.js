@@ -12,11 +12,11 @@ const productDetailSchema = new mongoose.Schema({
         ref: "Product",
         required: true,
     },
-    color_id: [{
+    color_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Color",
         required: true,
-    }],
+    },
     size_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Size",

@@ -14,6 +14,120 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+
+exports.getFullUserInfo = async (req, res) => {
+    try {
+        const user = await User.findById(req.customerId)
+            .select("first_name last_name dob gender phone email avatar_image address_shipping_id")
+            .populate({
+                path: "address_shipping_id",
+                select: "address",
+            });
+
+        if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+
+        res.json({
+            first_name: user.first_name,
+            last_name: user.last_name,
+            dob: user.dob,
+            gender: user.gender,
+            phone: user.phone,
+            email: user.email,
+            avatar_image: user.avatar_image || "",
+            address: user.address_shipping_id?.address || "",
+        });
+    } catch (error) {
+        console.error("Lỗi khi lấy thông tin user:", error);
+        res.status(500).json({ message: "Lỗi server khi lấy thông tin người dùng!" });
+    }
+};
+
+// Cập nhật thông tin người dùng (KHÔNG bao gồm avatar)
+exports.updateProfileUser = async (req, res) => {
+    try {
+        const { first_name, last_name, phone, dob, gender, address, email } = req.body;
+
+        const user = await User.findById(req.customerId);
+
+        if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+
+        user.first_name = first_name || "";
+        user.last_name = last_name || user.last_name;
+        user.dob = dob || user.dob;
+        user.gender = gender || user.gender;
+        user.phone = phone || user.phone;
+        user.email = email || user.email;
+        user.update_at = new Date();
+
+        if (address && user.address_shipping_id) {
+            await Address.findByIdAndUpdate(user.address_shipping_id, {
+                address,
+                update_at: new Date(),
+            });
+        }
+
+        await user.save();
+
+        res.json({
+            message: 'Cập nhật thông tin thành công',
+            user: {
+                first_name: user.first_name,
+                last_name: user.last_name,
+                dob: user.dob,
+                gender: user.gender,
+                phone: user.phone,
+                email: user.email,
+            },
+        });
+    } catch (error) {
+        console.error('Cập nhật thông tin thất bại:', error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật thông tin' });
+    }
+};
+
+exports.uploadAvatar = async (req, res) => {
+    try {
+        const imageUrl = req.file.path || req.file.secure_url;
+
+        const user = await User.findByIdAndUpdate(
+            req.customerId,
+            { avatar_image: imageUrl, update_at: Date.now() },
+            { new: true }
+        ).select('-password');
+        console.log("Uploaded file:", req.file);
+        res.json({
+            message: 'Cập nhật ảnh đại diện thành công',
+            avatar: user.avatar_image,
+        });
+    } catch (error) {
+        console.error('Upload avatar failed:', error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật avatar' });
+    }
+};
+
+exports.changePasswordUser = async (req, res) => {
+  try {
+    const userId = req.customerId;
+    const { current_password, new_password } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
+
+    const isMatch = await bcrypt.compare(current_password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" });
+    }
+
+    user.password = await bcrypt.hash(new_password, 10);
+    await user.save();
+
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (err) {
+    console.error("[CHANGE PASSWORD ERROR]", err);
+    res.status(500).json({ message: "Lỗi đổi mật khẩu" });
+  }
+};
+
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -260,33 +374,7 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 // GET /account/info
-exports.getFullUserInfo = async (req, res, next) => {
-  try {
-    const userId = req.customerId; //đã gán trong middleware xác thực JWT
 
-    const user = await User.findById(userId)
-      .select("first_name last_name phone email address_shipping_id")
-      .populate({
-        path: "address_shipping_id",
-        select: "address",
-      });
-
-    if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng!" });
-
-    const userInfo = {
-      first_name: user.first_name,
-      last_name: user.last_name,
-      phone: user.phone,
-      email: user.email,
-      address: user.address_shipping_id?.address || "",
-    };
-
-    res.json(userInfo);
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin user:", error);
-    res.status(500).json({ message: "Lỗi server khi lấy thông tin người dùng!" });
-  }
-};
 exports.getProfile = async (req, res) => {
     try {
         const account = await User.findById(req.params.id)
@@ -313,7 +401,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { first_name, last_name, dob, gender, phone, avatar_image,address  } = req.body;
+        const { first_name, last_name, dob, gender, phone, avatar_image, address } = req.body;
 
         const updatedAccount = await User.findByIdAndUpdate(
             req.params.id,
@@ -324,7 +412,7 @@ exports.updateProfile = async (req, res) => {
                 gender,
                 phone,
                 avatar_image,
-                address ,
+                address,
                 update_at: new Date()
             },
             { new: true, runValidators: true }
