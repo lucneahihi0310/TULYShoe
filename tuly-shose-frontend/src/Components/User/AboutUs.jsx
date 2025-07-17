@@ -44,7 +44,7 @@ const AboutUs = () => {
       const response = await postData("/support/submit", values);
       notification.success({
         message: "Gửi yêu cầu thành công!",
-        description: response.data.message,
+        description: response.message,
         placement: "bottomRight",
         duration: 3,
       });
@@ -53,7 +53,7 @@ const AboutUs = () => {
       notification.error({
         message: "Lỗi khi gửi yêu cầu",
         description:
-          err.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
+          err.response?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.",
         placement: "bottomRight",
         duration: 3,
       });
