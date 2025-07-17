@@ -8,6 +8,7 @@ import ManagerMaterial from './ManagerMaterial';
 import ManagerSize from './ManagerSize';
 import ManagerProduct from './ManagerProduct';
 import ManagerStatistic from './ManagerStatistic';
+import ManagerAccount from './ManagerAccount';
 
 
 const ManagerDashboardContent = () => {
@@ -16,6 +17,8 @@ const ManagerDashboardContent = () => {
     switch (section) {
         case 'statistic':
             return <ManagerStatistic />;
+        case 'accounts':
+            return <ManagerAccount />;
         case 'brands':
             return <ManagerBrand />;
         case 'categories':

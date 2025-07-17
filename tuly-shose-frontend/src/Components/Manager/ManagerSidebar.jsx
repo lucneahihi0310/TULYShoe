@@ -6,6 +6,7 @@ const ManagerSidebar = () => {
 
     const menu = [
         { key: 'statistic', label: 'Thống kê' },
+        { key: 'accounts', label: 'Quản lý tài khoản' },
         { key: 'brands', label: 'Quản lý brand' },
         { key: 'categories', label: 'Quản lý category' },
         { key: 'colors', label: 'Quản lý màu sắc' },
