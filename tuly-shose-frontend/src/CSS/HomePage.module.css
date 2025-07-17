@@ -2,7 +2,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&subset=vietnamese&display=swap");
 
 .main {
-  /* font-family: 'Poppins', sans-serif; */
   background-color: #fff;
   color: #1f2937;
   overflow-x: hidden;
@@ -165,70 +164,135 @@
   margin-bottom: 3rem;
 }
 
-.collectionsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.5rem;
-}
-
-@media (min-width: 640px) {
-  .collectionsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .collectionsGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.collectionItem {
-  background-color: #fff;
+/* Product Card Styles */
+.productCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
   border: 1px solid #e5e7eb;
   transition: box-shadow 0.3s ease;
 }
 
-.collectionItem:hover {
+.productCard:hover {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-.collectionImage {
+.productImageContainer {
   width: 100%;
   height: 18rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
 
-.collectionItem:hover .collectionImage {
+.productCard:hover .productImage {
   transform: scale(1.05);
 }
 
-.collectionDetails {
-  padding: 1.5rem;
+.outOfStockOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.collectionTitle {
+.discountTag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-weight: bold;
+}
+
+.productName {
   font-size: 1.25rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.5rem;
 }
 
-.collectionDescription {
+.productDescription {
   color: #4b5563;
+  min-height: 50px;
   margin-bottom: 1rem;
 }
 
-.collectionPrice {
+.priceAndCartContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.originalPrice {
+  color: #6b7280;
+  text-decoration: line-through;
+  font-size: 0.875rem;
+}
+
+.currentPrice {
   font-size: 1.125rem;
   font-weight: 700;
   color: #1f2937;
+}
+
+.addToCart {
+  background-color: #1f2937 !important;
+  border-color: #1f2937 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 0.5rem !important;
+}
+
+.addToCart:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #111827 !important;
+}
+
+.addToCartDisabled {
+  background-color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: #fff !important;
+  cursor: not-allowed !important;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.flexRow {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.sameHeightCol {
+  display: flex;
+  flex-direction: column;
 }
 
 /* About Section */

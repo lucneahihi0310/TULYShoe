@@ -82,10 +82,22 @@ function CartItem() {
   const onQuantityChange = async (record, newQty) => {
     if (record.inventory_number === 0) {
       notification.error({
-        message: "Sản phẩm đã hết hàng, không thể thay đổi số lượng!",
+        message: "Sản phẩm đã hết hàng!",
+        description: `Sản phẩm "${record.productName}" hiện không còn trong kho.`,
+        placement: "bottomLeft",
       });
       return;
     }
+
+    if (newQty > record.inventory_number) {
+      notification.error({
+        message: "Số lượng vượt quá tồn kho!",
+        description: `Sản phẩm "${record.productName}" chỉ còn ${record.inventory_number} sản phẩm trong kho.`,
+        placement: "bottomLeft",
+      });
+      return;
+    }
+
     if (newQty === 0) {
       setSelectedRecord(record);
       setIsModalVisible(true);
@@ -145,9 +157,29 @@ function CartItem() {
       notification.error({
         message: "Có sản phẩm hết hàng!",
         description: `Vui lòng xóa các sản phẩm hết hàng: ${outOfStockNames} trước khi thanh toán.`,
+        placement: "bottomLeft",
       });
       return;
     }
+
+    const overStockItems = cartItems.filter(
+      (item) => item.quantity > item.inventory_number
+    );
+    if (overStockItems.length > 0) {
+      const overStockNames = overStockItems
+        .map(
+          (item) =>
+            `${item.productName} (yêu cầu: ${item.quantity}, kho: ${item.inventory_number})`
+        )
+        .join(", ");
+      notification.error({
+        message: "Số lượng vượt quá tồn kho!",
+        description: `Vui lòng điều chỉnh số lượng cho: ${overStockNames}.`,
+        placement: "bottomLeft",
+      });
+      return;
+    }
+
     navigate("/order", {
       state: {
         fromCart: true,
@@ -169,6 +201,7 @@ function CartItem() {
           className={`${styles.productContainer} ${
             record.inventory_number === 0 ? styles.outOfStock : ""
           }`}
+          onClick={() => navigate(`/products/${record._id}`)}
         >
           <div className={styles.imageWrapper}>
             <img
@@ -215,6 +248,7 @@ function CartItem() {
         <InputNumber
           min={0}
           value={qty}
+          max={record.inventory_number}
           className={
             record.inventory_number === 0
               ? styles.quantityInputDisabled

@@ -46,6 +46,7 @@ const Order = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
   const [hasFetchedProvinces, setHasFetchedProvinces] = useState(false);
+
   const fetchProvinces = async () => {
     setIsLoadingProvinces(true);
     try {
@@ -269,6 +270,7 @@ const Order = () => {
                 color_code: data.color_id?.color_code,
                 productName: data.product_id?.productName,
                 price_after_discount: data.price_after_discount,
+                inventory_number: data.inventory_number,
               };
             } catch (err) {
               console.error("Lỗi lấy chi tiết sản phẩm:", err);
@@ -292,6 +294,7 @@ const Order = () => {
               color_code: data.color_id?.color_code,
               productName: data.product_id?.productName,
               price_after_discount: data.price_after_discount,
+              inventory_number: data.inventory_number,
             },
           ]);
         } catch (err) {
@@ -362,9 +365,37 @@ const Order = () => {
     fetchWards(value);
   };
 
+  const onQuantityChange = (value, index) => {
+
+    const item = orderItems[index];
+    if (value > item.inventory_number) {
+      message.error(
+        `Số lượng vượt quá tồn kho. Sản phẩm "${item.productName}" chỉ còn ${item.inventory_number} sản phẩm trong kho.`
+      );
+      return;
+    }
+
+    setOrderItems((prev) =>
+      prev.map((itm, i) => (i === index ? { ...itm, quantity: value } : itm))
+    );
+  };
+
   const handleOrderSubmit = async () => {
     if (orderItems.length === 0) {
       return message.warning("Không có sản phẩm để đặt hàng.");
+    }
+
+    // Validate inventory for all items before submission
+    const invalidItems = orderItems.filter(
+      (item) => item.quantity > item.inventory_number
+    );
+    if (invalidItems.length > 0) {
+      message.error(
+        `Không thể đặt hàng. Các sản phẩm sau vượt quá số lượng trong kho: ${invalidItems
+          .map((item) => `"${item.productName}" (${item.inventory_number})`)
+          .join(", ")}.`
+      );
+      return;
     }
 
     try {
@@ -439,7 +470,7 @@ const Order = () => {
                 "vnpay/create",
                 {
                   ...payload,
-                  amount: totalAmount,
+                  amount: totalAmount + shippingFee,
                   paymentMethod: "online",
                 },
                 true
@@ -589,18 +620,10 @@ const Order = () => {
                         <span>Số lượng:</span>
                         <InputNumber
                           min={1}
-                          max={99}
+                          max={item.inventory_number}
                           value={item.quantity}
                           disabled={!!location.state?.fromCart}
-                          onChange={(val) => {
-                            if (!location.state?.cartItems) {
-                              setOrderItems((prev) =>
-                                prev.map((itm, i) =>
-                                  i === idx ? { ...itm, quantity: val } : itm
-                                )
-                              );
-                            }
-                          }}
+                          onChange={(val) => onQuantityChange(val, idx)}
                           className={styles.qtyInput}
                           size="small"
                           style={{ marginLeft: 8 }}

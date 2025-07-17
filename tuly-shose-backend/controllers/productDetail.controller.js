@@ -103,7 +103,7 @@ exports.getRelatedProducts = async (req, res) => {
         const detail = await ProductDetail.findOne({ product_id: prod._id })
           .populate({
             path: 'product_id',
-            select: 'productName description price'
+            select: 'productName description price title'
           })
           .populate('discount_id', 'percent_discount')
           .populate('color_id', 'color_name')

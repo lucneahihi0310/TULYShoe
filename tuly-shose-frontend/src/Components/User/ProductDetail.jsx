@@ -14,6 +14,7 @@ import {
   Image,
   notification,
   InputNumber,
+  Tooltip,
 } from "antd";
 import {
   ShoppingCartOutlined,
@@ -30,6 +31,8 @@ function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const imageContainerRef = useRef(null);
+  const thumbnailScrollRef = useRef(null);
+  const relatedScrollRef = useRef(null);
   const { user } = useContext(AuthContext);
 
   const [productDetail, setProductDetail] = useState(null);
@@ -54,27 +57,19 @@ function ProductDetail() {
     const fetchDataAsync = async () => {
       try {
         setLoading(true);
-
-        // Lấy chi tiết sản phẩm hiện tại
         const resDetail = await fetchData(`productDetail/customers/${id}`);
         setProductDetail(resDetail);
         setMainImage(resDetail.images[0]);
         setSelectedColor(resDetail.color_id._id);
         setSelectedSize(resDetail.size_id._id);
-
-        // Lấy tất cả biến thể với thông tin đầy đủ
         const resVariants = await fetchData(
           `productDetail/customers/product/full/${resDetail.product_id._id}`
         );
         setVariants(resVariants);
-
-        // Lấy đánh giá
         const resReviews = await fetchData(
           `reviews/customers/detail/${resDetail._id}`
         );
         setReviews(resReviews);
-
-        // Lấy sản phẩm liên quan
         const resRelated = await fetchData(
           `productDetail/customers/related/${id}`
         );
@@ -95,7 +90,6 @@ function ProductDetail() {
     fetchDataAsync();
   }, [id]);
 
-  // Tải lại đánh giá khi productDetail thay đổi
   useEffect(() => {
     if (productDetail?._id) {
       const fetchReviews = async () => {
@@ -119,8 +113,7 @@ function ProductDetail() {
   const handleColorClick = (colorId) => {
     setIsVariantLoading(true);
     setSelectedColor(colorId);
-    setSelectedSize(null); // Reset kích thước khi chọn màu mới
-    // Tìm biến thể đầu tiên có màu được chọn
+    setSelectedSize(null);
     const match = variants.find((v) => v.color_id._id === colorId);
     if (match) {
       setProductDetail(match);
@@ -139,7 +132,6 @@ function ProductDetail() {
   const handleSizeClick = (sizeId) => {
     setIsVariantLoading(true);
     setSelectedSize(sizeId);
-    // Tìm biến thể có cả màu và kích thước được chọn
     const match = variants.find(
       (v) => v.color_id._id === selectedColor && v.size_id._id === sizeId
     );
@@ -168,6 +160,7 @@ function ProductDetail() {
       });
     }
   };
+
   const handleMouseLeave = () => {
     setZoomStyle({ transform: "scale(1)", transformOrigin: "center center" });
   };
@@ -189,8 +182,35 @@ function ProductDetail() {
       });
     };
 
+    const notifyStockError = () => {
+      notification.error({
+        message: "Không thể thêm vào giỏ hàng",
+        description: `Sản phẩm "${productDetail.product_id.productName}" đã đạt số lượng tối đa trong kho (${productDetail.inventory_number}).`,
+        placement: "bottomLeft",
+        duration: 3,
+      });
+    };
+
     try {
       if (user && user._id) {
+        // Fetch current cart items for the user
+        const cartData = await fetchData(
+          `cartItem/customers/user/${user._id}`,
+          true
+        );
+        const existingItem = cartData.find(
+          (item) => item.pdetail_id._id === cartItem.pdetail_id
+        );
+        const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+        if (
+          currentQuantity + cartItem.quantity >
+          productDetail.inventory_number
+        ) {
+          notifyStockError();
+          return;
+        }
+
         await postData("/cartItem/customers", {
           ...cartItem,
           user_id: user._id,
@@ -204,6 +224,16 @@ function ProductDetail() {
         const existingIndex = guestCart.findIndex(
           (item) => item.pdetail_id === cartItem.pdetail_id
         );
+        const currentQuantity =
+          existingIndex >= 0 ? guestCart[existingIndex].quantity : 0;
+
+        if (
+          currentQuantity + cartItem.quantity >
+          productDetail.inventory_number
+        ) {
+          notifyStockError();
+          return;
+        }
 
         if (existingIndex >= 0) {
           guestCart[existingIndex].quantity += quantity;
@@ -226,6 +256,16 @@ function ProductDetail() {
 
   const handleBuyNow = () => {
     if (!productDetail) return;
+
+    if (quantity > productDetail.inventory_number) {
+      notification.error({
+        message: "Số lượng vượt quá tồn kho",
+        description: `Sản phẩm "${productDetail.product_id.productName}" chỉ còn ${productDetail.inventory_number} sản phẩm trong kho.`,
+        placement: "bottomLeft",
+        duration: 3,
+      });
+      return;
+    }
 
     const orderItem = {
       pdetail_id: productDetail._id,
@@ -257,8 +297,32 @@ function ProductDetail() {
       });
     };
 
+    const notifyStockError = () => {
+      notification.error({
+        message: "Không thể thêm vào giỏ hàng",
+        description: `Sản phẩm "${prod.product_id.productName}" đã đạt số lượng tối đa trong kho (${prod.inventory_number}).`,
+        placement: "bottomLeft",
+        duration: 3,
+      });
+    };
+
     try {
       if (user && user._id) {
+        // Fetch current cart items for the user
+        const cartData = await fetchData(
+          `cartItem/customers/user/${user._id}`,
+          true
+        );
+        const existingItem = cartData.find(
+          (item) => item.pdetail_id._id === cartItem.pdetail_id
+        );
+        const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+        if (currentQuantity + cartItem.quantity > prod.inventory_number) {
+          notifyStockError();
+          return;
+        }
+
         await postData("/cartItem/customers", {
           ...cartItem,
           user_id: user._id,
@@ -272,6 +336,13 @@ function ProductDetail() {
         const existingIndex = guestCart.findIndex(
           (item) => item.pdetail_id === cartItem.pdetail_id
         );
+        const currentQuantity =
+          existingIndex >= 0 ? guestCart[existingIndex].quantity : 0;
+
+        if (currentQuantity + cartItem.quantity > prod.inventory_number) {
+          notifyStockError();
+          return;
+        }
 
         if (existingIndex >= 0) {
           guestCart[existingIndex].quantity += 1;
@@ -292,13 +363,30 @@ function ProductDetail() {
     }
   };
 
+  const handleThumbnailScroll = (direction) => {
+    if (thumbnailScrollRef.current) {
+      thumbnailScrollRef.current.scrollBy({
+        left: direction === "left" ? -100 : 100,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handleRelatedScroll = (direction) => {
+    if (relatedScrollRef.current) {
+      relatedScrollRef.current.scrollBy({
+        left: direction === "left" ? -320 : 320,
+        behavior: "smooth",
+      });
+    }
+  };
+
   const formatVND = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
 
-  // Tối ưu danh sách kích thước bằng useMemo
   const availableSizes = useMemo(
     () => [
       ...new Map(
@@ -329,7 +417,7 @@ function ProductDetail() {
         </div>
       )}
       <Row gutter={32} className={styles.main}>
-        <Col style={{ justifyItems: "center" }} xs={24} lg={12}>
+        <Col xs={24} lg={12}>
           <div
             className={styles.imageContainer}
             ref={imageContainerRef}
@@ -337,51 +425,49 @@ function ProductDetail() {
             onMouseLeave={isOutOfStock ? null : handleMouseLeave}
           >
             <img
-              src={mainImage}
+              src={mainImage || "path/to/placeholder-image.jpg"}
+              loading="lazy"
               className={styles.mainImage}
               style={{
                 ...zoomStyle,
                 filter: isOutOfStock ? "grayscale(50%)" : "none",
               }}
               alt="main product"
+              onError={(e) => (e.target.src = "path/to/placeholder-image.jpg")}
             />
             {isOutOfStock && (
               <div className={styles.outOfStockOverlay}>Hết hàng</div>
             )}
           </div>
-          <div className={styles.thumbnailWrapper}>
+          <div
+            style={{
+              justifyContent: "center",
+            }}
+            className={styles.thumbnailWrapper}
+          >
             <button
               className={`${styles.arrowButton} ${styles.leftArrow}`}
-              onClick={() =>
-                imageContainerRef.current.scrollBy({
-                  left: -100,
-                  behavior: "smooth",
-                })
-              }
+              onClick={() => handleThumbnailScroll("left")}
+              disabled={productDetail.images.length <= 3}
             >
               <LeftOutlined />
             </button>
-
-            <div className={styles.thumbnailScroll} ref={imageContainerRef}>
+            <div className={styles.thumbnailScroll} ref={thumbnailScrollRef}>
               {productDetail.images.map((img, i) => (
                 <img
                   key={i}
                   src={img}
+                  loading="lazy"
                   className={styles.thumbnail}
                   onClick={() => setMainImage(img)}
                   alt={`thumbnail-${i}`}
                 />
               ))}
             </div>
-
             <button
               className={`${styles.arrowButton} ${styles.rightArrow}`}
-              onClick={() =>
-                imageContainerRef.current.scrollBy({
-                  left: 100,
-                  behavior: "smooth",
-                })
-              }
+              onClick={() => handleThumbnailScroll("right")}
+              disabled={productDetail.images.length <= 3}
             >
               <RightOutlined />
             </button>
@@ -434,15 +520,15 @@ function ProductDetail() {
                   variants.map((v) => [v.color_id._id, v.color_id])
                 ).values(),
               ].map((color) => (
-                <div
-                  key={color._id}
-                  className={`${styles.colorButton} ${
-                    selectedColor === color._id ? styles.colorSelected : ""
-                  }`}
-                  style={{ backgroundColor: color.color_code }}
-                  title={color.color_name}
-                  onClick={() => handleColorClick(color._id)}
-                />
+                <Tooltip key={color._id} title={color.color_name}>
+                  <div
+                    className={`${styles.colorButton} ${
+                      selectedColor === color._id ? styles.colorSelected : ""
+                    }`}
+                    style={{ backgroundColor: color.color_code }}
+                    onClick={() => handleColorClick(color._id)}
+                  />
+                </Tooltip>
               ))}
             </div>
           </div>
@@ -464,16 +550,17 @@ function ProductDetail() {
 
             <div className={styles.sizeOptions}>
               {availableSizes.map((size) => (
-                <Button
-                  key={size._id}
-                  className={`${styles.sizeButton} ${
-                    selectedSize === size._id ? styles.sizeSelected : ""
-                  }`}
-                  onClick={() => handleSizeClick(size._id)}
-                  disabled={isVariantLoading}
-                >
-                  {size.size_name}
-                </Button>
+                <Tooltip key={size._id} title={`Kích thước: ${size.size_name}`}>
+                  <Button
+                    className={`${styles.sizeButton} ${
+                      selectedSize === size._id ? styles.sizeSelected : ""
+                    }`}
+                    onClick={() => handleSizeClick(size._id)}
+                    disabled={isVariantLoading}
+                  >
+                    {size.size_name}
+                  </Button>
+                </Tooltip>
               ))}
             </div>
 
@@ -593,6 +680,7 @@ function ProductDetail() {
                 <div className={styles.review}>
                   <img
                     src={r.user_id?.avatar_image}
+                    loading="lazy"
                     className={styles.avatar}
                     alt="user"
                   />
@@ -616,6 +704,7 @@ function ProductDetail() {
                           <Image
                             key={i}
                             src={img}
+                            loading="lazy"
                             width={80}
                             height={80}
                             style={{ borderRadius: 4 }}
@@ -640,6 +729,7 @@ function ProductDetail() {
                     <div key={rep._id} className={styles.reply}>
                       <img
                         src={rep.replier_id?.avatar_image}
+                        loading="lazy"
                         className={styles.replyAvatar}
                         alt="reply user"
                       />
@@ -684,37 +774,50 @@ function ProductDetail() {
           <Title level={3} className={styles.titleBorder}>
             Sản phẩm liên quan
           </Title>
-          <div className={styles.scrollContainer}>
-            {related.map((prod) => {
-              const hasDiscount = prod.discount_id?.percent_discount > 0;
-              const isOutOfStock = prod.inventory_number === 0;
-
-              return (
+          <div className={styles.relatedWrapper}>
+            <button
+              className={`${styles.arrowButton} ${styles.leftArrow}`}
+              onClick={() => handleRelatedScroll("left")}
+              disabled={related.length <= 4}
+            >
+              <LeftOutlined />
+            </button>
+            <div className={styles.scrollContainer} ref={relatedScrollRef}>
+              {related.map((prod) => (
                 <div
                   key={prod._id}
                   className={styles.scrollItem}
                   onClick={() => navigate(`/products/${prod._id}`)}
                 >
                   <div style={{ position: "relative" }}>
-                    {hasDiscount && (
+                    {prod.discount_id?.percent_discount > 0 && (
                       <Tag color="orange" className={styles.discountTag}>
                         -{prod.discount_id.percent_discount}%
                       </Tag>
                     )}
                     <Card
                       hoverable
-                      className={styles.relatedCard}
+                      className={`${styles.relatedCard} ${styles.sameHeightWrapper}`}
                       cover={
                         <div className={styles.imageWrapper}>
                           <img
-                            src={prod.images[0]}
+                            src={
+                              prod.images[0] || "path/to/placeholder-image.jpg"
+                            }
+                            loading="lazy"
                             alt={prod.product_id.productName}
                             className={styles.relatedImage}
                             style={{
-                              filter: isOutOfStock ? "grayscale(50%)" : "none",
+                              filter:
+                                prod.inventory_number === 0
+                                  ? "grayscale(50%)"
+                                  : "none",
                             }}
+                            onError={(e) =>
+                              (e.target.src = "path/to/placeholder-image.jpg")
+                            }
                           />
-                          {isOutOfStock && (
+                          {prod.inventory_number === 0 && (
                             <div className={styles.outOfStockOverlay}>
                               Hết hàng
                             </div>
@@ -727,15 +830,15 @@ function ProductDetail() {
                         description={
                           <>
                             <Paragraph
-                              style={{ minHeight: "50px" }}
+                              style={{ minHeight: "40px" }}
                               ellipsis={{ rows: 2 }}
                             >
-                              {prod.product_id.description}
+                              {prod.product_id.title}
                             </Paragraph>
                             <div className={styles.priceContainer}>
                               <div className={styles.priceRow}>
                                 <div className={styles.priceColumn}>
-                                  {hasDiscount ? (
+                                  {prod.discount_id?.percent_discount > 0 ? (
                                     <>
                                       <Text
                                         className={styles.originalPrice}
@@ -751,12 +854,12 @@ function ProductDetail() {
                                     <>
                                       <Text
                                         className={styles.originalPrice}
-                                        delete
                                         style={{
                                           visibility: hasDiscount
                                             ? "visible"
                                             : "hidden",
                                         }}
+                                        delete
                                       >
                                         {formatVND(prod.product_id.price)}
                                       </Text>
@@ -769,7 +872,7 @@ function ProductDetail() {
                                 <Button
                                   type="text"
                                   className={
-                                    isOutOfStock
+                                    prod.inventory_number === 0
                                       ? styles.cartButtonDisabled
                                       : styles.cartIconButton
                                   }
@@ -778,7 +881,7 @@ function ProductDetail() {
                                     e.stopPropagation();
                                     handleAddRelatedToCart(prod);
                                   }}
-                                  disabled={isOutOfStock}
+                                  disabled={prod.inventory_number === 0}
                                 />
                               </div>
                             </div>
@@ -788,8 +891,15 @@ function ProductDetail() {
                     </Card>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            <button
+              className={`${styles.arrowButton} ${styles.rightArrow}`}
+              onClick={() => handleRelatedScroll("right")}
+              disabled={related.length <= 4}
+            >
+              <RightOutlined />
+            </button>
           </div>
         </div>
       )}

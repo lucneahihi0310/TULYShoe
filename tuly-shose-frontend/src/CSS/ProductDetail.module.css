@@ -64,25 +64,75 @@
   z-index: 10;
 }
 
-.thumbnails {
+.thumbnailWrapper {
+  position: relative;
   display: flex;
-  gap: 16px;
-  justify-content: center;
+  align-items: center;
   margin-top: 24px;
 }
 
+.thumbnailScroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scroll-snap-type: x mandatory;
+  max-width: 360px;
+  scroll-behavior: smooth;
+}
+
+.thumbnailScroll::-webkit-scrollbar {
+  display: none;
+}
+
 .thumbnail {
-  min-width: 80px;
-  min-height: 80px;
+  width: 80px;
+  height: 80px;
   border-radius: 8px;
   object-fit: cover;
   cursor: pointer;
   border: 2px solid #d1d5db;
   transition: border 0.3s ease;
+  flex: 0 0 auto;
 }
 
 .thumbnail:hover {
   border-color: #f97316;
+}
+
+.arrowButton {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.arrowButton:hover {
+  background-color: #f3f4f6;
+}
+
+.arrowButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.leftArrow {
+  margin-right: 12px;
+}
+
+.rightArrow {
+  margin-left: 12px;
 }
 
 .productInfo {
@@ -277,21 +327,58 @@
 }
 
 .relatedProducts {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 80px auto;
+}
+
+.relatedWrapper {
+  position: relative;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.scrollContainer {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding: 8px 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.scrollContainer::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollItem {
+  width: 420px; /* Chiều rộng cố định */
+  flex: 0 0 300px; /* Không co giãn, cố định kích thước */
+  scroll-snap-align: start;
+  display: flex;
+  justify-content: center;
 }
 
 .relatedCard {
   border: 1px solid #d1d5db !important;
   border-radius: 12px !important;
-  width: 250px;
-  min-height: 400px;
-  max-width: 340px;
+  width: 300px; /* Chiều rộng cố định */
+  height: 420px; /* Chiều cao cố định */
   position: relative;
   transition: box-shadow 0.3s ease;
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Ngăn nội dung tràn ra ngoài */
 }
 
 .relatedCard:hover {
@@ -300,18 +387,25 @@
 
 .relatedImage {
   width: 100%;
-  height: 100%;
+  height: 260px; /* Chiều cao cố định cho ảnh */
   object-fit: cover;
   display: block;
+  transition: transform 0.3s ease;
 }
+
+.relatedCard:hover .relatedImage {
+  transform: scale(1.05);
+}
+
 .imageWrapper {
   position: relative;
   width: 100%;
-  height: 192px;
+  height: auto;
   overflow: hidden;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
 }
+
 .discountTag {
   position: absolute;
   top: 8px;
@@ -330,6 +424,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-grow: 1;
+  padding: 8px;
+  overflow-y: auto; /* Thêm cuộn nếu nội dung dài */
 }
 
 .priceRow {
@@ -337,6 +434,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  margin-top: auto; /* Đẩy xuống dưới cùng */
 }
 
 .cartIconButton {
@@ -498,48 +596,6 @@
   color: #000000 !important;
 }
 
-@media (max-width: 768px) {
-  .relatedImage {
-    height: 240px !important;
-    object-fit: cover;
-  }
-
-  .scrollContainer {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-}
-
-.scrollContainer {
-  display: flex;
-  overflow-x: auto;
-  gap: 16px;
-  padding-bottom: 8px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-}
-
-.scrollItem {
-  width: auto;
-  max-width: 360px;
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-  display: flex;
-  justify-content: center;
-}
-
-.scrollContainer::-webkit-scrollbar {
-  height: 8px;
-}
-
-.scrollContainer::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-}
-
-.scrollContainer::-webkit-scrollbar-track {
-  background: transparent;
-}
 .whiteNumberInput :global(.ant-input-number-disabled) {
   background-color: #ffffff !important;
   color: #999 !important;
@@ -551,6 +607,7 @@
   background-color: transparent !important;
   color: #999 !important;
 }
+
 .variantLoading {
   position: absolute;
   top: 50%;
@@ -561,53 +618,80 @@
   padding: 16px;
   border-radius: 8px;
 }
-.thumbnailWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-top: 24px;
+
+@media (max-width: 1024px) {
+  .scrollItem {
+    width: 280px;
+    flex: 0 0 280px;
+  }
+
+  .relatedCard {
+    width: 280px;
+    height: 400px;
+  }
+
+  .relatedImage {
+    height: 200px;
+  }
 }
 
-.thumbnailScroll {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  padding: 8px 0;
-  scroll-snap-type: x mandatory;
-  max-width: 400px;
-  scroll-behavior: smooth;
+@media (max-width: 768px) {
+  .relatedImage {
+    height: 180px !important;
+    object-fit: cover;
+  }
+
+  .scrollContainer {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .thumbnailScroll {
+    max-width: 280px;
+  }
+
+  .thumbnail {
+    width: 60px;
+    height: 60px;
+  }
+
+  .scrollItem {
+    width: 260px;
+    flex: 0 0 260px;
+  }
+
+  .relatedCard {
+    width: 260px;
+    height: 380px;
+  }
 }
 
-.thumbnailScroll::-webkit-scrollbar {
-  display: none;
-}
+@media (max-width: 480px) {
+  .thumbnailScroll {
+    max-width: 240px;
+  }
 
-.arrowButton {
-  background-color: white;
-  border: 1px solid #d1d5db;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1f2937;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: background 0.3s ease;
-  padding: 0;
-  line-height: 1;
-}
+  .thumbnail {
+    width: 50px;
+    height: 50px;
+  }
 
-.arrowButton:hover {
-  background-color: #f3f4f6;
-}
+  .scrollItem {
+    width: 240px;
+    flex: 0 0 240px;
+  }
 
-.leftArrow {
-  margin-right: 12px;
-}
+  .relatedCard {
+    width: 240px;
+    height: 360px;
+  }
 
-.rightArrow {
-  margin-left: 12px;
+  .relatedImage {
+    height: 180px !important; /* Tăng chiều cao ảnh */
+  }
+
+  .priceContainer {
+    max-height: 160px; /* Giới hạn chiều cao nội dung */
+    overflow-y: auto; /* Thêm cuộn nếu nội dung dài */
+  }
 }

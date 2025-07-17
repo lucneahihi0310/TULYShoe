@@ -15,7 +15,6 @@ import {
 import { AuthContext } from "../API/AuthContext";
 import { fetchData, postData } from "../API/ApiService";
 import styles from "../../CSS/HomePage.module.css";
-import listProductStyles from "../../CSS/ListProduct.module.css";
 
 const { Title, Paragraph } = Typography;
 
@@ -95,32 +94,76 @@ const HomePage = () => {
       });
     };
 
-    if (user) {
-      try {
+    const notifyStockError = () => {
+      notification.error({
+        message: "Không thể thêm vào giỏ hàng",
+        description: `Sản phẩm "${product.productName}" đã đạt số lượng tối đa trong kho (${product.detail.inventory_number}).`,
+        placement: "bottomLeft",
+        duration: 3,
+      });
+    };
+
+    try {
+      if (user) {
+        // Fetch current cart items for the user
+        const cartData = await fetchData(
+          `cartItem/customers/user/${user._id}`,
+          true
+        );
+        const existingItem = cartData.find(
+          (item) => item.pdetail_id._id === cartItem.pdetail_id
+        );
+        const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+        if (
+          currentQuantity + cartItem.quantity >
+          product.detail.inventory_number
+        ) {
+          notifyStockError();
+          return;
+        }
+
         await postData("/cartItem/customers", {
           ...cartItem,
           user_id: user._id,
         });
         notifyAddSuccess();
         window.dispatchEvent(new Event("cartUpdated"));
-      } catch (err) {
-        console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
-      }
-    } else {
-      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-      const existingIndex = guestCart.findIndex(
-        (item) => item.pdetail_id === cartItem.pdetail_id
-      );
-
-      if (existingIndex >= 0) {
-        guestCart[existingIndex].quantity += 1;
       } else {
-        guestCart.push(cartItem);
-      }
+        const guestCart = JSON.parse(
+          localStorage.getItem("guest_cart") || "[]"
+        );
+        const existingIndex = guestCart.findIndex(
+          (item) => item.pdetail_id === cartItem.pdetail_id
+        );
+        const currentQuantity =
+          existingIndex >= 0 ? guestCart[existingIndex].quantity : 0;
 
-      localStorage.setItem("guest_cart", JSON.stringify(guestCart));
-      window.dispatchEvent(new Event("cartUpdated"));
-      notifyAddSuccess();
+        if (
+          currentQuantity + cartItem.quantity >
+          product.detail.inventory_number
+        ) {
+          notifyStockError();
+          return;
+        }
+
+        if (existingIndex >= 0) {
+          guestCart[existingIndex].quantity += 1;
+        } else {
+          guestCart.push(cartItem);
+        }
+
+        localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+        window.dispatchEvent(new Event("cartUpdated"));
+        notifyAddSuccess();
+      }
+    } catch (err) {
+      console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
+      notification.error({
+        message: "Thêm giỏ hàng thất bại!",
+        description: err.message || "Vui lòng thử lại sau.",
+        placement: "bottomLeft",
+      });
     }
   };
 
@@ -221,11 +264,11 @@ const HomePage = () => {
       >
         <h2 className={styles.sectionTitle}>Sản Phẩm Bán Chạy</h2>
         {loadingProducts ? (
-          <div className={listProductStyles.loadingContainer}>
+          <div className={styles.loadingContainer}>
             <Spin size="large" />
           </div>
         ) : (
-          <Row gutter={[16, 16]} className={listProductStyles.flexRow}>
+          <Row gutter={[16, 16]} className={styles.flexRow}>
             {bestSellers.length === 0 ? (
               <Paragraph>Không tìm thấy sản phẩm nào.</Paragraph>
             ) : (
@@ -239,35 +282,29 @@ const HomePage = () => {
                     sm={12}
                     md={6}
                     key={product._id}
-                    className={listProductStyles.sameHeightCol}
+                    className={styles.sameHeightCol}
                   >
                     <Card
                       hoverable
-                      style={{
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
+                      className={styles.productCard}
                       onClick={() =>
                         navigate(`/products/${product.detail._id}`)
                       }
                       cover={
-                        <div style={{ position: "relative" }}>
+                        <div className={styles.productImageContainer}>
                           <img
                             alt={product.productName}
                             src={
                               product.detail?.images?.[0] ||
                               "/placeholder-image.jpg"
                             }
-                            className={`${listProductStyles.productImage} ${listProductStyles.sameHeightCard}`}
+                            className={`${styles.productImage}`}
                             style={{
                               filter: isOutOfStock ? "grayscale(50%)" : "none",
                             }}
                           />
                           {isOutOfStock && (
-                            <div
-                              className={listProductStyles.outOfStockOverlay}
-                            >
+                            <div className={styles.outOfStockOverlay}>
                               Hết hàng
                             </div>
                           )}
@@ -275,39 +312,36 @@ const HomePage = () => {
                       }
                     >
                       {hasDiscount && (
-                        <Tag
-                          color="red"
-                          className={listProductStyles.discountTag}
-                        >
+                        <Tag color="red" className={styles.discountTag}>
                           -{product.detail.discount_percent}%
                         </Tag>
                       )}
                       <Card.Meta
                         title={
-                          <span className={listProductStyles.productName}>
+                          <span className={styles.productName}>
                             {product.productName}
                           </span>
                         }
                         description={
                           <Paragraph
                             ellipsis={{ rows: 2 }}
-                            className={listProductStyles.productDescription}
+                            className={styles.productDescription}
                           >
                             {product.title}
                           </Paragraph>
                         }
                       />
-                      <div className={listProductStyles.priceAndCartContainer}>
-                        <div className={listProductStyles.priceContainer}>
+                      <div className={styles.priceAndCartContainer}>
+                        <div className={styles.priceContainer}>
                           <span
-                            className={listProductStyles.originalPrice}
+                            className={styles.originalPrice}
                             style={{
                               visibility: hasDiscount ? "visible" : "hidden",
                             }}
                           >
                             {formatVND(product.price)}
                           </span>
-                          <span className={listProductStyles.currentPrice}>
+                          <span className={styles.currentPrice}>
                             {hasDiscount
                               ? formatVND(product.detail?.price_after_discount)
                               : formatVND(product.price)}
@@ -317,8 +351,8 @@ const HomePage = () => {
                           icon={<i className="bi bi-bag-heart" />}
                           className={
                             isOutOfStock
-                              ? listProductStyles.addToCartDisabled
-                              : listProductStyles.addToCart
+                              ? styles.addToCartDisabled
+                              : styles.addToCart
                           }
                           onClick={(e) => {
                             if (!isOutOfStock) {
@@ -379,7 +413,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
       {/* Testimonials Section */}
       <section
         id="testimonials"
@@ -387,7 +420,7 @@ const HomePage = () => {
       >
         <h2 className={styles.sectionTitle}>Khách Hàng Của Chúng Tôi Nói Gì</h2>
         {loadingReviews ? (
-          <div className={listProductStyles.loadingContainer}>
+          <div className={styles.loadingContainer}>
             <Spin size="large" />
           </div>
         ) : (
