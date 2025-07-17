@@ -11,6 +11,7 @@ const ManagerProduct = () => {
     const [brands, setBrands] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [forms, setForms] = useState([]);
+    const [genders, setGenders] = useState([]);
     const [colors, setColors] = useState([]);
     const [sizes, setSizes] = useState([]);
     const [discounts, setDiscounts] = useState([]);
@@ -92,7 +93,8 @@ const ManagerProduct = () => {
                 categories_id: record.categories_id,
                 brand_id: record.brand_id,
                 material_id: record.material_id,
-                form_id: record.form_id
+                form_id: record.form_id,
+                gender_id: record.gender_id
             }, true);
             setEdittingRow(null);
             fetchCategories();
@@ -137,6 +139,7 @@ const ManagerProduct = () => {
         fetchBrands();
         fetchMaterials();
         fetchForms();
+        fetchGenders();
         fetchColors();
         fetchSizes();
         fetchDiscounts();
@@ -146,6 +149,8 @@ const ManagerProduct = () => {
     const fetchCategories = async () => {
         const res = await fetchData('/products/manager/list_product');
         setCategories(res);
+        console.log(res);
+
     }
     const fetchCategories_2 = async () => {
         const res = await fetchData('/categories/manager/list_category');
@@ -162,6 +167,10 @@ const ManagerProduct = () => {
     const fetchForms = async () => {
         const res = await fetchData('/forms/manager/list_form');
         setForms(res);
+    }
+    const fetchGenders = async () => {
+        const res = await fetchData('/genders/manager/list_gender');
+        setGenders(res);
     }
     const fetchColors = async () => {
         const res = await fetchData('/colors/manager/list_color');
@@ -227,7 +236,7 @@ const ManagerProduct = () => {
             title: 'Title',
             dataIndex: 'title',
             key: 'title',
-            width: 200,
+            width: 100,
             render: (value, record) => {
                 if (record._id == edittingRow) {
                     return (
@@ -352,6 +361,22 @@ const ManagerProduct = () => {
                                     })}
                                 />
                             </Form.Item>
+                            <Form.Item
+                                label="Gender"
+                                name="gender_id"
+                                initialValue={record.gender_id}
+                                rules={[{ required: true, message: "Please select gender" }]}>
+                                <Select
+                                    placeholder="Select gender"
+                                    allowClear
+                                    options={genders.map((p) => {
+                                        return {
+                                            label: p.gender_name,
+                                            value: p._id
+                                        }
+                                    })}
+                                />
+                            </Form.Item>
                         </>
                     )
                 }
@@ -372,6 +397,9 @@ const ManagerProduct = () => {
                             </div>
                             <div>
                                 Form name : {record.form_id.form_name}
+                            </div>
+                            <div>
+                                Gender name : {record.gender_id?.gender_name || "Không có gender"}
                             </div>
                         </div>
                     )
@@ -744,7 +772,8 @@ const ManagerProduct = () => {
                                             categories_id: record.categories_id._id,
                                             brand_id: record.brand_id._id,
                                             material_id: record.material_id._id,
-                                            form_id: record.form_id._id
+                                            form_id: record.form_id._id,
+                                            gender_id: record.gender_id._id
                                         })
                                     }}>
                                     Edit
@@ -823,7 +852,8 @@ const ManagerProduct = () => {
                                         categories_id: values.categories_id,
                                         brand_id: values.brand_id,
                                         material_id: values.material_id,
-                                        form_id: values.form_id
+                                        form_id: values.form_id,
+                                        gender_id: values.gender_id
                                     }, true);
                                     form2.resetFields();
                                     setAddCategory(false);
@@ -866,28 +896,26 @@ const ManagerProduct = () => {
                                 ]}>
                                 <Input placeholder="Enter product name" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Title"
                                 name="title"
                                 rules={[
                                     { required: true, message: "Please enter title" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.title.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This title already exists!")
-                                                : Promise.resolve();
-                                        }
-                                    }
+                                    // {
+                                    //     validator: (_, value) => {
+                                    //         const isDuplicate = categories.some(
+                                    //             (cat) =>
+                                    //                 cat.title.trim().toLowerCase() === value?.trim().toLowerCase() &&
+                                    //                 cat._id !== edittingRow
+                                    //         );
+                                    //         return isDuplicate
+                                    //             ? Promise.reject("This title already exists!")
+                                    //             : Promise.resolve();
+                                    //     }
+                                    // }
                                 ]}>
                                 <Input placeholder="Enter title" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Description"
                                 name="description"
@@ -964,6 +992,22 @@ const ManagerProduct = () => {
                                     options={forms.map((p) => {
                                         return {
                                             label: p.form_name,
+                                            value: p._id
+                                        }
+                                    })}
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Gender"
+                                name="gender_id"
+                                rules={[{ required: true, message: "Please select gender" }]}>
+                                <Select
+                                    placeholder="Select gender"
+                                    allowClear
+                                    options={genders.map((p) => {
+                                        return {
+                                            label: p.gender_name,
                                             value: p._id
                                         }
                                     })}

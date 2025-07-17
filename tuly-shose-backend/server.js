@@ -41,6 +41,7 @@ app.use('/colors', require('./routes/color.route'));
 app.use('/forms', require('./routes/form.route'));
 app.use('/materials', require('./routes/material.route'));
 app.use('/sizes', require('./routes/size.route'));
+app.use('/genders', require('./routes/gender.route'));
 app.use('/discounts', require('./routes/discount.route'));
 app.use('/product_detail_status', require('./routes/product_detail_status.route'));
 app.use('/product_details', require('./routes/product_detail.route'));
