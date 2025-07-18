@@ -306,7 +306,7 @@ function ListProduct() {
                   >
                     <Card
                       hoverable
-                      className={styles.sameHeightCard}
+                      className={`${styles.productCard} ${styles.sameHeightCard}`}
                       style={{
                         display: "flex",
                         flexDirection: "column",

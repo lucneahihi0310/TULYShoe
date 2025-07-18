@@ -1,3 +1,4 @@
+/* Container chính */
 .main {
   width: 90%;
   max-width: 1280px;
@@ -5,6 +6,7 @@
   padding: 24px 16px;
 }
 
+/* Animation xuất hiện */
 .fadeIn {
   animation: fadeInUp 1s ease forwards;
   opacity: 0;
@@ -18,6 +20,7 @@
   }
 }
 
+/* Hero section */
 .hero {
   text-align: center;
   margin-bottom: 32px;
@@ -42,12 +45,13 @@
   color: #4b5563;
 }
 
+/* Bộ lọc sản phẩm */
 .filterSection {
   background: #f9fafb;
   border-radius: 8px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .filterRow {
@@ -74,6 +78,7 @@
   z-index: 1000;
 }
 
+/* Search */
 .searchSection {
   margin-bottom: 24px;
 }
@@ -87,6 +92,7 @@
   color: #4b5563;
 }
 
+/* Layout sản phẩm */
 .productGrid {
   min-height: 400px;
 }
@@ -96,33 +102,81 @@
   flex-wrap: wrap;
 }
 
-.productCard {
-  border-radius: 8px;
-  overflow: hidden;
-  transition: box-shadow 0.3s;
-  position: relative;
+.sameHeightCol {
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+
+.sameHeightCard {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.productCard:hover {
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+/* Card sản phẩm */
+.productCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid transparent;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease,
+    background 0.4s ease;
+  will-change: transform, border-color, background;
 }
 
+.productCard:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
+  background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+  z-index: 2;
+}
+
+.productCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top right,
+    rgba(99, 102, 241, 0.05),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 12px;
+}
+
+.productCard:hover::after {
+  opacity: 1;
+}
+
+/* Ảnh sản phẩm */
 .productImage {
   width: 100%;
-  height: 260px; /* hoặc 100% nếu bạn muốn ảnh chiếm đều */
+  height: 260px;
   object-fit: cover;
-  border-radius: 4px 4px 0 0;
+  border-radius: 12px 12px 0 0;
+  transition: transform 0.3s ease;
 }
 
+.productCard:hover .productImage {
+  transform: scale(1.05);
+}
+
+/* Overlay hết hàng */
 .outOfStockOverlay {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 50%;
   width: 100px;
   height: 100px;
@@ -134,16 +188,24 @@
   font-size: 16px;
   text-align: center;
   z-index: 10;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Tag giảm giá */
 .discountTag {
   position: absolute;
   top: 12px;
   left: 12px;
   font-weight: bold;
   z-index: 10;
+  background-color: #e11d48;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
 }
 
+/* Nội dung sản phẩm */
 .productName {
   font-size: 18px;
   font-weight: 600;
@@ -166,6 +228,7 @@
   min-height: 50px !important;
 }
 
+/* Giá và giỏ hàng */
 .priceAndCartContainer {
   display: flex;
   align-items: center;
@@ -193,18 +256,30 @@
   font-weight: bold;
 }
 
+/* Nút thêm giỏ hàng */
 .addToCart {
+  position: relative;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
-  padding: 0;
-  border-radius: 4px;
+  font-size: 28px;
+  padding: 6px;
+  border-radius: 8px;
+  transition: color 0.3s ease, background 0.3s ease;
+  background: #f3f4f6;
+  color: #374151;
+  cursor: pointer;
 }
 
 .addToCart:hover {
-  color: #da532a !important;
+  background: #6366f1;
+  color: #d46911 !important;
+}
+
+
+.addToCart:hover::after {
+  opacity: 1;
 }
 
 .addToCartDisabled {
@@ -217,8 +292,10 @@
   border-radius: 4px;
   opacity: 0.4;
   cursor: not-allowed;
+  background: none;
 }
 
+/* Phân trang & trạng thái */
 .pagination {
   display: flex;
   justify-content: center;
@@ -233,27 +310,16 @@
   margin-top: 48px;
 }
 
-.flexRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-}
-
-.sameHeightCol {
-  display: flex;
-  flex-direction: column;
-  min-height: 420px;
-}
-
-.sameHeightCard {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 .loadingContainer {
   min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Flex grid */
+.flexRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
 }
