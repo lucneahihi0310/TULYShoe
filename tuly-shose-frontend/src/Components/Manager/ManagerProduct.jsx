@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message, InputNumber, Upload } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, UploadOutlined } from '@ant-design/icons'
 import axios from 'axios';
+import ImgCrop from 'antd-img-crop';
 import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
 const ManagerProduct = () => {
@@ -46,7 +47,11 @@ const ManagerProduct = () => {
             body: data,
         });
         const json = await res.json();
-        if (json.secure_url) return json.secure_url;
+        if (json.secure_url) {
+            const croppedUrl = json.secure_url.replace('/upload/', '/upload/c_crop,h_560,w_560/');
+            return croppedUrl;
+        }
+
         throw new Error('Upload failed');
     };
 
@@ -498,6 +503,10 @@ const ManagerProduct = () => {
                                             colon={false}
                                             onFinish={async (values) => {
                                                 // gọi API postData(...)
+                                                if (!imageUrls.length) {
+                                                    message.error("Vui lòng upload ít nhất một ảnh");
+                                                    return;
+                                                }
                                                 const payload = {
                                                     product_id: values.product_id,
                                                     color_id: values.color,
@@ -512,6 +521,9 @@ const ManagerProduct = () => {
                                                 await postData('/product_details/manager/create_product_detail', payload, true);
                                                 form_add_product_detail.resetFields();
                                                 console.log(values);
+                                                setImageUrls([]);
+                                                setFileList([]);
+                                                setAddProductDetail(false);
                                                 showProductDetail(currentProductId, {
                                                     price: currentProductPrice
                                                 });
@@ -637,19 +649,29 @@ const ManagerProduct = () => {
                                                 name="images"
                                                 rules={[{ required: true, message: 'Please upload at least one image' }]}
                                             >
-                                                <Upload
-                                                    multiple
-                                                    listType="picture-card"
-                                                    customRequest={handleCustomRequest}
-                                                    fileList={fileList}
-                                                    onRemove={handleRemove}
-                                                >
-                                                    <div>
-                                                        <UploadOutlined />
-                                                        <div style={{ marginTop: 8 }}>Upload</div>
-                                                    </div>
-                                                </Upload>
+                                                {/* <ImgCrop
+                                                    aspect={1} // 1:1 ratio để ảnh vuông
+                                                    quality={1}
+                                                    cropShape="rect"
+                                                    modalTitle="Crop image"
+                                                    modalOk="OK"
+                                                    modalCancel="Cancel"
+                                                > */}
+                                                    <Upload
+                                                        multiple
+                                                        listType="picture-card"
+                                                        customRequest={handleCustomRequest}
+                                                        fileList={fileList}
+                                                        onRemove={handleRemove}
+                                                    >
+                                                        <div>
+                                                            <UploadOutlined />
+                                                            <div style={{ marginTop: 8 }}>Upload</div>
+                                                        </div>
+                                                    </Upload>
+                                                {/* </ImgCrop> */}
                                             </Form.Item>
+
 
 
                                             <Form.Item
@@ -922,7 +944,7 @@ const ManagerProduct = () => {
                                 rules={[
                                     { required: true, message: "Please enter description" },
                                 ]}>
-                                <Input placeholder="Enter description" />
+                                <Input.TextArea placeholder="Enter description" />
                             </Form.Item>
 
                             <Form.Item
