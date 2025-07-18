@@ -8,6 +8,7 @@ const ManagerSidebar = () => {
         { key: 'statistic', label: 'Thống kê' },
         { key: 'accounts', label: 'Quản lý tài khoản' },
         { key: 'staffs', label: 'Quản lý nhân viên' },
+        { key: 'orders', label: 'Quản lý order' },
         { key: 'brands', label: 'Quản lý brand' },
         { key: 'categories', label: 'Quản lý category' },
         { key: 'colors', label: 'Quản lý màu sắc' },
