@@ -13,6 +13,7 @@ const ManagerSidebar = () => {
         { key: 'categories', label: 'Quản lý category' },
         { key: 'colors', label: 'Quản lý màu sắc' },
         { key: 'forms', label: 'Quản lý form' },
+        { key: 'genders', label: 'Quản lý gender' },
         { key: 'materials', label: 'Quản lý vật liệu' },
         { key: 'sizes', label: 'Quản lý size' },
         { key: 'products', label: 'Quản lý sản phẩm' }

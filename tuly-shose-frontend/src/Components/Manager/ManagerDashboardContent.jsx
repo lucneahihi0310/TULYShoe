@@ -11,6 +11,7 @@ import ManagerStatistic from './ManagerStatistic';
 import ManagerAccount from './ManagerAccount';
 import ManagerStaff from './ManagerStaff';
 import ManagerOrder from './ManagerOrder';
+import ManagerGender from './ManagerGender';
 
 
 const ManagerDashboardContent = () => {
@@ -33,6 +34,8 @@ const ManagerDashboardContent = () => {
             return <ManagerColor />;
         case 'forms':
             return <ManagerForm />;
+        case 'genders':
+            return <ManagerGender />;
         case 'materials':
             return <ManagerMaterial />;
         case 'sizes':

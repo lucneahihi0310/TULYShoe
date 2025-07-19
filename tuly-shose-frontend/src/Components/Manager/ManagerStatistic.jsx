@@ -7,7 +7,7 @@ import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 const ManagerStatistic = () => {
 
     return (
-        <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
+        <div style={{ borderRadius: '0px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
             <Row gutter={16} style={{ padding: '10px' }}>
                 <Col span={4}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -24,7 +24,7 @@ const ManagerStatistic = () => {
                 <Col span={6}>
                     <div style={{
                         backgroundColor: '#d1e6df',
-                        borderRadius: '20px',
+                        borderRadius: '5px',
                         padding: '20px'
                     }}>
                         <h6 style={{ fontWeight: 'normal' }}>Tổng doanh thu</h6>
@@ -39,7 +39,7 @@ const ManagerStatistic = () => {
                 <Col span={6}>
                     <div style={{
                         backgroundColor: '#d1e6df',
-                        borderRadius: '20px',
+                        borderRadius: '5px',
                         padding: '20px'
                     }}>
                         <h6 style={{ fontWeight: 'normal' }}>
@@ -56,7 +56,7 @@ const ManagerStatistic = () => {
                 <Col span={6}>
                     <div style={{
                         backgroundColor: '#d1e6df',
-                        borderRadius: '20px',
+                        borderRadius: '5px',
                         padding: '20px'
                     }}>
                         <h6 style={{ fontWeight: 'normal' }}>
@@ -73,7 +73,7 @@ const ManagerStatistic = () => {
                 <Col span={6}>
                     <div style={{
                         backgroundColor: '#d1e6df',
-                        borderRadius: '20px',
+                        borderRadius: '5px',
                         padding: '20px'
                     }}>
                         <h6 style={{ fontWeight: 'normal' }}>
@@ -92,7 +92,7 @@ const ManagerStatistic = () => {
                 <Col span={12}>
                     <div style={{
                         backgroundColor: '#d1e6df',
-                        borderRadius: '20px',
+                        borderRadius: '5px',
                         padding: '20px'
                     }}>
                         <h5 style={{ fontWeight: 'bold', paddingBottom: '5px' }}>
@@ -175,7 +175,7 @@ const ManagerStatistic = () => {
                 <Col span={12}>
                     <div style={{
                         backgroundColor: '#d1e6df',
-                        borderRadius: '20px',
+                        borderRadius: '5px',
                         padding: '20px'
                     }}>
                         <h5 style={{ fontWeight: 'bold', paddingBottom: '5px' }}>
