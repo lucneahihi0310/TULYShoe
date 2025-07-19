@@ -97,37 +97,6 @@ const ManagerOrder = () => {
             }
         },
         {
-            title: 'Thời gian đặt hàng',
-            dataIndex: 'order_date',
-            key: 'order_date',
-            render: (value, record) => {
-                if (record._id == edittingRow) {
-                    return (
-                        // <Form.Item
-                        //     name="status"
-                        //     rules={[{ required: true, message: "Please select status" }]}>
-                        //     <Select
-                        //         placeholder="Select status"
-                        //         allowClear
-                        //         options={[
-                        //             { label: 'Active', value: true },
-                        //             { label: 'Inactive', value: false }
-                        //         ]}
-                        //     />
-                        // </Form.Item>
-                        <></>
-                    )
-                }
-                else {
-                    return (
-                        <div>
-                            {value}
-                        </div>
-                    )
-                }
-            }
-        },
-        {
             title: 'Trạng thái',
             dataIndex: 'order_status',
             key: 'order_status',
@@ -259,16 +228,6 @@ const ManagerOrder = () => {
                     )
                 }
             }
-        },
-        {
-            title: 'Create date',
-            dataIndex: 'create_at',
-            key: 'create_at'
-        },
-        {
-            title: 'Update date',
-            dataIndex: 'update_at',
-            key: 'update_at'
         },
         {
             title: 'Action',
