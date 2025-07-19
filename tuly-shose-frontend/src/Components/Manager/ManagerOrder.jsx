@@ -29,8 +29,8 @@ const ManagerOrder = () => {
         },
         {
             title: 'Tên khách hàng',
-            dataIndex: 'user_id',
-            key: 'user_id',
+            dataIndex: 'userName',
+            key: 'userName',
             render: (value, record) => {
                 if (record._id == edittingRow) {
                     return (
