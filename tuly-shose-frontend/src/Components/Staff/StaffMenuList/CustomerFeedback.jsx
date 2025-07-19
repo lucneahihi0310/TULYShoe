@@ -8,13 +8,13 @@ const CustomerFeedback = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
-  const feedbackList = [
+const feedbackList = [
     { id: 1, customer: 'Nguyen Van A', description: 'Sản phẩm rất đẹp!', time: '2024-06-01', status: 'Responded' },
     { id: 2, customer: 'Tran Thi B', description: 'Giao hàng hơi chậm', time: '2024-06-02', status: 'Pending' },
     { id: 3, customer: 'Le Van C', description: 'Tư vấn nhiệt tình.', time: '2024-06-03', status: 'Responded' },
     { id: 4, customer: 'Pham Thi D', description: 'Chưa nhận được hàng!', time: '2024-06-04', status: 'Pending' },
   ];
+  
 
   const filteredFeedbacks = feedbackList.filter(item => {
     const matchSearch = item.customer.toLowerCase().includes(searchTerm.toLowerCase());

@@ -5,11 +5,12 @@ import styles from "../../CSS/LoginRegister.module.css";
 import { postData } from "../API/ApiService";
 import { AuthContext } from "../API/AuthContext.jsx";
 import { jwtDecode } from "jwt-decode";
+
 const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Thêm state để hiển thị mật khẩu
+  const [showPassword, setShowPassword] = useState(false);
   const [first_name, setFirst_name] = useState("");
   const [last_name, setLast_name] = useState("");
   const [phone, setPhone] = useState("");
@@ -19,21 +20,21 @@ const LoginRegister = () => {
   const [remember, setRemember] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Thêm state cho confirm password
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false); // Thêm state cho new password
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false); // Thêm state cho confirm new password
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupContent, setPopupContent] = useState({ title: "", message: "" });
   const [resetValidationErrors, setResetValidationErrors] = useState({});
-  const { fetchUser } = useContext(AuthContext);
 
   const navigate = useNavigate();
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const expiresAt = localStorage.getItem("expires_at");
@@ -65,20 +66,23 @@ const LoginRegister = () => {
         const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
         localStorage.setItem("token", data.token);
         localStorage.setItem("expires_at", expiresAt.toString());
+        console.log("Lưu token vào localStorage:", data.token);
       } else {
         sessionStorage.setItem("token", data.token);
         localStorage.removeItem("token");
         localStorage.removeItem("expires_at");
+        console.log("Lưu token vào sessionStorage:", data.token);
       }
 
+      // Kích hoạt sự kiện storage để AuthContext xử lý fetchUser
       window.dispatchEvent(
         new StorageEvent("storage", { key: "token", newValue: data.token })
       );
 
-      await fetchUser();
-
       const decoded = jwtDecode(data.token);
       const role = decoded.role;
+
+      console.log("Đăng nhập thành công, vai trò:", role);
 
       if (role === "manager") {
         navigate("/manager/brands", { replace: true });
@@ -89,6 +93,7 @@ const LoginRegister = () => {
       }
     } catch (err) {
       setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
+      console.error("Lỗi đăng nhập:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -237,7 +242,7 @@ const LoginRegister = () => {
   const handleCancel = () => {
     setEmail("");
     setPassword("");
-    setShowPassword(false); // Reset trạng thái hiển thị mật khẩu
+    setShowPassword(false);
     setFirst_name("");
     setLast_name("");
     setPhone("");
@@ -245,12 +250,12 @@ const LoginRegister = () => {
     setGender("");
     setAddress("");
     setConfirmPassword("");
-    setShowConfirmPassword(false); // Reset trạng thái hiển thị confirm password
+    setShowConfirmPassword(false);
     setResetToken("");
     setNewPassword("");
-    setShowNewPassword(false); // Reset trạng thái hiển thị new password
+    setShowNewPassword(false);
     setConfirmNewPassword("");
-    setShowConfirmNewPassword(false); // Reset trạng thái hiển thị confirm new password
+    setShowConfirmNewPassword(false);
     setErrorMessage("");
     setValidationErrors({});
     setCurrentForm("login");

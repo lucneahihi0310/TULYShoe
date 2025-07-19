@@ -146,11 +146,11 @@ exports.getRandomReviews = async (req, res) => {
       { $match: { rating: parseInt(rating), is_approved: true } },
       {
         $group: {
-          _id: '$user_id', // Nhóm theo user_id để đảm bảo mỗi khách hàng chỉ xuất hiện một lần
-          review: { $first: '$$ROOT' }, // Lấy một đánh giá ngẫu nhiên từ mỗi user_id
+          _id: '$user_id',
+          review: { $first: '$$ROOT' },
         },
       },
-      { $sample: { size: parseInt(limit) } }, // Lấy ngẫu nhiên 3 nhóm (tương ứng 3 user_id)
+      { $sample: { size: parseInt(limit) } },
       {
         $lookup: {
           from: 'accounts',

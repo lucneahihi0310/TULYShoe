@@ -29,7 +29,7 @@ function CartItem() {
         );
         const mapped = data.map((item) => ({
           _id: item._id,
-          pdetail_id: item.pdetail_id,
+          pdetail_id: item.pdetail_id._id || item.pdetail_id,
           quantity: item.quantity,
           price_after_discount: item.pdetail_id.price_after_discount,
           image: item.pdetail_id.images[0],
@@ -70,6 +70,10 @@ function CartItem() {
       }
     } catch (e) {
       console.error("Lỗi khi lấy giỏ hàng:", e);
+      notification.error({
+        message: "Lỗi tải giỏ hàng",
+        description: "Không thể tải dữ liệu giỏ hàng. Vui lòng thử lại.",
+      });
     } finally {
       setLoading(false);
     }
@@ -77,9 +81,20 @@ function CartItem() {
 
   useEffect(() => {
     fetchCartItems();
+    const handleCartUpdate = () => {
+      console.log("Sự kiện cartUpdated được kích hoạt");
+      fetchCartItems();
+    };
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [user]);
 
   const onQuantityChange = async (record, newQty) => {
+    if (newQty === null || newQty === undefined) {
+      console.log("Số lượng không hợp lệ, bỏ qua:", newQty);
+      return;
+    }
+
     if (record.inventory_number === 0) {
       notification.error({
         message: "Sản phẩm đã hết hàng!",
@@ -101,7 +116,17 @@ function CartItem() {
     if (newQty === 0) {
       setSelectedRecord(record);
       setIsModalVisible(true);
-    } else {
+      return;
+    }
+
+    try {
+      // Cập nhật state cục bộ trước để cải thiện UX
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item._id === record._id ? { ...item, quantity: newQty } : item
+        )
+      );
+
       if (user) {
         await updateData(
           "/cartItem/customers",
@@ -112,37 +137,59 @@ function CartItem() {
       } else {
         let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         guest = guest.map((item) =>
-          item.pdetail_id === record._id ? { ...item, quantity: newQty } : item
+          item.pdetail_id === record.pdetail_id
+            ? { ...item, quantity: newQty }
+            : item
         );
         localStorage.setItem("guest_cart", JSON.stringify(guest));
       }
 
+      // Không kích hoạt cartUpdated để tránh gọi lại fetchCartItems
+      notification.success({ message: "Cập nhật số lượng thành công!" });
+    } catch (error) {
+      console.error("Lỗi cập nhật số lượng:", error);
+      // Khôi phục state nếu API thất bại
       setCartItems((prev) =>
         prev.map((item) =>
-          item._id === record._id ? { ...item, quantity: newQty } : item
+          item._id === record._id
+            ? { ...item, quantity: record.quantity }
+            : item
         )
       );
+      notification.error({
+        message: "Lỗi cập nhật số lượng",
+        description: error.message || "Vui lòng thử lại.",
+      });
+      // Gọi lại fetchCartItems để đồng bộ nếu có lỗi
       window.dispatchEvent(new Event("cartUpdated"));
-      notification.success({ message: "Cập nhật số lượng!" });
     }
   };
 
   const handleDelete = async () => {
     if (selectedRecord) {
-      if (user) {
-        await deleteAPI("/cartItem/customers", selectedRecord._id, true);
-      } else {
-        let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-        guest = guest.filter((item) => item.pdetail_id !== selectedRecord._id);
-        localStorage.setItem("guest_cart", JSON.stringify(guest));
-      }
+      try {
+        if (user) {
+          await deleteAPI("/cartItem/customers", selectedRecord._id, true);
+        } else {
+          let guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+          guest = guest.filter(
+            (item) => item.pdetail_id !== selectedRecord.pdetail_id
+          );
+          localStorage.setItem("guest_cart", JSON.stringify(guest));
+        }
 
-      setCartItems((prev) =>
-        prev.filter((item) => item._id !== selectedRecord._id)
-      );
-      window.dispatchEvent(new Event("cartUpdated"));
-      notification.success({ message: "Đã xóa khỏi giỏ hàng!" });
-      setIsModalVisible(false);
+        setCartItems((prev) =>
+          prev.filter((item) => item._id !== selectedRecord._id)
+        );
+        window.dispatchEvent(new Event("cartUpdated"));
+        notification.success({ message: "Đã xóa khỏi giỏ hàng!" });
+        setIsModalVisible(false);
+      } catch (error) {
+        notification.error({
+          message: "Lỗi xóa sản phẩm",
+          description: error.message || "Vui lòng thử lại.",
+        });
+      }
     }
   };
 
@@ -184,7 +231,7 @@ function CartItem() {
       state: {
         fromCart: true,
         orderItems: cartItems.map((item) => ({
-          pdetail_id: item.pdetail_id._id || item.pdetail_id,
+          pdetail_id: item.pdetail_id,
           quantity: item.quantity,
         })),
       },
@@ -201,7 +248,7 @@ function CartItem() {
           className={`${styles.productContainer} ${
             record.inventory_number === 0 ? styles.outOfStock : ""
           }`}
-          onClick={() => navigate(`/products/${record._id}`)}
+          onClick={() => navigate(`/products/${record.pdetail_id}`)}
         >
           <div className={styles.imageWrapper}>
             <img
@@ -256,6 +303,7 @@ function CartItem() {
           }
           onChange={(val) => onQuantityChange(record, val)}
           disabled={record.inventory_number === 0}
+          onPressEnter={(e) => e.preventDefault()}
         />
       ),
     },
