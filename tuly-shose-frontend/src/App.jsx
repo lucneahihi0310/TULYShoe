@@ -20,6 +20,7 @@ import OrderFailure from "./Components/User/OrderFailure";
 import AboutUs from "./Components/User/AboutUs";
 import Instruct from "./Components/User/Instruct";
 import OrderSearch from "./Components/User/OrderSearch";
+import StaffProfile from "./Components/Staff/StaffMenuList/StaffProfile";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthLoading } = useContext(AuthContext);
@@ -54,11 +55,19 @@ function App() {
         <Route
           path="/login"
           element={
-            <LoginRegister
-              title="Đăng nhập"
-              description="Vui lòng đăng nhập để tiếp tục"
-              isLogin={true}
-            />
+            isAuthLoading ? (
+              <Spin fullscreen />
+            ) : user ? (
+              user.role === "manager" ? (
+                <Navigate to="/manager/brands" replace />
+              ) : user.role === "staff" ? (
+                <Navigate to="/dashboard/feedbacks" replace />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            ) : (
+              <LoginRegister />
+            )
           }
         />
 
@@ -75,6 +84,7 @@ function App() {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/instruct" element={<Instruct />} />
         <Route path="/order-search" element={<OrderSearch />} />
+        <Route path="/profile" element={<StaffProfile />} />
 
         <Route
           path="/manager"

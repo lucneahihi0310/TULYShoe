@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Button, Form, InputGroup, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import styles from "../../CSS/LoginRegister.module.css";
 import { postData } from "../API/ApiService";
 import { AuthContext } from "../API/AuthContext.jsx";
-import { jwtDecode } from "jwt-decode";
 
 const LoginRegister = () => {
   const [currentForm, setCurrentForm] = useState("login");
@@ -78,19 +77,6 @@ const LoginRegister = () => {
       window.dispatchEvent(
         new StorageEvent("storage", { key: "token", newValue: data.token })
       );
-
-      const decoded = jwtDecode(data.token);
-      const role = decoded.role;
-
-      console.log("Đăng nhập thành công, vai trò:", role);
-
-      if (role === "manager") {
-        navigate("/manager/brands", { replace: true });
-      } else if (role === "staff") {
-        navigate("/dashboard/feedbacks", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
     } catch (err) {
       setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
       console.error("Lỗi đăng nhập:", err);

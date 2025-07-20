@@ -75,7 +75,11 @@ const Header = () => {
   })();
 
   const fetchCartCount = useCallback(async () => {
-    if (user) {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (token && user) {
+      // User login
       try {
         const data = await fetchData(
           `cartItem/customers/user/${user._id}`,
@@ -85,13 +89,19 @@ const Header = () => {
         setCartCount(total);
       } catch (err) {
         console.error("Lỗi khi lấy giỏ hàng:", err);
+        setCartCount(0);
       }
     } else {
+      // Guest cart
       const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
       const total = guestCart.reduce((sum, item) => sum + item.quantity, 0);
       setCartCount(total);
     }
   }, [user]);
+
+  useEffect(() => {
+    fetchCartCount();
+  }, [user, fetchCartCount]);
 
   useEffect(() => {
     fetchCartCount();
@@ -114,10 +124,14 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
+
     window.dispatchEvent(
       new StorageEvent("storage", { key: "token", newValue: null })
     );
+
     setUser(null);
+    setTimeout(() => fetchCartCount(), 0);
+
     navigate("/");
   };
 
