@@ -140,7 +140,8 @@ const Header = () => {
       key: "profile",
       label: "Thông tin cá nhân",
       icon: <ProfileOutlined />,
-      onClick: () => navigate("/profileUser"),
+      onClick: () =>
+        navigate(userRole === "user" ? "/profileUser" : "/profile"),
     },
     {
       key: "logout",
@@ -267,7 +268,9 @@ const Header = () => {
                     icon: <ProfileOutlined />,
                     onClick: () => {
                       setIsDrawerOpen(false);
-                      navigate("/profile");
+                      navigate(
+                        userRole === "user" ? "/profileUser" : "/profile"
+                      );
                     },
                   },
                   {
