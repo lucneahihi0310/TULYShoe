@@ -14,7 +14,7 @@ const NotificationList = () => {
     try {
       if (!user) return
       setLoading(true)
-      const data = await fetchNotifications(user._id)
+      const data = await fetchNotifications()
       const sortedData = data.sort((a, b) => new Date(b.create_at) - new Date(a.create_at))
       setNotifications(sortedData)
     } catch (error) {

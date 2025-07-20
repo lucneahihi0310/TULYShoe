@@ -4,8 +4,8 @@ const BASE_URL =
     ? "http://localhost:9999"
     : "https://tulyshoe.onrender.com");
 // Lấy tất cả thông báo của user
-export const fetchNotifications = async (userId) => {
-    const response = await fetch(`${BASE_URL}/staff/notifications/${userId}`);
+export const fetchNotifications = async () => {
+    const response = await fetch(`${BASE_URL}/staff/notifications`);
     const data = await response.json();
     return data.data;
 };

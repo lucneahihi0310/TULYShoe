@@ -3,7 +3,7 @@ const { getNotificationsByUser, markAsRead } = require('../controllers/notificat
 const router = express.Router();
 
 // Lấy tất cả thông báo của user
-router.get('/:userId', getNotificationsByUser);
+router.get('/', getNotificationsByUser);
 
 // Đánh dấu đã đọc
 router.put('/mark-as-read/:id', markAsRead);
