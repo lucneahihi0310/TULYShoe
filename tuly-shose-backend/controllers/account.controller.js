@@ -426,6 +426,27 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
+exports.updateStatusAccount = async (req, res) => {
+    try {
+        const { is_active } = req.body;
+
+        const updatedAccount = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                is_active,
+                update_at: new Date()
+            },
+            { new: true, runValidators: true }
+        ).select('-password -resetToken -resetTokenExpiration');
+
+        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
+
+        res.status(200).json({ message: 'Profile banned successfully', account: updatedAccount });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 exports.changePassword = async (req, res) => {
     try {
         console.log('Request Params:', req.params);

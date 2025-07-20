@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 
@@ -81,6 +81,7 @@ const ManagerAccount = () => {
         {
             title: 'Họ và tên',
             key: 'name',
+            width: 100,
             render: (_, record) => {
                 if (record._id === edittingRow) {
                     return (
@@ -108,9 +109,127 @@ const ManagerAccount = () => {
             }
         },
         {
+            title: 'Ngày sinh',
+            dataIndex: 'dob',
+            key: 'dob',
+            width: 100,
+            render: (value, record) => {
+                if (record._id === edittingRow) {
+                    return (
+                        <Space>
+                            <Form.Item
+                                name="email"
+                                rules={[{ required: true, message: "Vui lòng nhập ngày sinh" }]}
+                                style={{ marginBottom: 0 }}
+                            >
+                                <Input placeholder="Email ..." />
+                            </Form.Item>
+                        </Space>
+                    );
+                } else {
+                    const date = new Date(value);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng tính từ 0
+                    const year = date.getFullYear();
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+                    const formatted = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                    return (
+                        <div>
+                            {formatted}
+                        </div>
+                    )
+                }
+            }
+        },
+        {
+            title: 'Giới tính',
+            dataIndex: 'gender',
+            key: 'gender',
+            width: 10,
+            render: (value, record) => {
+                if (record._id === edittingRow) {
+                    return (
+                        <Space>
+                            <Form.Item
+                                name="email"
+                                rules={[{ required: true, message: "Vui lòng nhập ngày sinh" }]}
+                                style={{ marginBottom: 0 }}
+                            >
+                                <Input placeholder="Email ..." />
+                            </Form.Item>
+                        </Space>
+                    );
+                } else {
+                    return (
+                        <div>
+                            {value}
+                        </div>
+                    )
+                }
+            }
+        },
+        {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            width: 100,
+            render: (value, record) => {
+                if (record._id === edittingRow) {
+                    return (
+                        <Space>
+                            <Form.Item
+                                name="email"
+                                rules={[{ required: true, message: "Vui lòng nhập email" }]}
+                                style={{ marginBottom: 0 }}
+                            >
+                                <Input placeholder="Email ..." />
+                            </Form.Item>
+                        </Space>
+                    );
+                } else {
+                    return (
+                        <div>
+                            {value}
+                        </div>
+                    )
+                }
+            }
+        },
+        {
+            title: 'SĐT',
+            dataIndex: 'phone',
+            key: 'phone',
+            width: 100,
+            render: (value, record) => {
+                if (record._id === edittingRow) {
+                    return (
+                        <Space>
+                            <Form.Item
+                                name="email"
+                                rules={[{ required: true, message: "Vui lòng nhập sđt" }]}
+                                style={{ marginBottom: 0 }}
+                            >
+                                <Input placeholder="Phone ..." />
+                            </Form.Item>
+                        </Space>
+                    );
+                } else {
+                    return (
+                        <div>
+                            {value}
+                        </div>
+                    )
+                }
+            }
+        },
+        {
             title: 'Role',
             dataIndex: 'role',
             key: 'role',
+            width: 50,
             render: (value, record) => {
                 if (record._id == edittingRow) {
                     return (
@@ -142,6 +261,7 @@ const ManagerAccount = () => {
             title: 'Status',
             dataIndex: 'is_active',
             key: 'is_active',
+            width: 50,
             render: (value, record) => {
                 if (record._id == edittingRow) {
                     return (
@@ -171,16 +291,38 @@ const ManagerAccount = () => {
             }
         },
         {
-            title: 'Create date',
+            title: 'Ngày tạo',
             dataIndex: 'create_at',
             key: 'create_at',
-            width: 200
+            width: 100,
+            render: (value) => {
+                const date = new Date(value);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+
+                return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+            }
         },
         {
-            title: 'Update date',
+            title: 'Ngày cập nhật',
             dataIndex: 'update_at',
             key: 'update_at',
-            width: 200
+            width: 100,
+            render: (value) => {
+                const date = new Date(value);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+
+                return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+            }
         },
         {
             title: 'Action',
@@ -209,37 +351,58 @@ const ManagerAccount = () => {
                         </Button>
                     </Space>
                 ) : (
-                    <Space  >
-                        <Button
-                            color="primary"
-                            variant="solid"
-                            icon={<EditOutlined />}
-                            onClick={() => {
-                                setEdittingRow(record._id);
-                                // form.setFieldsValue({
-                                //     color_code: record.color_code,
-                                //     status: record.status
-                                // })
-                            }}>
-                            Edit
-                        </Button>
-                        <Popconfirm
-                            title="Are you sure to delete this color?"
-                            onConfirm={() => {
-                                handleDeleteCategory(record._id)
-                            }}
-                            okText="Yes"
-                            cancelText="No"
-                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
-                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
-                        >
-                            <Button
-                                color="danger"
-                                variant="solid"
-                                icon={<DeleteOutlined />}>
-                                Delete
-                            </Button>
-                        </Popconfirm>
+                    <Space>
+                        <div>
+                            <Row>
+                                <Button
+                                    style={{ margin: '5px' }}
+                                    color="primary"
+                                    variant="solid"
+                                    icon={<EditOutlined />}
+                                    onClick={() => {
+                                        setEdittingRow(record._id);
+                                        // form.setFieldsValue({
+                                        //     color_code: record.color_code,
+                                        //     status: record.status
+                                        // })
+                                    }}>
+                                    Edit
+                                </Button>
+                            </Row>
+                            <Row>
+                                <Button
+                                    style={{ margin: '5px' }}
+                                    color="danger"
+                                    variant="solid"
+                                    icon={<MinusCircleOutlined />}
+                                    onClick={() => {
+                                        setEdittingRow(record._id);
+
+                                    }}>
+                                    Ban
+                                </Button>
+                            </Row>
+                            <Row>
+                                <Popconfirm
+                                    title="Are you sure to delete this color?"
+                                    onConfirm={() => {
+                                        handleDeleteCategory(record._id)
+                                    }}
+                                    okText="Yes"
+                                    cancelText="No"
+                                    okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                                    cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                                >
+                                    <Button
+                                        style={{ margin: '5px' }}
+                                        color="danger"
+                                        variant="solid"
+                                        icon={<DeleteOutlined />}>
+                                        Delete
+                                    </Button>
+                                </Popconfirm>
+                            </Row>
+                        </div>
                     </Space >
                 )
             }
@@ -250,120 +413,11 @@ const ManagerAccount = () => {
             <Row gutter={16} style={{ padding: '10px' }}>
                 <Col span={4}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <h4>Account</h4>
+                        <h4>Tài khoản</h4>
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search account..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
-                </Col>
-                <Col span={2} offset={1}>
-                    {/* <Select
-                        placeholder="Filter by status"
-                        allowClear
-                        onChange={(value) => {
-                            setFilterCategoryStatus(value)
-                        }}
-                        options={[
-                            { label: 'Active', value: true },
-                            { label: 'Inactive', value: false }
-                        ]}
-                    /> */}
-                </Col>
-                <Col span={4} offset={1}>
-                    <Button
-                        shape="round" icon={<PlusOutlined />}
-                        onClick={() => {
-                            showAddCategoryModal();
-                        }}>
-                        Add New Account
-                    </Button>
-                    <Modal
-                        title="Add new category"
-                        closable={{ 'aria-label': 'Custom Close Button' }}
-                        open={addCategory}
-                        onCancel={() => {
-                            handleCancelAddCategory()
-                        }}
-                        footer={null}>
-                        <Form
-                            form={form2}
-                            name="wrap"
-                            labelCol={{ flex: '110px' }}
-                            labelAlign="left"
-                            labelWrap
-                            wrapperCol={{ flex: 1 }}
-                            colon={false}
-                            onFinish={async (values) => {
-                                try {
-                                    console.log(values);
-                                    // await axios.post('http://localhost:9999/manager/colors/create', {
-                                    //     color_code: values.color_code,
-                                    //     is_active: values.is_active
-                                    // });
-                                    // await postData('/colors/manager/create_color', {
-                                    //     color_code: values.color_code,
-                                    //     is_active: values.is_active
-                                    // }, true)
-                                    form2.resetFields();
-                                    setAddCategory(false);
-                                    fetchCategories();
-                                } catch (error) {
-                                    console.log(error)
-                                }
-                            }}>
-                            {/* <Form.Item
-                                label="Tên"
-                                name="name"
-                                rules={[
-                                    { required: true, message: "Please select color" },
-                                    {
-                                        validator: (_, value) => {
-                                            const isDuplicate = categories.some(
-                                                (cat) =>
-                                                    cat.color_code.trim().toLowerCase() === value?.trim().toLowerCase() &&
-                                                    cat._id !== edittingRow
-                                            );
-                                            return isDuplicate
-                                                ? Promise.reject("This color already exists!")
-                                                : Promise.resolve();
-                                        }
-                                    }
-                                ]}>
-                                <ColorPicker
-                                    showText
-                                    value={form2.getFieldValue("color_code")}
-                                    onChange={(color) => {
-                                        form2.setFieldsValue({
-                                            color_code: color.toHexString()
-                                        })
-                                    }}
-                                />
-                            </Form.Item> */}
-
-                            {/* <Form.Item
-                                label="Status"
-                                name="is_active"
-                                rules={[{ required: true, message: "Please select status" }]}>
-                                <Select
-                                    placeholder="Select status"
-                                    allowClear
-                                    options={[
-                                        { label: 'Active', value: true },
-                                        { label: 'Inactive', value: false }
-                                    ]}
-                                />
-                            </Form.Item> */}
-
-                            <Form.Item
-                                label=" ">
-                                <Button
-                                    type="primary"
-                                    htmlType="submit">
-                                    Submit
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Modal>
+                    <Input placeholder="Tìm kiếm khách hàng..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
                 </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
