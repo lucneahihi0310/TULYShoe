@@ -6,6 +6,7 @@ const Review = require("../models/review.modle");
 const Color = require("../models/color.model");
 const Size = require("../models/size.model");
 const CartItem = require("../models/cartItem.model");
+const Notification = require("../models/notification.model");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 const User = require('../models/account.modle');
@@ -22,6 +23,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
 exports.getOrdersByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -77,7 +79,7 @@ exports.getOrderDetailById = async (req, res) => {
         price_at_order: item.price_at_order,
         quantity: item.quantity,
         total_price: item.price_at_order * item.quantity,
-        review: item.review || null, // nếu có đánh giá
+        review: item.review || null,
       });
     }
 
@@ -103,16 +105,13 @@ exports.getOrderByOrderCode = async (req, res) => {
   try {
     const { orderCode } = req.params;
 
-    // 1. Lấy đơn hàng
     const order = await Order.findOne({ order_code: orderCode }).populate("order_status_id");
     if (!order) {
       return res.status(404).json({ message: "Mã đơn hàng sai hoặc không tồn tại." });
     }
 
-    // 2. Lấy danh sách OrderDetail
     const orderDetails = await OrderDetail.find({ order_id: order._id });
 
-    // 3. Duyệt từng OrderDetail để lấy thông tin sản phẩm chi tiết và review
     const detailedProducts = [];
 
     for (const item of orderDetails) {
@@ -123,7 +122,6 @@ exports.getOrderByOrderCode = async (req, res) => {
 
       if (!productDetail) continue;
 
-      // Kiểm tra review (nếu có)
       const review = await Review.findOne({
         ordetail_id: item._id,
         user_id: order.user_id,
@@ -144,15 +142,10 @@ exports.getOrderByOrderCode = async (req, res) => {
       });
     }
 
-    // 4. Tính tổng tiền hàng
     const subTotal = detailedProducts.reduce((sum, item) => sum + item.total_price, 0);
-
-    // 5. Tính phí vận chuyển: 0đ nếu trong Hà Nội
     const shippingAddress = order.shipping_info?.address || "";
     const isHanoi = shippingAddress.toLowerCase().includes("hà nội");
     const shippingFee = isHanoi ? 0 : 30000;
-
-    // 6. Tổng cộng
     const totalAmount = subTotal + shippingFee;
 
     return res.json({
@@ -178,7 +171,6 @@ exports.getOrderByOrderCode = async (req, res) => {
   }
 };
 
-
 exports.createOrder = async (req, res) => {
   try {
     const { orderItems, userInfo, paymentMethod, orderNote, shippingFee, user_id, isFromCart } = req.body;
@@ -186,7 +178,6 @@ exports.createOrder = async (req, res) => {
     if (!orderItems || orderItems.length === 0)
       return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ." });
 
-    // Kiểm tra tồn kho trước khi đặt
     for (const item of orderItems) {
       const detail = await ProductDetail.findById(item.pdetail_id);
       if (!detail) return res.status(404).json({ message: "Không tìm thấy sản phẩm." });
@@ -238,7 +229,6 @@ exports.createOrder = async (req, res) => {
 
     await OrderDetail.insertMany(orderDetails);
 
-    // Cập nhật tồn kho: tăng sold, giảm inventory
     await Promise.all(orderItems.map(async (item) => {
       await ProductDetail.findByIdAndUpdate(
         item.pdetail_id,
@@ -252,12 +242,20 @@ exports.createOrder = async (req, res) => {
       );
     }));
 
-    // Xoá giỏ hàng nếu cần
     if (user_id && isFromCart) {
       await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
     }
 
-    // Gửi mail xác nhận
+    // Create notification
+    await Notification.create({
+      notification_type_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a7e1"),
+      message: `Khách hàng ${userInfo.fullName} vừa đặt đơn hàng mới với mã đơn hàng là ${orderCode} và đang chờ xác nhận`,
+      related_id: newOrder._id,
+      is_read: false,
+      create_at: now,
+      update_at: now,
+    });
+
     if (userInfo.email) {
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -345,7 +343,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -392,11 +389,9 @@ exports.confirmOrder = async (req, res) => {
 
     if (order.accepted_by) return res.status(400).json({ message: 'Đơn hàng đã xác nhận' });
 
-    // Tìm ID trạng thái \"Đã xác nhận\"
     const confirmedStatus = await OrderStatus.findOne({ order_status_name: "Đã xác nhận" });
     if (!confirmedStatus) return res.status(404).json({ message: 'Không tìm thấy trạng thái Đã xác nhận' });
 
-    // Cập nhật đơn hàng
     order.accepted_by = staffId;
     order.order_status_id = confirmedStatus._id;
     order.update_at = Date.now();
@@ -409,7 +404,6 @@ exports.confirmOrder = async (req, res) => {
   }
 };
 
-
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -419,20 +413,17 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(400).json({ message: "Thiếu tên trạng thái mới" });
     }
 
-    // Tìm trạng thái mới trong bảng OrderStatus
     const newStatus = await OrderStatus.findOne({ order_status_name: newStatusName });
 
     if (!newStatus) {
       return res.status(404).json({ message: `Không tìm thấy trạng thái: ${newStatusName}` });
     }
 
-    // Tìm đơn hàng
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
 
-    // Cập nhật trạng thái
     order.order_status_id = newStatus._id;
     order.update_at = new Date();
 

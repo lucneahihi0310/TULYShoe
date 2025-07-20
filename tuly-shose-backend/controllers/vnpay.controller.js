@@ -4,6 +4,7 @@ const OrderDetail = require("../models/oderDetail.model");
 const PendingOrder = require("../models/pendingOrder.model");
 const ProductDetail = require("../models/productDetail.model");
 const CartItem = require("../models/cartItem.model");
+const Notification = require("../models/notification.model"); // Added
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 
@@ -64,7 +65,6 @@ exports.createPayment = async (req, res) => {
 
     const orderCode = `TULY-${Date.now()}`;
 
-    // Lưu PendingOrder
     await PendingOrder.create({
       order_code: orderCode,
       orderItems,
@@ -77,7 +77,6 @@ exports.createPayment = async (req, res) => {
       deliveryDate,
     });
 
-    // Tạo VNPAY URL
     const createDate = now.toISOString().replace(/[-:T.]/g, "").slice(0, 14);
     const ipAddr =
       req.headers["x-forwarded-for"] ||
@@ -135,7 +134,6 @@ exports.ipn = async (req, res) => {
       return res.status(200).json({ RspCode: vnpResponseCode, Message: "Payment failed" });
     }
 
-    // Tìm PendingOrder
     const pending = await PendingOrder.findOne({ order_code: orderCode });
     if (!pending) {
       return res.status(404).json({ RspCode: "01", Message: "Không tìm thấy đơn hàng chờ." });
@@ -170,7 +168,7 @@ exports.ipn = async (req, res) => {
       },
       order_date: now,
       delivery_date: deliveryDate,
-      order_status_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a881"), // đã thanh toán
+      order_status_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a881"),
       total_amount: totalAmount,
       payment_status: paymentMethod === "online" ? "Thanh toán trực tuyến qua VNPAY" : "Thanh toán khi nhận hàng",
       order_note: orderNote,
@@ -203,6 +201,16 @@ exports.ipn = async (req, res) => {
     if (user_id && isFromCart) {
       await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
     }
+
+    // Create notification
+    await Notification.create({
+      notification_type_id: new mongoose.Types.ObjectId("60a4c8b2f9a2d3c4e5f6a7e1"),
+      message: `Khách hàng ${userInfo.fullName} vừa đặt đơn hàng mới với mã đơn hàng là ${orderCode} và đang chờ xác nhận`,
+      related_id: newOrder._id,
+      is_read: false,
+      create_at: now,
+      update_at: now,
+    });
 
     if (userInfo.email) {
       const mailOptions = {
@@ -278,7 +286,6 @@ exports.ipn = async (req, res) => {
       await transporter.sendMail(mailOptions);
     }
 
-    // Xóa pending sau khi xử lý
     await PendingOrder.deleteOne({ order_code: orderCode });
 
     return res.status(200).json({ RspCode: "00", Message: "Success" });
@@ -287,9 +294,6 @@ exports.ipn = async (req, res) => {
     return res.status(500).json({ RspCode: "99", Message: "Unknown error" });
   }
 };
-
-
-
 
 exports.return = async (req, res) => {
   try {
