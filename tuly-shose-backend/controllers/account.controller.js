@@ -304,7 +304,7 @@ exports.forgotPassword = async (req, res, next) => {
         await user.save();
 
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: `"TULY Shoe Support" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "Đặt lại mật khẩu của bạn",
             html: `
