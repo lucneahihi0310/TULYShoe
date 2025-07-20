@@ -147,7 +147,7 @@ const AboutUs = () => {
           </Col>
           <Col xs={24} md={12}>
             <img
-              src="https://storage.googleapis.com/a1aa/image/50d7e2a9-5953-42c8-3edb-7c261c7d2707.jpg"
+              src="https://duongvanluc2002.sirv.com/assets_task_01k0mdkrt0ftkta8edafqdee7b_1753032100_img_1.webp"
               alt="Cận cảnh đôi giày sneaker cao cấp"
               className={styles.image}
             />
