@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
-import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import axios from 'axios';
-import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
+import { fetchData, postData, updateData, deleteData, patchData } from "../API/ApiService";
 
 const ManagerAccount = () => {
     const [categories, setCategories] = useState([]);
     const [edittingRow, setEdittingRow] = useState(null);
     const [filterCategoryName, setFilterCategoryName] = useState("");
-    const [filterCategoryStatus, setFilterCategoryStatus] = useState(undefined);
-    const [addCategory, setAddCategory] = useState(false);
     const [form] = Form.useForm();
-    const [form2] = Form.useForm();
 
-    //show add category
-    const showAddCategoryModal = () => {
-        setAddCategory(true);
-    };
-
-    //cancel add category
-    const handleCancelAddCategory = () => {
-        setAddCategory(false);
-        form2.resetFields();
-    };
-
-    //edit category
+    //edit account
     const handleEditCategory = async () => {
         try {
             const record = await form.validateFields();
@@ -41,16 +27,30 @@ const ManagerAccount = () => {
         }
     };
 
-    //cancel edit category
+    //cancel edit account
     const handleCancelEdit = () => {
         setEdittingRow(null);
     }
 
-    //delete category
+    //delete account
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
         // await deleteData('/colors/manager/delete_color', id, true);
         // fetchCategories();
+    };
+
+    //ban account
+    const handleBanAccount = async (banId) => {
+        try {
+            console.log("Ban account:", banId);
+            await patchData('/account/profile/ban', banId, {
+                is_active: false
+            }, true);
+            fetchCategories();
+        }
+        catch (error) {
+            console.log(error);
+        }
     };
 
     //fetch data và filter category
@@ -370,16 +370,21 @@ const ManagerAccount = () => {
                                 </Button>
                             </Row>
                             <Row>
+                                {/* {
+                                    if(){
+
+                                    }
+                                } */}
                                 <Button
                                     style={{ margin: '5px' }}
-                                    color="danger"
+                                    danger={record.is_active} // đỏ khi là Ban
+                                    type="primary"
                                     variant="solid"
-                                    icon={<MinusCircleOutlined />}
+                                    icon={record.is_static ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
                                     onClick={() => {
-                                        setEdittingRow(record._id);
-
+                                        handleBanAccount(record._id);
                                     }}>
-                                    Ban
+                                    {record.is_active ? 'Ban' : 'Unban'}
                                 </Button>
                             </Row>
                             <Row>

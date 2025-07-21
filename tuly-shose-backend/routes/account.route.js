@@ -40,5 +40,6 @@ router.put('/change-password-user', middleware, changePasswordUser);
 router.get('/profile/:id', middleware, getProfile);
 router.put('/profile/:id', middleware, updateProfile);
 router.patch('/profile/ban/:id', middleware, updateStatusAccount);
+router.patch('/profile/unban/:id', middleware, updateStatusAccount);
 router.put('/profile/:id/change-password', middleware, changePassword);
 module.exports = router;
