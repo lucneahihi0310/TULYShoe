@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const middleware = require('../middlewares/auth.middleware');
-const { getAllReviews, getReviewById, getReviewsByProductDetailId, createOrUpdateReview, getRandomReviews, getReview, createReply } = require('../controllers/review.controller');
+const { getAllReviews, getReviewById, getReviewsByProductDetailId, createOrUpdateReview, getRandomReviews, getReview, createReply, updateReply } = require('../controllers/review.controller');
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../config/cloudinaryUser");
@@ -29,4 +29,6 @@ router.get('/customers/:id', getReviewById);
 router.post("/customers", middleware, upload.array("images", 3), createOrUpdateReview);
 router.get('/staff/review', getReview)
 router.post("/staff/:id/reply", createReply);
+router.put('/staff/:id/reply', updateReply);
+
 module.exports = router;

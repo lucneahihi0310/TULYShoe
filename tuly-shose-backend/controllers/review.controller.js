@@ -275,3 +275,42 @@ exports.createReply = async (req, res) => {
   }
 };
 
+exports.updateReply = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const { reply_content, replier_id } = req.body;
+
+    if (!reply_content || !replier_id) {
+      return res.status(400).json({ message: "Thiếu nội dung hoặc thông tin người phản hồi" });
+    }
+
+    const review = await Review.findById(reviewId);
+
+    if (!review) {
+      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
+    }
+
+    // Kiểm tra có phản hồi chưa
+    if (!review.replies || !review.replies.reply_content) {
+      return res.status(400).json({ message: "Chưa có phản hồi để cập nhật" });
+    }
+
+    // Kiểm tra đúng người phản hồi không
+    if (review.replies.replier_id.toString() !== replier_id) {
+      return res.status(403).json({ message: "Bạn không có quyền sửa phản hồi này" });
+    }
+
+    // Cập nhật phản hồi
+    review.replies.reply_content = reply_content;
+    review.replies.update_at = new Date();
+
+    await review.save();
+
+    res.status(200).json({ message: "Cập nhật phản hồi thành công", reply: review.replies });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật phản hồi:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi cập nhật phản hồi" });
+  }
+};
+
+
