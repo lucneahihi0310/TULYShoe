@@ -195,6 +195,10 @@ exports.getReview = async (req, res) => {
       select: "order_code" // trong bảng Order có field này đúng chứ?
     }
   })
+  .populate({
+    path: "replies.replier_id", 
+    select: "first_name last_name"
+  })
   .select("_id review_content images rating review_date is_approved create_at update_at replies")
   .lean(); // chuyển sang object JS để dễ xử lý
 
@@ -208,7 +212,13 @@ exports.getReview = async (req, res) => {
   is_approved: review.is_approved,
   create_at: review.create_at,
   update_at: review.update_at,
-  replies: review.replies,
+  replies: review.replies?.map(reply => ({
+    reply_content: reply.reply_content,
+    reply_date: reply.reply_date,
+    replier: reply.replier_id
+      ? `${reply.replier_id.first_name} ${reply.replier_id.last_name}`
+      : "Ẩn danh"
+  })),
   order_code: review.ordetail_id?.order_id?.order_code || null,
 }));
 
