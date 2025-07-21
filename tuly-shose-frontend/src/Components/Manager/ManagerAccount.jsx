@@ -35,8 +35,8 @@ const ManagerAccount = () => {
     //delete account
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
-        // await deleteData('/colors/manager/delete_color', id, true);
-        // fetchCategories();
+        await deleteData('/account/profile/delete', id, true);
+        fetchCategories();
     };
 
     //ban account
@@ -386,32 +386,53 @@ const ManagerAccount = () => {
                             <Row>
                                 {
                                     record.is_active ? (
-                                        <Button
-                                            style={{ margin: '5px' }}
-                                            danger
-                                            type="primary"
-                                            variant="solid"
-                                            icon={<MinusCircleOutlined />}
-                                            onClick={() => handleBanAccount(record._id)}
+                                        <Popconfirm
+                                            title="Bạn chắc là bạn muốn ban tài khoản này chứ ?"
+                                            onConfirm={() => {
+                                                handleBanAccount(record._id);
+                                            }}
+                                            okText="Đồng ý"
+                                            cancelText="Không đồng ý"
+                                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
                                         >
-                                            Ban
-                                        </Button>
+                                            <Button
+                                                style={{ margin: '5px' }}
+                                                danger
+                                                type="primary"
+                                                variant="solid"
+                                                icon={<MinusCircleOutlined />}
+                                            >
+                                                Ban
+                                            </Button>
+                                        </Popconfirm>
+
                                     ) : (
-                                        <Button
-                                            style={{ margin: '5px' }}
-                                            color="primary"
-                                            variant="solid"
-                                            icon={<CheckCircleOutlined />}
-                                            onClick={() => handleUnbanAccount(record._id)}
+                                        <Popconfirm
+                                            title="Bạn chắc là bạn muốn ban tài khoản này chứ ?"
+                                            onConfirm={() => {
+                                                handleUnbanAccount(record._id);
+                                            }}
+                                            okText="Đồng ý"
+                                            cancelText="Không đồng ý"
+                                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
                                         >
-                                            Unban
-                                        </Button>
+                                            <Button
+                                                style={{ margin: '5px' }}
+                                                color="primary"
+                                                variant="solid"
+                                                icon={<CheckCircleOutlined />}
+                                            >
+                                                Unban
+                                            </Button>
+                                        </Popconfirm>
                                     )
                                 }
                             </Row>
                             <Row>
                                 <Popconfirm
-                                    title="Are you sure to delete this color?"
+                                    title="Bạn chắc là bạn muốn xóa tài khoản này chứ ?"
                                     onConfirm={() => {
                                         handleDeleteCategory(record._id)
                                     }}
@@ -430,7 +451,7 @@ const ManagerAccount = () => {
                                 </Popconfirm>
                             </Row>
                         </div>
-                    </Space >
+                    </Space>
                 )
             }
         }

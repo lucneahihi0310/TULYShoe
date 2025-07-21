@@ -106,26 +106,26 @@ exports.uploadAvatar = async (req, res) => {
 };
 
 exports.changePasswordUser = async (req, res) => {
-  try {
-    const userId = req.customerId;
-    const { current_password, new_password } = req.body;
+    try {
+        const userId = req.customerId;
+        const { current_password, new_password } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
 
-    const isMatch = await bcrypt.compare(current_password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" });
+        const isMatch = await bcrypt.compare(current_password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" });
+        }
+
+        user.password = await bcrypt.hash(new_password, 10);
+        await user.save();
+
+        res.json({ message: "Đổi mật khẩu thành công" });
+    } catch (err) {
+        console.error("[CHANGE PASSWORD ERROR]", err);
+        res.status(500).json({ message: "Lỗi đổi mật khẩu" });
     }
-
-    user.password = await bcrypt.hash(new_password, 10);
-    await user.save();
-
-    res.json({ message: "Đổi mật khẩu thành công" });
-  } catch (err) {
-    console.error("[CHANGE PASSWORD ERROR]", err);
-    res.status(500).json({ message: "Lỗi đổi mật khẩu" });
-  }
 };
 
 exports.login = async (req, res, next) => {
@@ -441,11 +441,21 @@ exports.updateStatusAccount = async (req, res) => {
 
         if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
 
-        res.status(200).json({ message: 'Profile banned successfully', account: updatedAccount });
+        res.status(200).json({ message: 'Account change status successfully', account: updatedAccount });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.delete_account = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const deleteAccount = await User.findByIdAndDelete(id);
+        res.status(201).json({ message: 'Account delete successfully', account: deleteAccount });
+    } catch (error) {
+        next(error);
+    }
+}
 
 exports.changePassword = async (req, res) => {
     try {
