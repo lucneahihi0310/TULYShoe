@@ -1,105 +1,130 @@
-import React, { useState } from 'react';
-import { FaEye } from 'react-icons/fa';
-import { MdOutlineQuestionAnswer } from "react-icons/md"; 
-import '../../../CSS/CustomerFeedback.css';
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Container,
+  Image,
+  Badge,
+  OverlayTrigger,
+  Tooltip,
+  Accordion,
+  Card,
+} from "react-bootstrap";
 
-const CustomerFeedback = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [selectedFeedback, setSelectedFeedback] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-const feedbackList = [
-    { id: 1, customer: 'Nguyen Van A', description: 'Sản phẩm rất đẹp!', time: '2024-06-01', status: 'Responded' },
-    { id: 2, customer: 'Tran Thi B', description: 'Giao hàng hơi chậm', time: '2024-06-02', status: 'Pending' },
-    { id: 3, customer: 'Le Van C', description: 'Tư vấn nhiệt tình.', time: '2024-06-03', status: 'Responded' },
-    { id: 4, customer: 'Pham Thi D', description: 'Chưa nhận được hàng!', time: '2024-06-04', status: 'Pending' },
-  ];
-  
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:9999"
+    : "https://tulyshoe.onrender.com");
 
-  const filteredFeedbacks = feedbackList.filter(item => {
-    const matchSearch = item.customer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === 'All' || item.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+const ReviewTable = () => {
+  const [reviews, setReviews] = useState([]);
 
-  const handleView = (feedback) => {
-    setSelectedFeedback(feedback);
-    setShowModal(true);
-  };
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/reviews/staff/review`);
+        const data = await response.json();
+        setReviews(data || []);
+      } catch (error) {
+        console.error("Lỗi khi lấy đánh giá:", error);
+      }
+    };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedFeedback(null);
-  };
+    fetchReviews();
+  }, []);
 
   return (
-    
-    <div className="feedback-container">
-<h2 className="feedback-title">Customer Feedbacks</h2>
-      
-
-      <div className="feedback-filters">
-        <input
-          type="text"
-          placeholder="Search by customer name..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="All">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Responded">Responded</option>
-        </select>
-      </div>
-
-      <table className="feedback-table">
-        <thead>
+    <Container className="mt-4">
+      <h3 className="mb-3">Danh sách đánh giá</h3>
+      <Table bordered responsive hover>
+        <thead className="table-light">
           <tr>
-            <th>ID</th>
-            <th>Customer</th>
-            <th>Description</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Action</th>
+            <th>#</th>
+            <th>Người đánh giá</th>
+            <th>Nội dung</th>
+            <th>Hình ảnh</th>
+            <th>Rating</th>
+            <th>Mã đơn hàng</th>
+            <th>Ngày đánh giá</th>
+            <th>Trạng thái</th>
+            <th>Phản hồi</th>
           </tr>
         </thead>
         <tbody>
-          {filteredFeedbacks.map(item => (
-            <tr key={item.id} className={item.status === 'Pending' ? 'pending' : 'responded'}>
-              <td>{item.id}</td>
-              <td>{item.customer}</td>
-              <td>{item.description.length > 50 ? item.description.slice(0, 50) + '...' : item.description}</td>
-              <td>{item.time}</td>
+          {reviews.map((review, index) => (
+            <tr key={review._id}>
+              <td>{index + 1}</td>
               <td>
-                <span className={`status-badge ${item.status.toLowerCase()}`}>{item.status}</span>
+                {review.userName}
+              </td>
+              <td>{review.review_content}</td>
+              <td>
+                {review.images?.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-1">
+                    {review.images.map((img, i) => (
+                      <OverlayTrigger
+                        key={i}
+                        placement="top"
+                        overlay={<Tooltip>Ảnh {i + 1}</Tooltip>}
+                      >
+                        <Image
+                          src={img}
+                          rounded
+                          thumbnail
+                          style={{ width: 60, height: 60, objectFit: "cover" }}
+                        />
+                      </OverlayTrigger>
+                    ))}
+                  </div>
+                ) : (
+                  "Không có"
+                )}
               </td>
               <td>
-                <button style={{marginRight: '5px', borderRadius: '30px'}} onClick={() => handleView(item)} className="view-btn">
-                  <FaEye /> View
-                </button>
-                <button style={{borderRadius: '30px'}}> <MdOutlineQuestionAnswer />Trả lời</button>
+                <Badge bg="warning" text="dark">
+                  {review.rating} ★
+                </Badge>
+              </td>
+              <td>{review.ordetail_id?.order_id || "Không có"}</td>
+              <td>{new Date(review.review_date).toLocaleDateString()}</td>
+              <td>
+                {review.is_approved ? (
+                  <Badge bg="success">Đã duyệt</Badge>
+                ) : (
+                  <Badge bg="secondary">Chờ duyệt</Badge>
+                )}
+              </td>
+              <td>
+                {review.replies?.length > 0 ? (
+                  <Accordion flush>
+                    {review.replies.map((reply, i) => (
+                      <Accordion.Item eventKey={i.toString()} key={i}>
+                        <Accordion.Header>Phản hồi {i + 1}</Accordion.Header>
+                        <Accordion.Body>
+                          <p>
+                            <strong>
+                              {reply.replier_id?.first_name}{" "}
+                              {reply.replier_id?.last_name}
+                            </strong>
+                          </p>
+                          <p>{reply.reply_content}</p>
+                          <small className="text-muted">
+                            {new Date(reply.reply_date).toLocaleString()}
+                          </small>
+                        </Accordion.Body>
+                      </Accordion.Item>
+                    ))}
+                  </Accordion>
+                ) : (
+                  "Chưa có"
+                )}
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
-
-      {/* Modal hiển thị chi tiết */}
-      {showModal && selectedFeedback && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Feedback Detail</h2>
-            <p><strong>Customer:</strong> {selectedFeedback.customer}</p>
-            <p><strong>Description:</strong> {selectedFeedback.description}</p>
-            <p><strong>Time:</strong> {selectedFeedback.time}</p>
-            <p><strong>Status:</strong> {selectedFeedback.status}</p>
-            <button onClick={handleCloseModal}>Close</button>
-          </div>
-        </div>
-      )}
-    </div>
-    
+      </Table>
+    </Container>
   );
 };
 
-export default CustomerFeedback;
+export default ReviewTable;
