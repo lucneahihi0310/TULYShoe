@@ -78,7 +78,13 @@ const LoginRegister = () => {
         new StorageEvent("storage", { key: "token", newValue: data.token })
       );
     } catch (err) {
-      setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
+      if (err.status === 403) {
+        setErrorMessage(
+          "Tài khoản đã bị khóa. Vui lòng liên hệ với đội ngũ hỗ trợ để xử lý!"
+        );
+      } else {
+        setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
+      }
       console.error("Lỗi đăng nhập:", err);
     } finally {
       setIsSubmitting(false);

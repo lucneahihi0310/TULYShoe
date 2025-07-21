@@ -72,6 +72,7 @@ function App() {
         />
 
         <Route path="/" element={<HomePage />} />
+        <Route path="*" element={<HomePage />} />
         <Route path="/products" element={<ListProduct />} />
         <Route path="/productsbyonsale" element={<ListProductByOnSale />} />
         <Route path="/cart" element={<Cart />} />

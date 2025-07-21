@@ -258,7 +258,7 @@ exports.createOrder = async (req, res) => {
 
     if (userInfo.email) {
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: `"TULY Shoe" <${process.env.EMAIL_USER}>`,
         to: userInfo.email,
         subject: `TULY Shoe - Xác nhận đơn hàng ${orderCode}`,
         html: `
