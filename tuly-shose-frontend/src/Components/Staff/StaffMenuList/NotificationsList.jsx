@@ -8,7 +8,7 @@ const NotificationList = () => {
   const [notifications, setNotifications] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(false)
-  const notificationsPerPage = 5
+  const notificationsPerPage = 4
 
   const loadNotifications = async () => {
     try {
@@ -226,7 +226,7 @@ const NotificationList = () => {
                           <div className="card-body">
                             <div className="row align-items-center">
                               {/* Left side - Content */}
-                              <div className="col-lg-8 col-md-7">
+                              <div className="col-lg-10 col-md-7">
                                 <div className="d-flex align-items-start mb-2">
                                   <span className={`${getTypeBadgeClass(typeName)} me-2`}>
                                     {getTypeIcon(typeName)}
@@ -246,7 +246,7 @@ const NotificationList = () => {
                               </div>
 
                               {/* Right side - Actions */}
-                              <div className="col-lg-4 col-md-5 text-md-end text-center mt-3 mt-md-0">
+                              <div className="col-lg-2 col-md-5 text-md-end text-center mt-3 mt-md-0">
                                 {!notification.is_read && (
                                   <button
                                     onClick={() => handleMarkAsRead(notification._id)}
@@ -278,42 +278,72 @@ const NotificationList = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="row mt-4">
-              <div className="col-12 d-flex justify-content-center">
-                <nav aria-label="Pagination">
-                  <ul className="pagination pagination-lg">
-                    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                      <button
-                        className="page-link rounded-pill me-1"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      >
-                        &laquo; Trước
-                      </button>
-                    </li>
+  <div className="row mt-4">
+    <div className="col-12 d-flex justify-content-end">
+      <nav aria-label="Pagination">
+        <ul className="pagination pagination-lg mb-0" style={{ display: 'flex', gap: '8px' }}>
+          <li className="page-item" style={{ pointerEvents: currentPage === 1 ? "none" : "auto", opacity: currentPage === 1 ? 0.5 : 1 }}>
+            <button
+              className="page-link"
+              style={{
+                minWidth: "80px",
+                borderRadius: "50px",
+                backgroundColor: "#f1f1f1",
+                color: "#007bff",
+                border: "none",
+              }}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              Trước
+            </button>
+          </li>
 
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <li key={index + 1} className={`page-item ${currentPage === index + 1 ? "active" : ""}`}>
-                        <button className="page-link rounded-pill mx-1" onClick={() => handlePageChange(index + 1)}>
-                          {index + 1}
-                        </button>
-                      </li>
-                    ))}
+          {Array.from({ length: totalPages }, (_, index) => {
+            const page = index + 1;
+            const isActive = currentPage === page;
+            return (
+              <li key={page} className="page-item">
+                <button
+                  className="page-link"
+                  style={{
+                    minWidth: "50px",
+                    borderRadius: "50px",
+                    backgroundColor: isActive ? "#007bff" : "#e0e0e0",
+                    color: isActive ? "#fff" : "#333",
+                    fontWeight: isActive ? "500" : "normal",
+                    border: "none",
+                  }}
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </button>
+              </li>
+            );
+          })}
 
-                    <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                      <button
-                        className="page-link rounded-pill ms-1"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        Sau &raquo;
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
-            </div>
-          )}
+          <li className="page-item" style={{ pointerEvents: currentPage === totalPages ? "none" : "auto", opacity: currentPage === totalPages ? 0.5 : 1 }}>
+            <button
+              className="page-link"
+              style={{
+                minWidth: "80px",
+                borderRadius: "50px",
+                backgroundColor: "#f1f1f1",
+                color: "#007bff",
+                border: "none",
+              }}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Sau
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+)}
+
+
+
         </div>
       </div>
     </>
