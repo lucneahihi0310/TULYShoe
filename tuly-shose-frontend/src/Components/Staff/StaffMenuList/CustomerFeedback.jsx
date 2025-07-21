@@ -17,6 +17,7 @@ const BASE_URL =
     ? "http://localhost:9999"
     : "https://tulyshoe.onrender.com");
 
+
 const ReviewTable = () => {
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
@@ -156,31 +157,10 @@ const ReviewTable = () => {
                     <Badge bg="secondary">Chờ duyệt</Badge>
                   )}
                 </td>
-                <td style={{ minWidth: "200px" }}>
-                  {review.replies ? (
-                    Array.isArray(review.replies) ? (
-                      review.replies.map((reply, i) => (
-                        <div key={i} className="mb-2 border rounded p-2 bg-light">
-                          <strong>{reply.replier || "Ẩn danh"}:</strong>
-                          <div>{reply.reply_content}</div>
-                          <small className="text-muted">
-                            {new Date(reply.reply_date).toLocaleString()}
-                          </small>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="border rounded p-2 bg-light">
-                        <strong>{review.replies.replier || "Ẩn danh"}:</strong>
-                        <div>{review.replies.reply_content}</div>
-                        <small className="text-muted">
-                          {new Date(review.replies.reply_date).toLocaleString()}
-                        </small>
-                      </div>
-                    )
-                  ) : (
-                    <ReviewReplyCell review={review} onReplySuccess={fetchReviews} />
-                  )}
+                <td style={{ minWidth: "250px" }}>
+                  <ReviewReplyCell review={review} onReplySuccess={fetchReviews} />
                 </td>
+
               </tr>
             ))
           )}

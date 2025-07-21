@@ -215,16 +215,17 @@ exports.getReview = async (req, res) => {
         is_approved: review.is_approved,
         create_at: review.create_at,
         update_at: review.update_at,
-        replies: reply?.reply_content
-          ? {
-              reply_content: reply.reply_content,
-              reply_date: reply.reply_date,
-              replier:
-                reply.replier_id?.first_name && reply.replier_id?.last_name
-                  ? `${reply.replier_id.first_name} ${reply.replier_id.last_name}`
-                  : "Ẩn danh"
-            }
-          : null,
+        replies: review.replies
+  ? {
+      reply_content: review.replies.reply_content,
+      reply_date: review.replies.reply_date,
+      replier: review.replies.replier_id
+        ? `${review.replies.replier_id.first_name} ${review.replies.replier_id.last_name}`
+        : "Ẩn danh",
+      replier_id: review.replies.replier_id?._id || review.replies.replier_id // 👈 thêm dòng này
+    }
+  : null,
+
         order_code: review.ordetail_id?.order_id?.order_code || null
       };
     });
