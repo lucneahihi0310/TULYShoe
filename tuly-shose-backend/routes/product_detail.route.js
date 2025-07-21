@@ -1,5 +1,5 @@
 const express = require('express');
-const { list_product_detail, list_product_detail_by_id, create_product_detail } = require('../controllers/product_detail.controller');
+const { list_product_detail, list_product_detail_by_id, create_product_detail, edit_product_detail, delete_product_detail } = require('../controllers/product_detail.controller');
 const router = express.Router();
 
 const timelog = (req, res, next) => {
@@ -12,7 +12,7 @@ router.use(express.json());
 router.get('/manager/list_product_detail', list_product_detail);
 router.get('/manager/list_product_detail_by_id/:id', list_product_detail_by_id);
 router.post('/manager/create_product_detail', create_product_detail);
-// router.put('/brands/edit/:id', edit_brand);
-// router.delete('/brands/delete/:id', delete_brand);
+router.put('/manager/edit_product_detail/:id', edit_product_detail);
+router.delete('/manager/delete_product_detail/:id', delete_product_detail);
 
 module.exports = router;

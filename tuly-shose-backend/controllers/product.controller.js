@@ -311,6 +311,8 @@ exports.create_product = async (req, res, next) => {
       material_id: req.body.material_id,
       form_id: req.body.form_id,
       gender_id: req.body.gender_id,
+      create_at: new Date(),
+      update_at: new Date()
     })
     const insertProduct = await newProduct.save();
     res.status(201).json(insertProduct);
@@ -335,7 +337,7 @@ exports.edit_product = async (req, res, next) => {
         material_id,
         form_id,
         gender_id,
-        update_at: new Date().toISOString()
+        update_at: new Date()
       }
     )
     res.status(201).json(newProduct);

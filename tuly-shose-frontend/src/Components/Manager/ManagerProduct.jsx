@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message, InputNumber, Upload } from "antd";
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Popconfirm, message, InputNumber, Upload } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, UploadOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import ImgCrop from 'antd-img-crop';
@@ -125,7 +125,7 @@ const ManagerProduct = () => {
 
     const showProductDetail = async (productId, record) => {
         const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
-        // console.log(res);
+        console.log(res);
         setDetailData(res);
         setCurrentProductPrice(record.price);
         setCurrentProductId(productId);
@@ -463,319 +463,6 @@ const ManagerProduct = () => {
                                     }}>
                                     Product Detail
                                 </Button>
-                                <Modal
-                                    title="List product detail"
-                                    closable={{ 'aria-label': 'Custom Close Button' }}
-                                    open={listProductDetail}
-                                    onCancel={() => {
-                                        handleCancelShowProductDetail()
-                                    }}
-                                    footer={null}
-                                    width={800}
-                                >
-                                    <Button
-                                        style={{ width: '200px', marginBottom: '15px' }}
-                                        shape="round"
-                                        icon={<PlusOutlined />}
-                                        onClick={() => {
-                                            form_add_product_detail.setFieldsValue({
-                                                product_id: currentProductId
-                                            });
-                                            setAddProductDetail(true);
-                                        }}>
-                                        Add New Product Detail
-                                    </Button>
-                                    <Modal
-                                        title="Add Product Detail"
-                                        closable={{ 'aria-label': 'Custom Close Button' }}
-                                        open={addProductDetail}
-                                        onCancel={() => setAddProductDetail(false)}
-                                        footer={null}
-                                        width={800}
-                                    >
-                                        <Form
-                                            form={form_add_product_detail}
-                                            name="wrap"
-                                            labelCol={{ flex: '110px' }}
-                                            labelAlign="left"
-                                            labelWrap
-                                            wrapperCol={{ flex: 1 }}
-                                            colon={false}
-                                            onFinish={async (values) => {
-                                                // gọi API postData(...)
-                                                if (!imageUrls.length) {
-                                                    message.error("Vui lòng upload ít nhất một ảnh");
-                                                    return;
-                                                }
-                                                const payload = {
-                                                    product_id: values.product_id,
-                                                    color_id: values.color,
-                                                    size_id: values.size,
-                                                    discount_id: values.discount,
-                                                    inventory_number: values.inventory_number,
-                                                    sold_number: values.sold_number,
-                                                    price_after_discount: values.price_after_discount,
-                                                    product_detail_status: values.product_detail_status,
-                                                    images: imageUrls,  // <-- đây là mảng URL ảnh
-                                                };
-                                                await postData('/product_details/manager/create_product_detail', payload, true);
-                                                form_add_product_detail.resetFields();
-                                                console.log(values);
-                                                setImageUrls([]);
-                                                setFileList([]);
-                                                setAddProductDetail(false);
-                                                showProductDetail(currentProductId, {
-                                                    price: currentProductPrice
-                                                });
-                                            }}
-                                        >
-                                            <Form.Item
-                                                label="Id sản phẩm"
-                                                name="product_id"
-                                                rules={[
-                                                    { required: true, message: "Please enter product name" }
-                                                ]}>
-                                                <Input disabled placeholder="Enter product name" />
-                                            </Form.Item>
-                                            <Form.Item
-                                                label="Color"
-                                                name="color"
-                                                rules={[{ required: true, message: "Please select color" }]}>
-                                                <Select
-                                                    placeholder="Select color"
-                                                    allowClear
-                                                    options={colors.map((c) => {
-                                                        return {
-                                                            label: (
-                                                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                                    <div
-                                                                        style={{
-                                                                            width: "20px",
-                                                                            height: "20px",
-                                                                            backgroundColor: c.color_code,
-                                                                            border: "1px solid #ddd",
-                                                                            borderRadius: "4px",
-                                                                        }}
-                                                                    />
-                                                                    <span>{c.color_code}</span>
-                                                                </div>
-                                                            ),
-                                                            value: c._id
-                                                        }
-                                                    })}
-                                                />
-                                            </Form.Item>
-                                            <Form.Item
-                                                label="Size"
-                                                name="size"
-                                                rules={[{ required: true, message: "Please select size" }]}>
-                                                <Select
-                                                    placeholder="Select size"
-                                                    allowClear
-                                                    options={sizes.map((s) => {
-                                                        return {
-                                                            label: s.size_name,
-                                                            value: s._id
-                                                        }
-                                                    })}
-                                                />
-                                            </Form.Item>
-                                            <Form.Item
-                                                label="Discount"
-                                                name="discount"
-                                                rules={[{ required: true, message: "Please select discount" }]}
-                                            >
-                                                <Select
-                                                    placeholder="Select discount"
-                                                    allowClear
-                                                    options={discounts.map((d) => ({
-                                                        label: `${d.percent_discount}%`,
-                                                        value: d._id
-                                                    }))}
-                                                    onChange={(selectedDiscountId) => {
-                                                        const selectedDiscount = discounts.find((d) => d._id === selectedDiscountId);
-                                                        if (selectedDiscount) {
-                                                            const priceAfter = currentProductPrice * (1 - selectedDiscount.percent_discount / 100);
-                                                            form_add_product_detail.setFieldsValue({
-                                                                price_after_discount: Math.round(priceAfter)
-                                                            });
-                                                        }
-                                                    }}
-                                                />
-                                            </Form.Item>
-
-                                            <Form.Item
-                                                label="Inventory number"
-                                                name="inventory_number"
-                                                rules={[
-                                                    { required: true, message: "Hãy điền inventory number" }
-                                                ]}
-                                            >
-                                                <InputNumber
-                                                    placeholder="Enter inventory number"
-                                                    style={{ width: "100%" }}
-                                                    min={1}
-                                                    precision={0} // ép thành số nguyên, không cho nhập số thập phân
-                                                />
-                                            </Form.Item>
-
-                                            <Form.Item
-                                                label="Sold number"
-                                                name="sold_number"
-                                                rules={[
-                                                    { required: true, message: "Please enter sold number" },
-                                                ]}>
-                                                <InputNumber
-                                                    placeholder="Enter sold number"
-                                                    style={{ width: "100%" }}
-                                                />
-                                            </Form.Item>
-                                            <Form.Item
-                                                label="Price after discount"
-                                                name="price_after_discount"
-                                                rules={[{ required: true, message: "Please enter price after discount" }]}
-                                            >
-                                                <InputNumber
-                                                    placeholder="Auto calculated"
-                                                    disabled
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </Form.Item>
-
-                                            {/* lưu ảnh */}
-
-                                            <Form.Item
-                                                label="Images"
-                                                name="images"
-                                                rules={[{ required: true, message: 'Please upload at least one image' }]}
-                                            >
-                                                {/* <ImgCrop
-                                                    aspect={1} // 1:1 ratio để ảnh vuông
-                                                    quality={1}
-                                                    cropShape="rect"
-                                                    modalTitle="Crop image"
-                                                    modalOk="OK"
-                                                    modalCancel="Cancel"
-                                                > */}
-                                                <Upload
-                                                    multiple
-                                                    listType="picture-card"
-                                                    customRequest={handleCustomRequest}
-                                                    fileList={fileList}
-                                                    onRemove={handleRemove}
-                                                >
-                                                    <div>
-                                                        <UploadOutlined />
-                                                        <div style={{ marginTop: 8 }}>Upload</div>
-                                                    </div>
-                                                </Upload>
-                                                {/* </ImgCrop> */}
-                                            </Form.Item>
-
-
-
-                                            <Form.Item
-                                                label="Product detail status"
-                                                name="product_detail_status"
-                                                rules={[{ required: true, message: "Please select product detail status" }]}>
-                                                <Select
-                                                    placeholder="Select product detail status"
-                                                    allowClear
-                                                    options={product_detail_statuses.map((p) => {
-                                                        return {
-                                                            label: p.productdetail_status_name,
-                                                            value: p._id
-                                                        }
-                                                    })}
-                                                />
-                                            </Form.Item>
-                                            {/* <Form.Item
-                                            </Form.Item> */}
-                                            <Form.Item>
-                                                <Button type="primary" htmlType="submit">
-                                                    Submit
-                                                </Button>
-                                            </Form.Item>
-                                        </Form>
-                                    </Modal>
-
-                                    {detailData.length > 0 ? (
-                                        <Table
-                                            rowKey="_id"
-                                            dataSource={detailData}
-                                            pagination={false}
-                                            columns={[
-                                                {
-                                                    title: 'No',
-                                                    key: 'no',
-                                                    render: (text, _, index) => index + 1
-                                                },
-                                                {
-                                                    title: 'Tên sản phẩm',
-                                                    dataIndex: ['product_id', 'productName'],
-                                                    key: 'productName'
-                                                },
-                                                {
-                                                    title: 'Ảnh',
-                                                    key: 'image',
-                                                    render: (_, record) => {
-                                                        return (
-                                                            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                                                                {record.images?.map((img, index) => (
-                                                                    <img
-                                                                        key={index}
-                                                                        src={img}
-                                                                        alt={`img-${index}`}
-                                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: 6 }}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        )
-                                                    }
-                                                },
-                                                {
-                                                    title: 'Thông tin',
-                                                    key: 'info',
-                                                    render: (_, record) => {
-                                                        return (
-                                                            <div>
-                                                                <div>
-                                                                    Color: {record.color_id.color_code}
-                                                                </div>
-                                                                <div>
-                                                                    Size: {record.size_id.size_name}
-                                                                </div>
-                                                                <div>
-                                                                    Discount: {record.discount_id.percent_discount}
-                                                                </div>
-                                                                <div>
-                                                                    Inventory number: {record.inventory_number}
-                                                                </div>
-                                                                <div>
-                                                                    Sold number: {record.sold_numer}
-                                                                </div>
-                                                                <div>
-                                                                    Price after discount: {record.price_after_discount}
-                                                                </div>
-                                                                <div>
-                                                                    Product detail status: {record.product_detail_status.productdetail_status_name}
-                                                                </div>
-                                                                <div>
-                                                                    Create at: {record.create_at}
-                                                                </div>
-                                                                <div>
-                                                                    Update at: {record.update_at}
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    }
-                                                }
-                                            ]}
-                                        />
-                                    ) : (
-                                        <p>Không có chi tiết cho sản phẩm này.</p>
-                                    )}
-                                </Modal>
                             </Row>
                             <Row>
                                 <Button
@@ -847,6 +534,7 @@ const ManagerProduct = () => {
                         }}>
                         Add New Product
                     </Button>
+                    {/* MODAL ADD PRODUCT */}
                     <Modal
                         title="Add new product"
                         closable={{ 'aria-label': 'Custom Close Button' }}
@@ -1049,6 +737,363 @@ const ManagerProduct = () => {
                 </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
+                {/* MODAL SHOW PRODUCT DETAIL LIST */}
+                <Modal
+                    title="List product detail"
+                    closable={{ 'aria-label': 'Custom Close Button' }}
+                    open={listProductDetail}
+                    onCancel={() => {
+                        handleCancelShowProductDetail()
+                    }}
+                    footer={null}
+                    width={800}
+                >
+                    <Button
+                        style={{ width: '200px', marginBottom: '15px' }}
+                        shape="round"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                            form_add_product_detail.setFieldsValue({
+                                product_id: currentProductId
+                            });
+                            setAddProductDetail(true);
+                        }}>
+                        Add New Product Detail
+                    </Button>
+                    <Modal
+                        title="Add Product Detail"
+                        closable={{ 'aria-label': 'Custom Close Button' }}
+                        open={addProductDetail}
+                        onCancel={() => setAddProductDetail(false)}
+                        footer={null}
+                    >
+                        <Form
+                            form={form_add_product_detail}
+                            name="wrap"
+                            labelCol={{ flex: '110px' }}
+                            labelAlign="left"
+                            labelWrap
+                            wrapperCol={{ flex: 1 }}
+                            colon={false}
+                            onFinish={async (values) => {
+                                // gọi API postData(...)
+                                if (!imageUrls.length) {
+                                    message.error("Vui lòng upload ít nhất một ảnh");
+                                    return;
+                                }
+                                const payload = {
+                                    product_id: values.product_id,
+                                    color_id: values.color,
+                                    size_id: values.size,
+                                    discount_id: values.discount,
+                                    inventory_number: values.inventory_number,
+                                    sold_number: values.sold_number,
+                                    price_after_discount: values.price_after_discount,
+                                    product_detail_status: values.product_detail_status,
+                                    images: imageUrls,  // <-- đây là mảng URL ảnh
+                                };
+                                await postData('/product_details/manager/create_product_detail', payload, true);
+                                form_add_product_detail.resetFields();
+                                console.log(values);
+                                setImageUrls([]);
+                                setFileList([]);
+                                setAddProductDetail(false);
+                                showProductDetail(currentProductId, {
+                                    price: currentProductPrice
+                                });
+                            }}
+                        >
+                            <Form.Item
+                                label="Id sản phẩm"
+                                name="product_id"
+                                rules={[
+                                    { required: true, message: "Please enter product name" }
+                                ]}>
+                                <Input disabled placeholder="Enter product name" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Color"
+                                name="color"
+                                rules={[{ required: true, message: "Please select color" }]}>
+                                <Select
+                                    placeholder="Select color"
+                                    allowClear
+                                    options={colors.map((c) => {
+                                        return {
+                                            label: (
+                                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                    <div
+                                                        style={{
+                                                            width: "20px",
+                                                            height: "20px",
+                                                            backgroundColor: c.color_code,
+                                                            border: "1px solid #ddd",
+                                                            borderRadius: "4px",
+                                                        }}
+                                                    />
+                                                    <span>{c.color_code}</span>
+                                                </div>
+                                            ),
+                                            value: c._id
+                                        }
+                                    })}
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Size"
+                                name="size"
+                                rules={[{ required: true, message: "Please select size" }]}>
+                                <Select
+                                    placeholder="Select size"
+                                    allowClear
+                                    options={sizes.map((s) => {
+                                        return {
+                                            label: s.size_name,
+                                            value: s._id
+                                        }
+                                    })}
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Discount"
+                                name="discount"
+                                rules={[{ required: true, message: "Please select discount" }]}
+                            >
+                                <Select
+                                    placeholder="Select discount"
+                                    allowClear
+                                    options={discounts.map((d) => ({
+                                        label: `${d.percent_discount}%`,
+                                        value: d._id
+                                    }))}
+                                    onChange={(selectedDiscountId) => {
+                                        const selectedDiscount = discounts.find((d) => d._id === selectedDiscountId);
+                                        if (selectedDiscount) {
+                                            const priceAfter = currentProductPrice * (1 - selectedDiscount.percent_discount / 100);
+                                            form_add_product_detail.setFieldsValue({
+                                                price_after_discount: Math.round(priceAfter)
+                                            });
+                                        }
+                                    }}
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Inventory number"
+                                name="inventory_number"
+                                rules={[
+                                    { required: true, message: "Hãy điền inventory number" }
+                                ]}
+                            >
+                                <InputNumber
+                                    placeholder="Enter inventory number"
+                                    style={{ width: "100%" }}
+                                    min={1}
+                                    precision={0} // ép thành số nguyên, không cho nhập số thập phân
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Sold number"
+                                name="sold_number"
+                                rules={[
+                                    { required: true, message: "Please enter sold number" },
+                                ]}>
+                                <InputNumber
+                                    placeholder="Enter sold number"
+                                    style={{ width: "100%" }}
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Price after discount"
+                                name="price_after_discount"
+                                rules={[{ required: true, message: "Please enter price after discount" }]}
+                            >
+                                <InputNumber
+                                    placeholder="Auto calculated"
+                                    disabled
+                                    style={{ width: '100%' }}
+                                />
+                            </Form.Item>
+
+                            {/* lưu ảnh */}
+
+                            <Form.Item
+                                label="Images"
+                                name="images"
+                                rules={[{ required: true, message: 'Please upload at least one image' }]}
+                            >
+                                <Upload
+                                    multiple
+                                    listType="picture-card"
+                                    customRequest={handleCustomRequest}
+                                    fileList={fileList}
+                                    onRemove={handleRemove}
+                                >
+                                    <div>
+                                        <UploadOutlined />
+                                        <div style={{ marginTop: 8 }}>Upload</div>
+                                    </div>
+                                </Upload>
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Product detail status"
+                                name="product_detail_status"
+                                rules={[{ required: true, message: "Please select product detail status" }]}>
+                                <Select
+                                    placeholder="Select product detail status"
+                                    allowClear
+                                    options={product_detail_statuses.map((p) => {
+                                        return {
+                                            label: p.productdetail_status_name,
+                                            value: p._id
+                                        }
+                                    })}
+                                />
+                            </Form.Item>
+
+                            <Form.Item>
+                                <Button type="primary" htmlType="submit">
+                                    Submit
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+
+                    {detailData.length > 0 ? (
+                        <Table
+                            rowKey="_id"
+                            dataSource={detailData}
+                            pagination={false}
+                            columns={[
+                                {
+                                    title: 'No',
+                                    key: 'no',
+                                    render: (text, _, index) => index + 1
+                                },
+                                {
+                                    title: 'Tên sản phẩm',
+                                    dataIndex: ['product_id', 'productName'],
+                                    key: 'productName'
+                                },
+                                {
+                                    title: 'Ảnh',
+                                    key: 'image',
+                                    render: (_, record) => {
+                                        return (
+                                            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                                {record.images?.map((img, index) => (
+                                                    <img
+                                                        key={index}
+                                                        src={img}
+                                                        alt={`img-${index}`}
+                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: 6 }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )
+                                    }
+                                },
+                                {
+                                    title: 'Thông tin',
+                                    key: 'info',
+                                    render: (_, record) => {
+                                        return (
+                                            <div>
+                                                <div style={{ display: "flex" }}>
+                                                    Color: {record.color_id.color_code}
+                                                    <div
+                                                        style={{
+                                                            width: "20px",
+                                                            height: "20px",
+                                                            backgroundColor: record.color_id.color_code,
+                                                            border: "1px solid #ddd",
+                                                            borderRadius: "4px",
+                                                            marginLeft: "5px"
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    Size: {record.size_id.size_name}
+                                                </div>
+                                                <div>
+                                                    Discount: {record.discount_id.percent_discount}
+                                                </div>
+                                                <div>
+                                                    Inventory number: {record.inventory_number}
+                                                </div>
+                                                <div>
+                                                    Sold number: {record.sold_number}
+                                                </div>
+                                                <div>
+                                                    Price after discount: {record.price_after_discount}
+                                                </div>
+                                                <div>
+                                                    Product detail status: {record.product_detail_status.productdetail_status_name}
+                                                </div>
+                                                <div>
+                                                    Create at: {record.create_at}
+                                                </div>
+                                                <div>
+                                                    Update at: {record.update_at}
+                                                </div>
+                                            </div>
+                                        )
+                                    }
+                                },
+                                {
+                                    title: 'Hành động',
+                                    key: 'action',
+                                    render: (_, record) => {
+                                        return (
+                                            <div>
+                                                <Row>
+                                                    <Button
+                                                        style={{ margin: '5px' }}
+                                                        color="yellow"
+                                                        variant="solid"
+                                                        icon={<EditOutlined />}
+                                                        onClick={() => {
+                                                            console.log(record);
+                                                        }}>
+                                                        Edit
+                                                    </Button>
+                                                </Row>
+                                                <Row>
+                                                    <Popconfirm
+                                                        title="Are you sure to delete this product detail?"
+                                                        onConfirm={() => {
+                                                            console.log(record._id)
+                                                        }}
+                                                        okText="Yes"
+                                                        cancelText="No"
+                                                        okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
+                                                        cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                                                    >
+                                                        <Button
+                                                            style={{ margin: '5px' }}
+                                                            color="danger"
+                                                            variant="solid"
+                                                            icon={<DeleteOutlined />}>
+                                                            Delete
+                                                        </Button>
+                                                    </Popconfirm>
+                                                </Row>
+                                            </div>
+                                        )
+                                    }
+                                }
+                            ]}
+                        />
+                    ) : (
+                        <p>Không có chi tiết cho sản phẩm này.</p>
+                    )}
+                </Modal>
                 <Form form={form}>
                     <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
                 </Form>
