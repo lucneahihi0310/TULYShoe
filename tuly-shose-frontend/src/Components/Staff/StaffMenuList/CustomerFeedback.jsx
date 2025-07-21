@@ -6,12 +6,10 @@ import {
   Badge,
   OverlayTrigger,
   Tooltip,
-  Accordion,
   Form,
-  Row,
-  Col,
   Pagination,
 } from "react-bootstrap";
+import ReviewReplyCell from "./CreateReply";
 
 const BASE_URL =
   import.meta.env.VITE_API_URL ||
@@ -22,27 +20,25 @@ const BASE_URL =
 const ReviewTable = () => {
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 5;
 
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/reviews/staff/review`);
+      const data = await response.json();
+      setReviews(data || []);
+    } catch (error) {
+      console.error("Lỗi khi lấy đánh giá:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/reviews/staff/review`);
-        const data = await response.json();
-        setReviews(data || []);
-      } catch (error) {
-        console.error("Lỗi khi lấy đánh giá:", error);
-      }
-    };
     fetchReviews();
   }, []);
 
-  // Lọc theo search và filter
   useEffect(() => {
     let filtered = [...reviews];
 
@@ -58,10 +54,9 @@ const ReviewTable = () => {
     }
 
     setFilteredReviews(filtered);
-    setCurrentPage(1); // Reset page về 1 khi filter
+    setCurrentPage(1);
   }, [searchTerm, statusFilter, reviews]);
 
-  // Phân trang
   const indexOfLast = currentPage * reviewsPerPage;
   const indexOfFirst = indexOfLast - reviewsPerPage;
   const currentReviews = filteredReviews.slice(indexOfFirst, indexOfLast);
@@ -72,7 +67,6 @@ const ReviewTable = () => {
       <h3 className="mb-3">Danh sách đánh giá</h3>
 
       <div className="d-flex justify-content-between align-items-center mb-3">
-        {/* Tìm kiếm bên trái */}
         <div className="input-group" style={{ maxWidth: "300px" }}>
           <span className="input-group-text">
             <i className="bi bi-search" />
@@ -86,7 +80,6 @@ const ReviewTable = () => {
           />
         </div>
 
-        {/* Filter bên phải */}
         <div style={{ maxWidth: "180px" }}>
           <select
             className="form-select"
@@ -97,10 +90,8 @@ const ReviewTable = () => {
             <option value="approved">Đã duyệt</option>
             <option value="pending">Chờ duyệt</option>
           </select>
-
         </div>
       </div>
-
 
       <Table bordered responsive hover>
         <thead className="table-light">
@@ -165,33 +156,30 @@ const ReviewTable = () => {
                     <Badge bg="secondary">Chờ duyệt</Badge>
                   )}
                 </td>
-                <td>
-                  <td style={{ minWidth: "180px" }}>
-  {review.replies ? (
-    Array.isArray(review.replies) ? (
-      review.replies.map((reply, i) => (
-        <div key={i} className="mb-2 border rounded p-2 bg-light">
-          <strong>{reply.replier || "Ẩn danh"}:</strong>
-          <div>{reply.reply_content}</div>
-          <small className="text-muted">
-            {new Date(reply.reply_date).toLocaleString()}
-          </small>
-        </div>
-      ))
-    ) : (
-      <div className="border rounded p-2 bg-light">
-        <strong>{review.replies.replier || "Ẩn danh"}:</strong>
-        <div>{review.replies.reply_content}</div>
-        <small className="text-muted">
-          {new Date(review.replies.reply_date).toLocaleString()}
-        </small>
-      </div>
-    )
-  ) : (
-    <span className="text-muted">Chưa có</span>
-  )}
-</td>
-
+                <td style={{ minWidth: "200px" }}>
+                  {review.replies ? (
+                    Array.isArray(review.replies) ? (
+                      review.replies.map((reply, i) => (
+                        <div key={i} className="mb-2 border rounded p-2 bg-light">
+                          <strong>{reply.replier || "Ẩn danh"}:</strong>
+                          <div>{reply.reply_content}</div>
+                          <small className="text-muted">
+                            {new Date(reply.reply_date).toLocaleString()}
+                          </small>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="border rounded p-2 bg-light">
+                        <strong>{review.replies.replier || "Ẩn danh"}:</strong>
+                        <div>{review.replies.reply_content}</div>
+                        <small className="text-muted">
+                          {new Date(review.replies.reply_date).toLocaleString()}
+                        </small>
+                      </div>
+                    )
+                  ) : (
+                    <ReviewReplyCell review={review} onReplySuccess={fetchReviews} />
+                  )}
                 </td>
               </tr>
             ))
@@ -199,7 +187,6 @@ const ReviewTable = () => {
         </tbody>
       </Table>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <Pagination className="justify-content-center">
           <Pagination.First onClick={() => setCurrentPage(1)} disabled={currentPage === 1} />

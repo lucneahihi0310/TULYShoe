@@ -278,69 +278,69 @@ const NotificationList = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-  <div className="row mt-4">
-    <div className="col-12 d-flex justify-content-end">
-      <nav aria-label="Pagination">
-        <ul className="pagination pagination-lg mb-0" style={{ display: 'flex', gap: '8px' }}>
-          <li className="page-item" style={{ pointerEvents: currentPage === 1 ? "none" : "auto", opacity: currentPage === 1 ? 0.5 : 1 }}>
-            <button
-              className="page-link"
-              style={{
-                minWidth: "80px",
-                borderRadius: "50px",
-                backgroundColor: "#f1f1f1",
-                color: "#007bff",
-                border: "none",
-              }}
-              onClick={() => handlePageChange(currentPage - 1)}
-            >
-              Trước
-            </button>
-          </li>
+            <div className="row mt-4">
+              <div className="col-12 d-flex justify-content-end">
+                <nav aria-label="Pagination">
+                  <ul className="pagination pagination-lg mb-0" style={{ display: 'flex', gap: '8px' }}>
+                    <li className="page-item" style={{ pointerEvents: currentPage === 1 ? "none" : "auto", opacity: currentPage === 1 ? 0.5 : 1 }}>
+                      <button
+                        className="page-link"
+                        style={{
+                          minWidth: "80px",
+                          borderRadius: "50px",
+                          backgroundColor: "#f1f1f1",
+                          color: "#007bff",
+                          border: "none",
+                        }}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                      >
+                        Trước
+                      </button>
+                    </li>
 
-          {Array.from({ length: totalPages }, (_, index) => {
-            const page = index + 1;
-            const isActive = currentPage === page;
-            return (
-              <li key={page} className="page-item">
-                <button
-                  className="page-link"
-                  style={{
-                    minWidth: "50px",
-                    borderRadius: "50px",
-                    backgroundColor: isActive ? "#007bff" : "#e0e0e0",
-                    color: isActive ? "#fff" : "#333",
-                    fontWeight: isActive ? "500" : "normal",
-                    border: "none",
-                  }}
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </button>
-              </li>
-            );
-          })}
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const page = index + 1;
+                      const isActive = currentPage === page;
+                      return (
+                        <li key={page} className="page-item">
+                          <button
+                            className="page-link"
+                            style={{
+                              minWidth: "50px",
+                              borderRadius: "50px",
+                              backgroundColor: isActive ? "#007bff" : "#e0e0e0",
+                              color: isActive ? "#fff" : "#333",
+                              fontWeight: isActive ? "500" : "normal",
+                              border: "none",
+                            }}
+                            onClick={() => handlePageChange(page)}
+                          >
+                            {page}
+                          </button>
+                        </li>
+                      );
+                    })}
 
-          <li className="page-item" style={{ pointerEvents: currentPage === totalPages ? "none" : "auto", opacity: currentPage === totalPages ? 0.5 : 1 }}>
-            <button
-              className="page-link"
-              style={{
-                minWidth: "80px",
-                borderRadius: "50px",
-                backgroundColor: "#f1f1f1",
-                color: "#007bff",
-                border: "none",
-              }}
-              onClick={() => handlePageChange(currentPage + 1)}
-            >
-              Sau
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-)}
+                    <li className="page-item" style={{ pointerEvents: currentPage === totalPages ? "none" : "auto", opacity: currentPage === totalPages ? 0.5 : 1 }}>
+                      <button
+                        className="page-link"
+                        style={{
+                          minWidth: "80px",
+                          borderRadius: "50px",
+                          backgroundColor: "#f1f1f1",
+                          color: "#007bff",
+                          border: "none",
+                        }}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                      >
+                        Sau
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          )}
 
 
 
