@@ -8,6 +8,7 @@ import {
   Tooltip,
   Form,
   Pagination,
+  Button,
 } from "react-bootstrap";
 import ReviewReplyCell from "./CreateReply";
 
@@ -16,7 +17,6 @@ const BASE_URL =
   (window.location.hostname === "localhost"
     ? "http://localhost:9999"
     : "https://tulyshoe.onrender.com");
-
 
 const ReviewTable = () => {
   const [reviews, setReviews] = useState([]);
@@ -35,6 +35,8 @@ const ReviewTable = () => {
       console.error("Lỗi khi lấy đánh giá:", error);
     }
   };
+
+  
 
   useEffect(() => {
     fetchReviews();
@@ -106,12 +108,13 @@ const ReviewTable = () => {
             <th>Ngày đánh giá</th>
             <th>Trạng thái</th>
             <th>Phản hồi</th>
+            
           </tr>
         </thead>
         <tbody>
           {currentReviews.length === 0 ? (
             <tr>
-              <td colSpan={9} className="text-center">
+              <td colSpan={10} className="text-center">
                 Không có đánh giá nào phù hợp.
               </td>
             </tr>
@@ -148,7 +151,7 @@ const ReviewTable = () => {
                     {review.rating} ★
                   </Badge>
                 </td>
-                <td>{review.ordetail_id?.order_id || "Không có"}</td>
+                <td>{review.order_code || "Không có"}</td>
                 <td>{new Date(review.review_date).toLocaleDateString()}</td>
                 <td>
                   {review.is_approved ? (
@@ -157,10 +160,10 @@ const ReviewTable = () => {
                     <Badge bg="secondary">Chờ duyệt</Badge>
                   )}
                 </td>
-                <td style={{ minWidth: "250px" }}>
+                <td style={{ minWidth: "300px" }}>
                   <ReviewReplyCell review={review} onReplySuccess={fetchReviews} />
                 </td>
-
+                
               </tr>
             ))
           )}

@@ -314,4 +314,33 @@ exports.updateReply = async (req, res) => {
   }
 };
 
+exports.deleteReply = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
+    }
+
+    if (!review.replies || !review.replies.reply_content) {
+      return res.status(400).json({ message: "Không có phản hồi để xoá" });
+    }
+
+    // Dùng $unset để xoá hẳn trường replies ra khỏi document
+    await Review.updateOne(
+      { _id: reviewId },
+      {
+        $unset: { replies: "" },
+        $set: { update_at: new Date() }
+      }
+    );
+
+    res.status(200).json({ message: "Đã xoá phản hồi thành công" });
+  } catch (error) {
+    console.error("Lỗi khi xoá phản hồi:", error);
+    res.status(500).json({ message: "Lỗi máy chủ khi xoá phản hồi" });
+  }
+};
+
 
