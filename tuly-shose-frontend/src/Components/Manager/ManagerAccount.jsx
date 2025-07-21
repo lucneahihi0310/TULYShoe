@@ -53,6 +53,20 @@ const ManagerAccount = () => {
         }
     };
 
+    //unban account
+    const handleUnbanAccount = async (banId) => {
+        try {
+            console.log("Unban account:", banId);
+            await patchData('/account/profile/unban', banId, {
+                is_active: true
+            }, true);
+            fetchCategories();
+        }
+        catch (error) {
+            console.log(error);
+        }
+    };
+
     //fetch data và filter category
     useEffect(() => {
         fetchCategories();
@@ -370,22 +384,30 @@ const ManagerAccount = () => {
                                 </Button>
                             </Row>
                             <Row>
-                                {/* {
-                                    if(){
-
-                                    }
-                                } */}
-                                <Button
-                                    style={{ margin: '5px' }}
-                                    danger={record.is_active} // đỏ khi là Ban
-                                    type="primary"
-                                    variant="solid"
-                                    icon={record.is_static ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
-                                    onClick={() => {
-                                        handleBanAccount(record._id);
-                                    }}>
-                                    {record.is_active ? 'Ban' : 'Unban'}
-                                </Button>
+                                {
+                                    record.is_active ? (
+                                        <Button
+                                            style={{ margin: '5px' }}
+                                            danger
+                                            type="primary"
+                                            variant="solid"
+                                            icon={<MinusCircleOutlined />}
+                                            onClick={() => handleBanAccount(record._id)}
+                                        >
+                                            Ban
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            style={{ margin: '5px' }}
+                                            color="primary"
+                                            variant="solid"
+                                            icon={<CheckCircleOutlined />}
+                                            onClick={() => handleUnbanAccount(record._id)}
+                                        >
+                                            Unban
+                                        </Button>
+                                    )
+                                }
                             </Row>
                             <Row>
                                 <Popconfirm
