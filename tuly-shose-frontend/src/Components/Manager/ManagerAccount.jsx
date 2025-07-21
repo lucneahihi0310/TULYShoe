@@ -6,31 +6,35 @@ import { fetchData, postData, updateData, deleteData, patchData } from "../API/A
 
 const ManagerAccount = () => {
     const [categories, setCategories] = useState([]);
-    const [edittingRow, setEdittingRow] = useState(null);
+    const [selectedRecord, setSelectedRecord] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [filterCategoryName, setFilterCategoryName] = useState("");
     const [form] = Form.useForm();
 
-    //edit account
-    const handleEditCategory = async () => {
-        try {
-            const record = await form.validateFields();
-            console.log("Edit:", record);
-            // await updateData('/colors/manager/edit_color', edittingRow, {
-            //     color_code: record.color_code,
-            //     is_active: record.status
-            // }, true);
-            setEdittingRow(null);
-            fetchCategories();
-        }
-        catch (error) {
-            console.log(error);
-        }
+    const openEditModal = (record) => {
+        setSelectedRecord(record._id);
+
+        const dt = new Date(record.dob);
+        const pad = n => String(n).padStart(2, '0');
+        const isoLocal =
+            `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}` +
+            `T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+        console.log(isoLocal);
+        form.setFieldsValue({
+            first_name: record.first_name,
+            last_name: record.last_name,
+            dob: isoLocal,
+            gender: record.gender,
+            email: record.email,
+            phone: record.phone
+        });
+        setIsModalOpen(true);
     };
 
-    //cancel edit account
-    const handleCancelEdit = () => {
-        setEdittingRow(null);
-    }
+    // Cancel modal
+    const cancelEdit = () => {
+        setIsModalOpen(false);
+    };
 
     //delete account
     const handleDeleteCategory = async (id) => {
@@ -97,29 +101,8 @@ const ManagerAccount = () => {
             key: 'name',
             width: 100,
             render: (_, record) => {
-                if (record._id === edittingRow) {
-                    return (
-                        <Space>
-                            <Form.Item
-                                name="first_name"
-                                rules={[{ required: true, message: "Vui lòng nhập Họ" }]}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Input placeholder="Họ" />
-                            </Form.Item>
-                            <Form.Item
-                                name="last_name"
-                                rules={[{ required: true, message: "Vui lòng nhập Tên" }]}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Input placeholder="Tên" />
-                            </Form.Item>
-                        </Space>
-                    );
-                } else {
-                    const fullName = `${record.first_name?.trim() || ''} ${record.last_name?.trim() || ''}`.trim();
-                    return <span>{fullName}</span>;
-                }
+                const fullName = `${record.first_name?.trim() || ''} ${record.last_name?.trim() || ''}`.trim();
+                return <span>{fullName}</span>;
             }
         },
         {
@@ -128,34 +111,20 @@ const ManagerAccount = () => {
             key: 'dob',
             width: 100,
             render: (value, record) => {
-                if (record._id === edittingRow) {
-                    return (
-                        <Space>
-                            <Form.Item
-                                name="email"
-                                rules={[{ required: true, message: "Vui lòng nhập ngày sinh" }]}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Input placeholder="Email ..." />
-                            </Form.Item>
-                        </Space>
-                    );
-                } else {
-                    const date = new Date(value);
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng tính từ 0
-                    const year = date.getFullYear();
-                    const hours = String(date.getHours()).padStart(2, '0');
-                    const minutes = String(date.getMinutes()).padStart(2, '0');
-                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                const date = new Date(value);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng tính từ 0
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
 
-                    const formatted = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-                    return (
-                        <div>
-                            {formatted}
-                        </div>
-                    )
-                }
+                const formatted = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                return (
+                    <div>
+                        {formatted}
+                    </div>
+                )
             }
         },
         {
@@ -164,25 +133,11 @@ const ManagerAccount = () => {
             key: 'gender',
             width: 10,
             render: (value, record) => {
-                if (record._id === edittingRow) {
-                    return (
-                        <Space>
-                            <Form.Item
-                                name="email"
-                                rules={[{ required: true, message: "Vui lòng nhập ngày sinh" }]}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Input placeholder="Email ..." />
-                            </Form.Item>
-                        </Space>
-                    );
-                } else {
-                    return (
-                        <div>
-                            {value}
-                        </div>
-                    )
-                }
+                return (
+                    <div>
+                        {value}
+                    </div>
+                )
             }
         },
         {
@@ -191,25 +146,11 @@ const ManagerAccount = () => {
             key: 'email',
             width: 100,
             render: (value, record) => {
-                if (record._id === edittingRow) {
-                    return (
-                        <Space>
-                            <Form.Item
-                                name="email"
-                                rules={[{ required: true, message: "Vui lòng nhập email" }]}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Input placeholder="Email ..." />
-                            </Form.Item>
-                        </Space>
-                    );
-                } else {
-                    return (
-                        <div>
-                            {value}
-                        </div>
-                    )
-                }
+                return (
+                    <div>
+                        {value}
+                    </div>
+                )
             }
         },
         {
@@ -218,25 +159,11 @@ const ManagerAccount = () => {
             key: 'phone',
             width: 100,
             render: (value, record) => {
-                if (record._id === edittingRow) {
-                    return (
-                        <Space>
-                            <Form.Item
-                                name="email"
-                                rules={[{ required: true, message: "Vui lòng nhập sđt" }]}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Input placeholder="Phone ..." />
-                            </Form.Item>
-                        </Space>
-                    );
-                } else {
-                    return (
-                        <div>
-                            {value}
-                        </div>
-                    )
-                }
+                return (
+                    <div>
+                        {value}
+                    </div>
+                )
             }
         },
         {
@@ -245,30 +172,11 @@ const ManagerAccount = () => {
             key: 'role',
             width: 50,
             render: (value, record) => {
-                if (record._id == edittingRow) {
-                    return (
-                        <Form.Item
-                            name="role"
-                            rules={[{ required: true, message: "Please select role" }]}>
-                            <Select
-                                placeholder="Select role"
-                                allowClear
-                                options={[
-                                    { label: 'User', value: 'user' },
-                                    { label: 'Staff', value: 'staff' },
-                                    { label: 'Managger', value: 'manager' }
-                                ]}
-                            />
-                        </Form.Item>
-                    )
-                }
-                else {
-                    return (
-                        <div>
-                            {value}
-                        </div>
-                    )
-                }
+                return (
+                    <div>
+                        {value}
+                    </div>
+                )
             }
         },
         {
@@ -277,31 +185,13 @@ const ManagerAccount = () => {
             key: 'is_active',
             width: 50,
             render: (value, record) => {
-                if (record._id == edittingRow) {
-                    return (
-                        <Form.Item
-                            name="is_active"
-                            rules={[{ required: true, message: "Please select status" }]}>
-                            <Select
-                                placeholder="Select status"
-                                allowClear
-                                options={[
-                                    { label: 'Active', value: true },
-                                    { label: 'Inactive', value: false }
-                                ]}
-                            />
-                        </Form.Item>
-                    )
-                }
-                else {
-                    return (
-                        <div>
-                            <Tag color={record.is_active ? "green" : "red"}>
-                                {record.is_active ? 'ACTIVE' : 'INACTIVE'}
-                            </Tag>
-                        </div>
-                    )
-                }
+                return (
+                    <div>
+                        <Tag color={record.is_active ? "green" : "red"}>
+                            {record.is_active ? 'ACTIVE' : 'INACTIVE'}
+                        </Tag>
+                    </div>
+                )
             }
         },
         {
@@ -343,28 +233,7 @@ const ManagerAccount = () => {
             key: 'action',
             width: 200,
             render: (_, record) => {
-                const isEditting = edittingRow == record._id;
-                return isEditting ? (
-                    <Space>
-                        <Button
-                            color="primary"
-                            variant="solid"
-                            onClick={() => {
-                                handleEditCategory()
-                            }}>
-                            Save
-                        </Button>
-
-                        <Button
-                            color="danger"
-                            variant="solid"
-                            onClick={() => {
-                                handleCancelEdit();
-                            }}>
-                            Cancel
-                        </Button>
-                    </Space>
-                ) : (
+                return (
                     <Space>
                         <div>
                             <Row>
@@ -374,11 +243,12 @@ const ManagerAccount = () => {
                                     variant="solid"
                                     icon={<EditOutlined />}
                                     onClick={() => {
-                                        setEdittingRow(record._id);
+                                        // setEdittingRow(record._id);
                                         // form.setFieldsValue({
                                         //     color_code: record.color_code,
                                         //     status: record.status
                                         // })
+                                        openEditModal(record);
                                     }}>
                                     Edit
                                 </Button>
@@ -469,10 +339,79 @@ const ManagerAccount = () => {
                 </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
-                <Form form={form}>
-                    <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
-                </Form>
+                <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
             </div>
+            <Modal
+                width={800}
+                title="Chỉnh sửa tài khoản"
+                open={isModalOpen}
+                onCancel={cancelEdit}
+                footer={null}
+            >
+                <Form
+                    form={form}
+                    name="wrap"
+                    labelCol={{ flex: '110px' }}
+                    labelAlign="left"
+                    labelWrap
+                    wrapperCol={{ flex: 1 }}
+                    colon={false}
+                    onFinish={async (values) => {
+                        try {
+                            console.log(values);
+                            await updateData('/account/profile/update', selectedRecord, {
+                                first_name: values.first_name,
+                                last_name: values.last_name,
+                                dob: values.dob,
+                                gender: values.gender,
+                                phone: values.phone,
+                                email: values.email
+                            }, true);
+                            cancelEdit(false);
+                            fetchCategories();
+                        } catch (error) {
+                            console.log(error)
+                        }
+                    }}
+                >
+                    <Form.Item name="first_name" label="Họ" rules={[{ required: false }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="last_name" label="Tên" rules={[{ required: false }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="dob" label="Ngày sinh" rules={[{ required: false }]}>
+                        <Input type="datetime-local" style={{ width: '100%' }} />
+                    </Form.Item>
+                    <Form.Item name="gender" label="Giới tính" rules={[{ required: false }]}>
+                        {/* <Select options={[
+                            { label: "Male", value: "male" },
+                            { label: "Female", value: "female" },
+                        ]} /> */}
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="email" label="Email" rules={[{ type: 'email', required: false }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="phone" label="SĐT" rules={[
+                        { required: false },
+                        {
+                            pattern: /^\d{10}$/,
+                            message: "SĐT phải là 10 chữ số",
+                        }
+                    ]}>
+                        <Input maxLength={10} />
+                    </Form.Item>
+                    <Form.Item
+                        label=" ">
+                        <Button
+                            type="primary"
+                            htmlType="submit">
+                            Submit
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

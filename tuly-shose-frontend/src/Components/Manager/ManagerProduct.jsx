@@ -657,18 +657,18 @@ const ManagerProduct = () => {
                                                     modalOk="OK"
                                                     modalCancel="Cancel"
                                                 > */}
-                                                    <Upload
-                                                        multiple
-                                                        listType="picture-card"
-                                                        customRequest={handleCustomRequest}
-                                                        fileList={fileList}
-                                                        onRemove={handleRemove}
-                                                    >
-                                                        <div>
-                                                            <UploadOutlined />
-                                                            <div style={{ marginTop: 8 }}>Upload</div>
-                                                        </div>
-                                                    </Upload>
+                                                <Upload
+                                                    multiple
+                                                    listType="picture-card"
+                                                    customRequest={handleCustomRequest}
+                                                    fileList={fileList}
+                                                    onRemove={handleRemove}
+                                                >
+                                                    <div>
+                                                        <UploadOutlined />
+                                                        <div style={{ marginTop: 8 }}>Upload</div>
+                                                    </div>
+                                                </Upload>
                                                 {/* </ImgCrop> */}
                                             </Form.Item>
 
@@ -822,7 +822,7 @@ const ManagerProduct = () => {
                                 </Popconfirm>
                             </Row>
                         </div>
-                    </Space >
+                    </Space>
                 )
             }
         }

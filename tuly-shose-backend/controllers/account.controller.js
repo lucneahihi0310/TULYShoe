@@ -491,3 +491,29 @@ exports.changePassword = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.updateAccount = async (req, res) => {
+    try {
+        const { first_name, last_name, dob, gender, phone, email } = req.body;
+
+        const updatedAccount = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                first_name,
+                last_name,
+                dob,
+                gender,
+                phone,
+                email,
+                update_at: new Date()
+            },
+            { new: true, runValidators: true }
+        ).select('-password -resetToken -resetTokenExpiration');
+
+        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
+
+        res.status(200).json({ message: 'Profile updated successfully', account: updatedAccount });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
