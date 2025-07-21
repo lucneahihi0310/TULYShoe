@@ -166,28 +166,27 @@ const ReviewTable = () => {
                   )}
                 </td>
                 <td>
-                  <td style={{ minWidth: "150px" }}>
-  {review.replies?.length > 0 ? (
-    <Accordion flush>
-      {review.replies.map((reply, i) => (
-        <Accordion.Item eventKey={i.toString()} key={i}>
-          <Accordion.Header>
-            <span style={{ whiteSpace: "nowrap", fontWeight: "500" }}>
-              Phản hồi ({i + 1})
-            </span>
-          </Accordion.Header>
-          <Accordion.Body>
-            <p style={{ marginBottom: "4px" }}>
-              <strong>{reply.replier || "Ẩn danh"}</strong>
-            </p>
-            <p style={{ marginBottom: "4px" }}>{reply.reply_content}</p>
-            <small className="text-muted">
-              {new Date(reply.reply_date).toLocaleString()}
-            </small>
-          </Accordion.Body>
-        </Accordion.Item>
-      ))}
-    </Accordion>
+                  <td style={{ minWidth: "180px" }}>
+  {review.replies ? (
+    Array.isArray(review.replies) ? (
+      review.replies.map((reply, i) => (
+        <div key={i} className="mb-2 border rounded p-2 bg-light">
+          <strong>{reply.replier || "Ẩn danh"}:</strong>
+          <div>{reply.reply_content}</div>
+          <small className="text-muted">
+            {new Date(reply.reply_date).toLocaleString()}
+          </small>
+        </div>
+      ))
+    ) : (
+      <div className="border rounded p-2 bg-light">
+        <strong>{review.replies.replier || "Ẩn danh"}:</strong>
+        <div>{review.replies.reply_content}</div>
+        <small className="text-muted">
+          {new Date(review.replies.reply_date).toLocaleString()}
+        </small>
+      </div>
+    )
   ) : (
     <span className="text-muted">Chưa có</span>
   )}

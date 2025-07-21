@@ -183,48 +183,95 @@ exports.getRandomReviews = async (req, res) => {
 exports.getReview = async (req, res) => {
   try {
     const reviews = await Review.find()
-  .populate({
-    path: "user_id",
-    select: "first_name last_name"
-  })
-  .populate({
-    path: "ordetail_id",
-    select: "order_id",
-    populate: {
-      path: "order_id", // từ trong OrderDetail
-      select: "order_code" // trong bảng Order có field này đúng chứ?
-    }
-  })
-  .populate({
-    path: "replies.replier_id", 
-    select: "first_name last_name"
-  })
-  .select("_id review_content images rating review_date is_approved create_at update_at replies")
-  .lean(); // chuyển sang object JS để dễ xử lý
+      .populate({
+        path: "user_id",
+        select: "first_name last_name"
+      })
+      .populate({
+        path: "ordetail_id",
+        select: "order_id",
+        populate: {
+          path: "order_id",
+          select: "order_code"
+        }
+      })
+      .populate({
+        path: "replies.replier_id", // populate người phản hồi
+        select: "first_name last_name"
+      })
+      .select("_id review_content images rating review_date is_approved create_at update_at replies")
+      .lean();
 
-  const formatted = reviews.map((review) => ({
-  _id: review._id,
-  userName: `${review.user_id?.first_name || ""} ${review.user_id?.last_name || ""}`,
-  review_content: review.review_content,
-  images: review.images,
-  rating: review.rating,
-  review_date: review.review_date,
-  is_approved: review.is_approved,
-  create_at: review.create_at,
-  update_at: review.update_at,
-  replies: review.replies?.map(reply => ({
-    reply_content: reply.reply_content,
-    reply_date: reply.reply_date,
-    replier: reply.replier_id
-      ? `${reply.replier_id.first_name} ${reply.replier_id.last_name}`
-      : "Ẩn danh"
-  })),
-  order_code: review.ordetail_id?.order_id?.order_code || null,
-}));
+    const formatted = reviews.map((review) => {
+      const reply = review.replies;
 
+      return {
+        _id: review._id,
+        userName: `${review.user_id?.first_name || ""} ${review.user_id?.last_name || ""}`,
+        review_content: review.review_content,
+        images: review.images,
+        rating: review.rating,
+        review_date: review.review_date,
+        is_approved: review.is_approved,
+        create_at: review.create_at,
+        update_at: review.update_at,
+        replies: reply?.reply_content
+          ? {
+              reply_content: reply.reply_content,
+              reply_date: reply.reply_date,
+              replier:
+                reply.replier_id?.first_name && reply.replier_id?.last_name
+                  ? `${reply.replier_id.first_name} ${reply.replier_id.last_name}`
+                  : "Ẩn danh"
+            }
+          : null,
+        order_code: review.ordetail_id?.order_id?.order_code || null
+      };
+    });
 
     res.status(200).json(formatted);
   } catch (error) {
-console.error("Lỗi lấy đánh giá:", error);
-    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy đánh giá." });  }
+    console.error("Lỗi lấy đánh giá:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy đánh giá." });
+  }
 };
+
+
+exports.createReply = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const { replier_id, reply_content } = req.body;
+
+    if (!replier_id || !reply_content) {
+      return res.status(400).json({ message: "Thiếu thông tin phản hồi" });
+    }
+
+    const review = await Review.findById(reviewId);
+
+    if (!review) {
+      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
+    }
+
+    // Kiểm tra nếu đã có phản hồi rồi (replies là object và có nội dung)
+    if (review.replies && typeof review.replies === "object" && review.replies.reply_content) {
+      return res.status(400).json({ message: "Đánh giá này đã có phản hồi." });
+    }
+
+    // Gán phản hồi mới
+    review.replies = {
+      replier_id,
+      reply_content,
+      reply_date: new Date(),
+      create_at: new Date(),
+      update_at: new Date(),
+    };
+
+    await review.save();
+
+    res.status(200).json({ message: "Phản hồi đã được thêm thành công", review });
+  } catch (error) {
+    console.error("Lỗi khi tạo phản hồi:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi tạo phản hồi." });
+  }
+};
+
