@@ -179,3 +179,42 @@ exports.getRandomReviews = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi lấy đánh giá ngẫu nhiên', error: error.message });
   }
 };
+
+exports.getReview = async (req, res) => {
+  try {
+    const reviews = await Review.find()
+  .populate({
+    path: "user_id",
+    select: "first_name last_name"
+  })
+  .populate({
+    path: "ordetail_id",
+    select: "order_id",
+    populate: {
+      path: "order_id", // từ trong OrderDetail
+      select: "order_code" // trong bảng Order có field này đúng chứ?
+    }
+  })
+  .select("_id review_content images rating review_date is_approved create_at update_at replies")
+  .lean(); // chuyển sang object JS để dễ xử lý
+
+  const formatted = reviews.map((review) => ({
+  _id: review._id,
+  userName: `${review.user_id?.first_name || ""} ${review.user_id?.last_name || ""}`,
+  review_content: review.review_content,
+  images: review.images,
+  rating: review.rating,
+  review_date: review.review_date,
+  is_approved: review.is_approved,
+  create_at: review.create_at,
+  update_at: review.update_at,
+  replies: review.replies,
+  order_code: review.ordetail_id?.order_id?.order_code || null,
+}));
+
+
+    res.status(200).json(formatted);
+  } catch (error) {
+console.error("Lỗi lấy đánh giá:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy đánh giá." });  }
+};
