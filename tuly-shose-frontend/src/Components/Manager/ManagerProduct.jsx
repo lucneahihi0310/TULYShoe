@@ -103,6 +103,7 @@ const ManagerProduct = () => {
                 form_id: record.form_id,
                 gender_id: record.gender_id
             }, true);
+            message.success("Cập nhật thành công!");
             setEdittingRow(null);
             fetchCategories();
             console.log("edit")
@@ -590,26 +591,14 @@ const ManagerProduct = () => {
                                         form_id: values.form_id,
                                         gender_id: values.gender_id
                                     }, true);
+                                    message.success("Thêm thành công!");
                                     form2.resetFields();
                                     setAddCategory(false);
                                     fetchCategories();
-                                    // message.success({
-                                    //     content: "Add product successfully!",
-                                    //     duration: 2
-                                    // })
-                                    // message.success("Add product successfully!");
-                                    // messageApi.open({
-                                    //     type: 'success',
-                                    //     content: 'This is a success message',
-                                    // });
                                 } catch (error) {
                                     console.log(error)
                                 }
                             }}
-
-                        // onFinish={(values) => {
-                        //     console.log(values)
-                        // }}
                         >
                             <Form.Item
                                 label="Product name"
@@ -818,6 +807,7 @@ const ManagerProduct = () => {
                                     images: imageUrls,  // <-- đây là mảng URL ảnh
                                 };
                                 await postData('/product_details/manager/create_product_detail', payload, true);
+                                message.success("Thêm thành công!");
                                 form_add_product_detail.resetFields();
                                 console.log(values);
                                 setImageUrls([]);
@@ -1093,8 +1083,15 @@ const ManagerProduct = () => {
                                                 <Row>
                                                     <Popconfirm
                                                         title="Are you sure to delete this product detail?"
-                                                        onConfirm={() => {
+                                                        onConfirm={async () => {
                                                             console.log(record._id)
+                                                            await deleteData(
+                                                                '/product_details/manager/delete_product_detail',
+                                                                record._id,
+                                                                true
+                                                            );
+                                                            message.success("Xóa thành công!");
+                                                            showProductDetail(currentProductId, { price: currentProductPrice });
                                                         }}
                                                         okText="Yes"
                                                         cancelText="No"
