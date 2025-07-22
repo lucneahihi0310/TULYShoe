@@ -27,10 +27,12 @@ const ManagerProduct = () => {
     const [form] = Form.useForm();
     const [form2] = Form.useForm();
     const [form_add_product_detail] = Form.useForm();
-    // const [messageApi, contextHolder] = message.useMessage();
+    const [form_edit_product_detail] = Form.useForm();
     const [listProductDetail, setListProductDetail] = useState(false);
     const [addProductDetail, setAddProductDetail] = useState(false);
+    const [editProductDetail, setEditProductDetail] = useState(false);
     const [currentProductId, setCurrentProductId] = useState(null);
+    const [editProductDetailId, setEditProductDetailId] = useState(null);
     const [currentProductPrice, setCurrentProductPrice] = useState(0);
 
     // State cho upload ảnh
@@ -75,18 +77,18 @@ const ManagerProduct = () => {
         setFileList(prev => prev.filter(f => f.url !== file.url));
     };
 
-    //show add category
+    //SHOW ADD PRODUCT
     const showAddCategoryModal = () => {
         setAddCategory(true);
     };
 
-    //cancel add category
+    //CANCEL ADD PRODUCT
     const handleCancelAddCategory = () => {
         setAddCategory(false);
         form2.resetFields();
     };
 
-    //edit category
+    //EDIT PRODUCT
     const handleEditCategory = async () => {
         try {
             const record = await form.validateFields();
@@ -110,12 +112,12 @@ const ManagerProduct = () => {
         }
     };
 
-    //cancel edit category
+    //CANCEL EDIT PRODUCT
     const handleCancelEdit = () => {
         setEdittingRow(null);
     }
 
-    //delete category
+    //DELETE PRODUCT
     const handleDeleteCategory = async (id) => {
         console.log("Delete : ", id);
         await deleteData('/products/manager/delete_product', id, true);
@@ -123,6 +125,7 @@ const ManagerProduct = () => {
         console.log("delete")
     };
 
+    //ADD PRODUCT DETAIL
     const showProductDetail = async (productId, record) => {
         const res = await fetchData(`/product_details/manager/list_product_detail_by_id/${productId}`);
         console.log(res);
@@ -132,9 +135,31 @@ const ManagerProduct = () => {
         setListProductDetail(true);
     };
 
-    //cancel add category
     const handleCancelShowProductDetail = () => {
         setListProductDetail(false);
+    };
+
+    //EDIT PRODUCT DETAIL
+    const showEditProductDetailModal = async (record) => {
+        setEditProductDetailId(record);
+        console.log(record);
+        form_edit_product_detail.setFieldsValue({
+            product_id: record.product_id._id,
+            color: record.color_id._id,
+            size: record.size_id._id,
+            discount: record.discount_id._id,
+            inventory_number: record.inventory_number,
+            sold_number: record.sold_number,           // đây sẽ disable để không chỉnh
+            price_after_discount: record.price_after_discount,
+            product_detail_status: record.product_detail_status._id,
+            images: record.images,
+        });
+        setImageUrls(record.images);                // nếu bạn dùng upload preview
+        setFileList(record.images.map(url => ({ uid: url, url, status: 'done' })));
+        setEditProductDetail(true);
+    }
+    const handleCancelEditProductDetail = () => {
+        setEditProductDetail(false);
     };
 
     //fetch data và filter category
@@ -1059,6 +1084,7 @@ const ManagerProduct = () => {
                                                         variant="solid"
                                                         icon={<EditOutlined />}
                                                         onClick={() => {
+                                                            showEditProductDetailModal(record);
                                                             console.log(record);
                                                         }}>
                                                         Edit
@@ -1093,6 +1119,217 @@ const ManagerProduct = () => {
                     ) : (
                         <p>Không có chi tiết cho sản phẩm này.</p>
                     )}
+                </Modal>
+
+                {/* MODAL SHOW EDIT PRODUCT DETAIL  */}
+                <Modal
+                    title="Edit Product Detail"
+                    closable={{ 'aria-label': 'Custom Close Button' }}
+                    open={editProductDetail}
+                    onCancel={() => {
+                        handleCancelEditProductDetail()
+                    }}
+                    footer={null}
+                >
+
+                    <Form
+                        form={form_edit_product_detail}
+                        name="wrap"
+                        labelCol={{ flex: '110px' }}
+                        labelAlign="left"
+                        labelWrap
+                        wrapperCol={{ flex: 1 }}
+                        colon={false}
+                        onFinish={async (values) => {
+                            // gọi API postData(...)
+                            if (!imageUrls.length) {
+                                message.error("Vui lòng upload ít nhất một ảnh");
+                                return;
+                            }
+                            console.log('cái này : ' + values.color)
+                            const payload = {
+                                product_id: values.product_id,
+                                color_id: values.color,
+                                size_id: values.size,
+                                discount_id: values.discount,
+                                inventory_number: values.inventory_number,
+                                sold_number: values.sold_number,
+                                price_after_discount: values.price_after_discount,
+                                product_detail_status: values.product_detail_status,
+                                images: imageUrls,  // <-- đây là mảng URL ảnh
+                            };
+                            await updateData('/product_details/manager/edit_product_detail', editProductDetailId._id, payload, true);
+                            message.success("Cập nhật thành công!");
+                            form_edit_product_detail.resetFields();
+                            console.log(values);
+                            setImageUrls([]);
+                            setFileList([]);
+                            setEditProductDetail(false);
+                            showProductDetail(currentProductId, {
+                                price: currentProductPrice
+                            });
+                        }}
+                    >
+                        <Form.Item
+                            label="Id sản phẩm"
+                            name="product_id"
+                            rules={[
+                                { required: true, message: "Please enter product name" }
+                            ]}>
+                            <Input disabled placeholder="Enter product name" />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Color"
+                            name="color"
+                            rules={[{ required: true, message: "Please select color" }]}>
+                            <Select
+                                placeholder="Select color"
+                                allowClear
+                                options={colors.map((c) => {
+                                    return {
+                                        label: (
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                <div
+                                                    style={{
+                                                        width: "20px",
+                                                        height: "20px",
+                                                        backgroundColor: c.color_code,
+                                                        border: "1px solid #ddd",
+                                                        borderRadius: "4px",
+                                                    }}
+                                                />
+                                                <span>{c.color_code}</span>
+                                            </div>
+                                        ),
+                                        value: c._id
+                                    }
+                                })}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Size"
+                            name="size"
+                            rules={[{ required: true, message: "Please select size" }]}>
+                            <Select
+                                placeholder="Select size"
+                                allowClear
+                                options={sizes.map((s) => {
+                                    return {
+                                        label: s.size_name,
+                                        value: s._id
+                                    }
+                                })}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Discount"
+                            name="discount"
+                            rules={[{ required: true, message: "Please select discount" }]}
+                        >
+                            <Select
+                                placeholder="Select discount"
+                                allowClear
+                                options={discounts.map((d) => ({
+                                    label: `${d.percent_discount}%`,
+                                    value: d._id
+                                }))}
+                                onChange={(selectedDiscountId) => {
+                                    const selectedDiscount = discounts.find((d) => d._id === selectedDiscountId);
+                                    if (selectedDiscount) {
+                                        const priceAfter = currentProductPrice * (1 - selectedDiscount.percent_discount / 100);
+                                        form_add_product_detail.setFieldsValue({
+                                            price_after_discount: Math.round(priceAfter)
+                                        });
+                                    }
+                                }}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Inventory number"
+                            name="inventory_number"
+                            rules={[
+                                { required: true, message: "Hãy điền inventory number" }
+                            ]}
+                        >
+                            <InputNumber
+                                placeholder="Enter inventory number"
+                                style={{ width: "100%" }}
+                                min={1}
+                                precision={0} // ép thành số nguyên, không cho nhập số thập phân
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Sold number"
+                            name="sold_number"
+                            rules={[
+                                { required: true, message: "Please enter sold number" },
+                            ]}>
+                            <InputNumber
+                                placeholder="Enter sold number"
+                                style={{ width: "100%" }}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Price after discount"
+                            name="price_after_discount"
+                            rules={[{ required: true, message: "Please enter price after discount" }]}
+                        >
+                            <InputNumber
+                                placeholder="Auto calculated"
+                                disabled
+                                style={{ width: '100%' }}
+                            />
+                        </Form.Item>
+
+                        {/* lưu ảnh */}
+
+                        <Form.Item
+                            label="Images"
+                            name="images"
+                            rules={[{ required: true, message: 'Please upload at least one image' }]}
+                        >
+                            <Upload
+                                multiple
+                                listType="picture-card"
+                                customRequest={handleCustomRequest}
+                                fileList={fileList}
+                                onRemove={handleRemove}
+                            >
+                                <div>
+                                    <UploadOutlined />
+                                    <div style={{ marginTop: 8 }}>Upload</div>
+                                </div>
+                            </Upload>
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Product detail status"
+                            name="product_detail_status"
+                            rules={[{ required: true, message: "Please select product detail status" }]}>
+                            <Select
+                                placeholder="Select product detail status"
+                                allowClear
+                                options={product_detail_statuses.map((p) => {
+                                    return {
+                                        label: p.productdetail_status_name,
+                                        value: p._id
+                                    }
+                                })}
+                            />
+                        </Form.Item>
+
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit">
+                                Submit
+                            </Button>
+                        </Form.Item>
+                    </Form>
                 </Modal>
                 <Form form={form}>
                     <Table rowKey="_id" dataSource={searchCategory} columns={columns} />

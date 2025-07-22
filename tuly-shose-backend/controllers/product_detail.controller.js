@@ -129,3 +129,21 @@ exports.delete_product_detail = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.get_product_detail_by_id = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const productDetail = await product_detail.findById(id)
+            .populate("product_id")
+            .populate("color_id")
+            .populate("size_id")
+            .populate("discount_id")
+            .populate("product_detail_status");
+        if (!productDetail) {
+            return res.status(404).json({ message: 'Product detail not found' });
+        }
+        res.status(200).json(productDetail);
+    } catch (error) {
+        next(error);
+    }
+};
