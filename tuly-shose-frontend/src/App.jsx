@@ -61,7 +61,7 @@ function App() {
               user.role === "manager" ? (
                 <Navigate to="/manager/brands" replace />
               ) : user.role === "staff" ? (
-                <Navigate to="/dashboard/feedbacks" replace />
+                <Navigate to="/dashboard/dashboard" replace />
               ) : (
                 <Navigate to="/" replace />
               )
@@ -102,7 +102,7 @@ function App() {
 
         <Route
           path="/dashboard"
-          element={<Navigate to="/dashboard/feedbacks" replace />}
+          element={<Navigate to="/dashboard/dashboard" replace />}
         />
         <Route
           path="/dashboard/:section"

@@ -1,12 +1,13 @@
 .dashboard-container {
   display: flex;
   width: 100%;
-  min-height: 100vh; /* để fill toàn màn */
+  min-height: 95vh;
+  height: 220px;
   overflow-x: hidden;
 }
 
 .sidebar {
-  width: 240px;
+  width: 200px;
   background-color: #1f2937; /* tùy chỉnh màu */
   color: white;
   padding: 20px 10px;

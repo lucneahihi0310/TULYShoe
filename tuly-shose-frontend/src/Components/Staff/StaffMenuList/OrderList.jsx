@@ -1,95 +1,141 @@
-import React, { useState, useEffect, useContext } from "react";
-import "../../../CSS/StaffOrderList.css";
-import { FaEye, FaCheck, FaEdit } from "react-icons/fa";
-import { fetchOrders, confirmOrder, updateOrderStatus } from "../../API/orderApi";
-import { AuthContext } from "../../API/AuthContext";
-import Swal from 'sweetalert2';
+"use client"
+
+import { useState, useEffect, useContext } from "react"
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Table,
+  Button,
+  Form,
+  Badge,
+  Modal,
+  Pagination,
+  InputGroup,
+  Spinner,
+  Alert,
+} from "react-bootstrap"
+import { FaEye, FaCheck, FaSearch, FaFilter, FaUser, FaMapMarkerAlt } from "react-icons/fa"
+import { fetchOrders, confirmOrder, updateOrderStatus } from "../../API/orderApi"
+import { AuthContext } from "../../API/AuthContext"
+import Swal from "sweetalert2"
 
 const OrderList = () => {
-  const [orders, setOrders] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
-  const { user } = useContext(AuthContext);
+  const [orders, setOrders] = useState([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterStatus, setFilterStatus] = useState("")
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const itemsPerPage = 6
+  const { user } = useContext(AuthContext)
 
-  const statusColors = {
-    "Chờ xác nhận": "#0d6efd",
-    "Đã xác nhận": "#ffc107",
-    "Đang vận chuyển": "#fd7e14",
-    "Hoàn thành": "#198754",
-  };
+  const statusVariants = {
+    "Chờ xác nhận": "warning",
+    "Đã xác nhận": "info",
+    "Đang vận chuyển": "primary",
+    "Hoàn thành": "success",
+    "Đã hủy": "danger",
+  }
 
-  const statusOptions = [
-    "Chờ xác nhận",
-    "Đã xác nhận",
-    "Đang vận chuyển",
-    "Hoàn thành",
+  const statusOptions = ["Chờ xác nhận", "Đã xác nhận", "Đang vận chuyển", "Hoàn thành"]
 
-  ];
   useEffect(() => {
     const loadOrders = async () => {
-      const data = await fetchOrders();
-      setOrders(data);
-    };
-    loadOrders();
-  }, []);
+      setLoading(true)
+      try {
+        const data = await fetchOrders()
+        // Sắp xếp theo thời gian từ mới nhất đến cũ nhất
+        const sortedOrders = data.sort((a, b) => new Date(b.order_date) - new Date(a.order_date))
+        setOrders(sortedOrders)
+      } catch (error) {
+        console.error("Lỗi khi tải đơn hàng:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadOrders()
+  }, [])
 
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleFilterChange = (e) => setFilterStatus(e.target.value);
+  const handleSearchChange = (e) => setSearchTerm(e.target.value)
+  const handleFilterChange = (e) => setFilterStatus(e.target.value)
 
   const handleConfirmOrder = async (orderId) => {
     const confirmResult = await Swal.fire({
-      title: 'Bạn có chắc muốn xác nhận đơn hàng này?',
-      text: "Thao tác này sẽ không thể hoàn tác!",
-      icon: 'warning',
+      title: "Xác nhận đơn hàng",
+      text: "Bạn có chắc muốn xác nhận đơn hàng này?",
+      icon: "question",
       showCancelButton: true,
-      confirmButtonText: 'Xác nhận',
-      cancelButtonText: 'Hủy'
-    });
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#6c757d",
+    })
 
     if (confirmResult.isConfirmed) {
       try {
-        const staffId = user._id;
-        await confirmOrder(orderId, staffId);
-        Swal.fire('Thành công!', 'Đơn hàng đã được xác nhận.', 'success');
-        setOrders(orders.map(order =>
-          order._id === orderId
-            ? {
-              ...order,
-              accepted_by: `${user.first_name} ${user.last_name}`,
-              order_status: "Đã xác nhận" // ✅ cập nhật thủ công ở FE
-            }
-            : order
-        ));
+        const staffId = user._id
+        await confirmOrder(orderId, staffId)
 
+        Swal.fire({
+          icon: "success",
+          title: "Thành công!",
+          text: "Đơn hàng đã được xác nhận.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
+
+        setOrders(
+          orders.map((order) =>
+            order._id === orderId
+              ? {
+                  ...order,
+                  accepted_by: `${user.first_name} ${user.last_name}`,
+                  order_status: "Đã xác nhận",
+                }
+              : order,
+          ),
+        )
       } catch (error) {
-        Swal.fire('Lỗi', 'Xác nhận đơn hàng thất bại', 'error');
-        console.error('Xác nhận đơn hàng thất bại:', error);
+        Swal.fire("Lỗi", "Xác nhận đơn hàng thất bại", "error")
+        console.error("Xác nhận đơn hàng thất bại:", error)
       }
     }
-  };
+  }
 
   const handleView = (order) => {
-    setSelectedOrder(order);
-    setShowModal(true);
-  };
+    setSelectedOrder(order)
+    setShowModal(true)
+  }
 
-  const filteredOrders = orders.filter((order) =>
-    (order.userName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) &&
-    (filterStatus === "" || order.order_status === filterStatus)
-  );
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      await updateOrderStatus(orderId, newStatus)
+      setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, order_status: newStatus } : o)))
+      Swal.fire({
+        icon: "success",
+        title: "Cập nhật thành công",
+        text: `Trạng thái đơn hàng đã đổi sang "${newStatus}"`,
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    } catch (error) {
+      Swal.fire("Lỗi", "Không thể cập nhật trạng thái", "error")
+    }
+  }
 
+  const filteredOrders = orders.filter(
+    (order) =>
+      (order.userName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) &&
+      (filterStatus === "" || order.order_status === filterStatus),
+  )
 
-
-  const indexOfLastOrder = currentPage * itemsPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - itemsPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const indexOfLastOrder = currentPage * itemsPerPage
+  const indexOfFirstOrder = indexOfLastOrder - itemsPerPage
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder)
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
 
   const getAvailableStatusOptions = (currentStatus) => {
     const statusFlow = {
@@ -97,195 +143,393 @@ const OrderList = () => {
       "Đã xác nhận": ["Đã xác nhận", "Đang vận chuyển"],
       "Đang vận chuyển": ["Đang vận chuyển", "Hoàn thành"],
       "Hoàn thành": ["Hoàn thành"],
-    };
-    return statusFlow[currentStatus] || [];
-  };
+    }
+    return statusFlow[currentStatus] || []
+  }
+
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString)
+    return {
+      date: date.toLocaleDateString("vi-VN"),
+      time: date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+    }
+  }
+
+  const getTimeAgo = (dateString) => {
+    const now = new Date()
+    const orderDate = new Date(dateString)
+    const diffInMinutes = Math.floor((now - orderDate) / (1000 * 60))
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    const diffInDays = Math.floor(diffInHours / 24)
+
+    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`
+    if (diffInHours < 24) return `${diffInHours} giờ trước`
+    if (diffInDays < 7) return `${diffInDays} ngày trước`
+    return formatDateTime(dateString).date
+  }
 
   return (
-    <div className="order-container">
-      <h2 className="order-title">Quản lý đơn hàng</h2>
+    <Container fluid className="py-4">
+      {/* Header */}
+      <Row className="mb-4">
+        <Col>
+          <Card className="border-0 shadow-sm">
+            <Card.Body>
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <h2 className="mb-1 fw-bold text-primary">Quản lý đơn hàng</h2>
+                  <p className="text-muted mb-0">Tổng cộng {filteredOrders.length} đơn hàng</p>
+                </div>
+                <Badge bg="info" className="fs-6 px-3 py-2">
+                  Đơn hàng mới nhất trước
+                </Badge>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-      <div className="order-controls">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Tìm tên khách hàng..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-        </div>
+      {/* Controls */}
+      <Row className="mb-4">
+        <Col md={6}>
+          <InputGroup>
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              type="text"
+              placeholder="Tìm kiếm theo tên khách hàng..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+          </InputGroup>
+        </Col>
+        <Col md={4}>
+          <InputGroup>
+            <InputGroup.Text>
+              <FaFilter />
+            </InputGroup.Text>
+            <Form.Select value={filterStatus} onChange={handleFilterChange}>
+              <option value="">Tất cả trạng thái</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </Form.Select>
+          </InputGroup>
+        </Col>
+        <Col md={2}>
+          <Button variant="outline-primary" className="w-100" onClick={() => window.location.reload()}>
+            Làm mới
+          </Button>
+        </Col>
+      </Row>
 
-        <div className="filter-box">
-          <select value={filterStatus} onChange={handleFilterChange}>
-            <option value="">Tất cả trạng thái</option>
-            <option value="Chờ xác nhận">Chờ xác nhận</option>
-            <option value="Đang vận chuyển">Đang vận chuyển</option>
-            <option value="Đã xác nhận">Đã xác nhận</option>
-          </select>
-        </div>
-      </div>
+      {/* Orders Table */}
+      <Row>
+        <Col>
+          <Card className="border-0 shadow-sm">
+            <Card.Body className="p-0">
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" />
+                  <p className="mt-3 text-muted">Đang tải đơn hàng...</p>
+                </div>
+              ) : currentOrders.length > 0 ? (
+                <div className="table-responsive">
+                  <Table hover className="mb-0">
+                    <thead className="bg-light">
+                      <tr>
+                        <th className="border-0 fw-semibold">#</th>
+                        <th className="border-0 fw-semibold">Khách hàng</th>
+                        <th className="border-0 fw-semibold">Mã đơn hàng</th>
+                        <th className="border-0 fw-semibold">Thời gian đặt</th>
+                        <th className="border-0 fw-semibold">Trạng thái</th>
+                        <th className="border-0 fw-semibold">Giao hàng</th>
+                        <th className="border-0 fw-semibold">Tổng tiền</th>
+                        <th className="border-0 fw-semibold">Thanh toán</th>
+                        <th className="border-0 fw-semibold">Người xác nhận</th>
+                        <th className="border-0 fw-semibold text-center">Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentOrders.map((order, index) => {
+                        const orderDateTime = formatDateTime(order.order_date)
+                        const deliveryDateTime = formatDateTime(order.delivery_date)
 
-      <table className="order-table">
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Tên khách hàng</th>
-            <th>Thời gian đặt hàng</th>
-            <th>Trạng thái</th>
-            <th>Địa chỉ</th>
-            <th>Giao hàng dự kiến</th>
-            <th>Note</th>
-            <th>Tổng tiền VNĐ</th>
-            <th>Thanh toán</th>
-            <th>Người xác nhận</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentOrders.map((order, index) => (
-            <tr key={order._id}>
-              <td>{indexOfFirstOrder + index + 1}</td>
-              <td>{order.userName}</td>
-              <td>{new Date(order.order_date).toLocaleDateString()}</td>
-              <td>
-                <select
-                  className={`status-select ${order.order_status === "Chờ xác nhận" ? "cho-xac-nhan" :
-                    order.order_status === "Đã xác nhận" ? "da-xac-nhan" :
-                      order.order_status === "Đang vận chuyển" ? "dang-van-chuyen" :
-                        order.order_status === "Hoàn thành" ? "hoan-thanh" :
-                          "da-huy"
-                    }`}
-                  value={order.order_status}
-                  onChange={async (e) => {
-                    const newStatus = e.target.value;
-                    try {
-                      await updateOrderStatus(order._id, newStatus);
-                      setOrders(prev =>
-                        prev.map(o =>
-                          o._id === order._id ? { ...o, order_status: newStatus } : o
+                        return (
+                          <tr key={order._id}>
+                            <td className="align-middle">
+                              <Badge bg="secondary" pill>
+                                {indexOfFirstOrder + index + 1}
+                              </Badge>
+                            </td>
+                            <td className="align-middle">
+                              <div>
+                                <div className="fw-semibold">{order.userName}</div>
+                              </div>
+                              
+                            </td>
+                            <td className="align-middle">
+                              <div>
+                                
+                                <div className="text-muted">{order.order_code}</div>
+                              </div>
+                              
+                            </td>
+                            <td className="align-middle">
+                              <div>
+                                <div className="fw-semibold">{orderDateTime.date}</div>
+                                <small className="text-muted">{orderDateTime.time}</small>
+                                <div>
+                                  <Badge bg="light" text="dark" className="mt-1">
+                                    {getTimeAgo(order.order_date)}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="align-middle">
+                              <Form.Select
+                                size="sm"
+                                value={order.order_status}
+                                onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                                disabled={!order.accepted_by}
+                                className="w-auto"
+                              >
+                                {getAvailableStatusOptions(order.order_status).map((status) => (
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                              
+                            </td>
+                            
+                            <td className="align-middle">
+                              <div>
+                                <div className="fw-semibold">{deliveryDateTime.date}</div>
+                                <small className="text-muted">{deliveryDateTime.time}</small>
+                              </div>
+                            </td>
+                            <td className="align-middle">
+                              <div className="fw-bold text-success">
+                                {order.total_amount?.toLocaleString("vi-VN")} 
+                              </div>
+                            </td>
+                            <td className="align-middle">
+                              <Badge
+                                bg={order.payment_status === "Đã thanh toán" ? "success" : "warning"}
+                                text={order.payment_status === "Đã thanh toán" ? "white" : "dark"}
+                              >
+                                {order.payment_status}
+                              </Badge>
+                            </td>
+                            <td className="align-middle">
+                              <div>
+                                {order.accepted_by ? (
+                                  <>
+                                    <FaUser className="text-success me-1" />
+                                    <span className="small text-success fw-semibold">{order.accepted_by}</span>
+                                  </>
+                                ) : (
+                                  <Badge bg="secondary">Chưa xác nhận</Badge>
+                                )}
+                              </div>
+                            </td>
+                            <td className="align-middle text-center">
+                              <div className="d-flex gap-2 justify-content-center">
+                                <Button
+                                  variant="outline-info"
+                                  size="sm"
+                                  onClick={() => handleView(order)}
+                                  title="Xem chi tiết"
+                                >
+                                  <FaEye />
+                                </Button>
+                                {!order.accepted_by && (
+                                  <Button
+                                    variant="outline-success"
+                                    size="sm"
+                                    onClick={() => handleConfirmOrder(order._id)}
+                                    title="Xác nhận đơn hàng"
+                                  >
+                                    <FaCheck />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
                         )
-                      );
-                      Swal.fire({
-                        icon: 'success',
-                        title: 'Cập nhật thành công',
-                        text: `Trạng thái đơn hàng đã đổi sang "${newStatus}"`,
-                        timer: 2000,
-                        showConfirmButton: false
-                      });
-                    } catch (error) {
-                      Swal.fire('Lỗi', 'Không thể cập nhật trạng thái', 'error');
-                    }
-                  }}
-                  disabled={!order.accepted_by}
-                >
+                      })}
+                    </tbody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-5">
+                  <Alert variant="info" className="d-inline-block">
+                    <FaSearch className="me-2" />
+                    Không tìm thấy đơn hàng nào phù hợp
+                  </Alert>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-                  {getAvailableStatusOptions(order.order_status).map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </td>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center">
+            <Pagination>
+              <Pagination.First disabled={currentPage === 1} onClick={() => setCurrentPage(1)} />
+              <Pagination.Prev disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} />
 
-              <td>{order.address_shipping}</td>
-              <td>{new Date(order.delivery_date).toLocaleDateString()}</td>
-              <td>
-                <span className="note">
-                  {order.order_note && order.order_note.trim().length > 20
-                    ? order.order_note.slice(0, 9) + '...'
-                    : order.order_note}
-                </span>
-              </td>
-              <td>{order.total_amount.toLocaleString()}</td>
-              <td>
-                <span className={order.payment_status === "Đã thanh toán" ? "paid" : "unpaid"}>
-                  {order.payment_status}
-                </span>
-              </td>
-              <td>
-                <span className={order.accepted_by ? "accepted" : "not-accepted"}>
-                  {order.accepted_by || "Chưa xác nhận"}
-                </span>
-              </td>
-              <td className="order-actions">
-                <button className="btn-icon" onClick={() => handleView(order)} title="Xem chi tiết">
-                  <FaEye />
-                </button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                let pageNumber
+                if (totalPages <= 5) {
+                  pageNumber = index + 1
+                } else if (currentPage <= 3) {
+                  pageNumber = index + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + index
+                } else {
+                  pageNumber = currentPage - 2 + index
+                }
 
+                return (
+                  <Pagination.Item
+                    key={pageNumber}
+                    active={pageNumber === currentPage}
+                    onClick={() => setCurrentPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </Pagination.Item>
+                )
+              })}
 
-                {!order.accepted_by && (
-                  <button className="btn-icon" onClick={() => handleConfirmOrder(order._id)} title="Xác nhận đơn hàng">
-                    <FaCheck />
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="pagination">
-        {Array.from({ length: totalPages }, (_, index) => (
-          <button
-            key={index + 1}
-            onClick={() => paginate(index + 1)}
-            className={currentPage === index + 1 ? "active-page" : ""}
-          >
-            {index + 1}
-          </button>
-        ))}
-      </div>
-
-      {showModal && selectedOrder && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="btn-close" onClick={() => setShowModal(false)}>
-          
-            </button>
-
-            <h3 className="modal-title">Chi tiết đơn hàng</h3>
-
-            <div className="modal-section">
-              <h4 className="section-title">Thông tin khách hàng</h4>
-              <div className="info-box">
-                <p><strong>Khách hàng:</strong> {selectedOrder.userName}</p>
-                <p><strong>Mã đơn hàng:</strong> {selectedOrder.order_code}</p>
-                <p><strong>Trạng thái đơn hàng:</strong> {selectedOrder.order_status}</p>
-                <p><strong>Note:</strong> {selectedOrder.order_note}</p>
-              </div>
-            </div>
-
-            <div className="modal-section">
-              <h4 className="section-title">Thông tin vận chuyển</h4>
-              <div className="info-box">
-                <p><strong>Địa chỉ giao hàng:</strong> {selectedOrder.address_shipping}</p>
-                <p><strong>Ngày đặt hàng:</strong> {new Date(selectedOrder.order_date).toLocaleDateString()}</p>
-                <p><strong>Ngày giao dự kiến:</strong> {new Date(selectedOrder.delivery_date).toLocaleDateString()}</p>
-              </div>
-            </div>
-
-            <div className="modal-section">
-              <h4 className="section-title">Người xác nhận</h4>
-              <div className="info-box">
-                <p>
-                  <strong>Người xác nhận:</strong>{" "}
-                  <span className={selectedOrder.accepted_by ? "accepted" : "not-accepted"}>
-                    {selectedOrder.accepted_by || "Chưa xác nhận"}
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            <div className="modal-section">
-              <h4 className="section-title">Thời gian</h4>
-              <div className="info-box">
-                <p><strong>Ngày tạo:</strong> {new Date(selectedOrder.create_at).toLocaleDateString()}</p>
-                <p><strong>Ngày cập nhật:</strong> {new Date(selectedOrder.update_at).toLocaleDateString()}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+              <Pagination.Next disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} />
+              <Pagination.Last disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)} />
+            </Pagination>
+          </Col>
+        </Row>
       )}
-    </div>
-  );
-};
 
-export default OrderList;
+      {/* Order Detail Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>
+            <FaEye className="me-2" />
+            Chi tiết đơn hàng
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedOrder && (
+            <Row>
+              <Col md={6}>
+                <Card className="h-100 border-0 bg-light">
+                  <Card.Header className="bg-info text-white">
+                    <FaUser className="me-2" />
+                    Thông tin khách hàng
+                  </Card.Header>
+                  <Card.Body>
+                    <p>
+                      <strong>Khách hàng:</strong> {selectedOrder.userName}
+                    </p>
+                    <p>
+                      <strong>Mã đơn hàng:</strong>
+                      <Badge bg="secondary" className="ms-2">
+                        {selectedOrder.order_code}
+                      </Badge>
+                    </p>
+                    <p>
+                      <strong>Trạng thái:</strong>
+                      <Badge bg={statusVariants[selectedOrder.order_status]} className="ms-2">
+                        {selectedOrder.order_status}
+                      </Badge>
+                    </p>
+                    <p>
+                      <strong>Ghi chú:</strong> {selectedOrder.order_note || "Không có"}
+                    </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+
+              <Col md={6}>
+                <Card className="h-100 border-0 bg-light">
+                  <Card.Header className="bg-warning text-dark">
+                    <FaMapMarkerAlt className="me-2" />
+                    Thông tin vận chuyển
+                  </Card.Header>
+                  <Card.Body>
+                    <p>
+                      <strong>Địa chỉ:</strong> {selectedOrder.address_shipping}
+                    </p>
+                    <p>
+                      <strong>Ngày đặt:</strong> {formatDateTime(selectedOrder.order_date).date}
+                    </p>
+                    <p>
+                      <strong>Giờ đặt:</strong> {formatDateTime(selectedOrder.order_date).time}
+                    </p>
+                    <p>
+                      <strong>Giao hàng dự kiến:</strong> {formatDateTime(selectedOrder.delivery_date).date}
+                    </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+
+              <Col xs={12} className="mt-3">
+                <Card className="border-0 bg-light">
+                  <Card.Header className="bg-success text-white">
+                    <FaCheck className="me-2" />
+                    Thông tin xử lý
+                  </Card.Header>
+                  <Card.Body>
+                    <Row>
+                      <Col md={6}>
+                        <p>
+                          <strong>Người xác nhận:</strong>
+                          <span className={selectedOrder.accepted_by ? "text-success ms-2" : "text-muted ms-2"}>
+                            {selectedOrder.accepted_by || "Chưa xác nhận"}
+                          </span>
+                        </p>
+                        <p>
+                          <strong>Tổng tiền:</strong>
+                          <span className="text-success fw-bold ms-2">
+                            {selectedOrder.total_amount?.toLocaleString("vi-VN")} ₫
+                          </span>
+                        </p>
+                      </Col>
+                      <Col md={6}>
+                        <p>
+                          <strong>Thanh toán:</strong>
+                          <Badge
+                            bg={selectedOrder.payment_status === "Đã thanh toán" ? "success" : "warning"}
+                            className="ms-2"
+                          >
+                            {selectedOrder.payment_status}
+                          </Badge>
+                        </p>
+                        <p>
+                          <strong>Cập nhật lần cuối:</strong> {formatDateTime(selectedOrder.update_at).date}
+                        </p>
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
+  )
+}
+
+export default OrderList

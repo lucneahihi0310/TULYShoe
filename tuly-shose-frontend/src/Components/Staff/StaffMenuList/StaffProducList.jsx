@@ -1,361 +1,308 @@
-import React, { useEffect, useState } from "react";
-import { fetchInventory, fetchStatus } from "../../API/inventoryApi";
-import { AiFillCaretUp } from "react-icons/ai";
-import { AiFillCaretDown } from "react-icons/ai";
-import { IoMdSearch } from "react-icons/io";
-import '../../../CSS/InventoryList.css'
+"use client"
+
+import { useEffect, useState } from "react"
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Table,
+  Form,
+  InputGroup,
+  Badge,
+  Spinner,
+  Alert,
+  Pagination,
+  Button,
+  Image,
+} from "react-bootstrap"
+import { fetchInventory, fetchStatus } from "../../API/inventoryApi"
+import { FaSearch, FaFilter, FaSort, FaSortUp, FaSortDown, FaBox } from "react-icons/fa"
+
 const InventoryList = () => {
-  const [inventory, setInventory] = useState([]);
-  const [statusList, setStatusList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [filterStatus, setFilterStatus] = useState("Tất cả");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [inventory, setInventory] = useState([])
+  const [statusList, setStatusList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [filterStatus, setFilterStatus] = useState("Tất cả")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const [inventoryRes, statusRes] = await Promise.all([
-          fetchInventory(),
-          fetchStatus()
-        ]);
+        const [inventoryRes, statusRes] = await Promise.all([fetchInventory(), fetchStatus()])
 
         if (inventoryRes.message === "Danh sách tồn kho" && Array.isArray(inventoryRes.data)) {
-          setInventory(inventoryRes.data);
+          setInventory(inventoryRes.data)
         } else {
-          setError("Dữ liệu tồn kho không đúng định dạng");
+          setError("Dữ liệu tồn kho không đúng định dạng")
         }
 
         if (statusRes.message === "Danh sách trạng thái" && Array.isArray(statusRes.data)) {
-          setStatusList(statusRes.data);
+          setStatusList(statusRes.data)
         } else {
-          setError("Dữ liệu trạng thái không đúng định dạng");
+          setError("Dữ liệu trạng thái không đúng định dạng")
         }
       } catch (err) {
-        setError("Lỗi khi tải dữ liệu");
+        setError("Lỗi khi tải dữ liệu")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
+    getData()
+  }, [])
 
-    getData();
-  }, []);
-
-  const filteredInventory = inventory.filter(item =>
-    (filterStatus === "Tất cả" || item.product_detail_status === filterStatus) &&
-    item.productName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredInventory = inventory.filter(
+    (item) =>
+      (filterStatus === "Tất cả" || item.product_detail_status === filterStatus) &&
+      item.productName.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   const sortedInventory = [...filteredInventory].sort((a, b) => {
-    return sortOrder === "asc" ? a.inventory_number - b.inventory_number : b.inventory_number - a.inventory_number;
-  });
+    return sortOrder === "asc" ? a.inventory_number - b.inventory_number : b.inventory_number - a.inventory_number
+  })
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedInventory.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(sortedInventory.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentItems = sortedInventory.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(sortedInventory.length / itemsPerPage)
 
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+  const toggleSortOrder = () => setSortOrder(sortOrder === "asc" ? "desc" : "asc")
 
-  const toggleSortOrder = () => setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  const getStatusVariant = (status) => {
+    if (status === "Hàng mới về") return "success"
+    if (status === "Sắp hết hàng") return "warning"
+    if (status === "Hết hàng") return "danger"
+    return "secondary"
+  }
 
-  const getStatusColor = (status) => {
-    if (status === "Hàng mới về") return { backgroundColor: "#28a745" };
-    if (status === "Sắp hết hàng") return { backgroundColor: "#ffc107" };
-    if (status === "Hết hàng") return { backgroundColor: "#dc3545" };
-    return { backgroundColor: "#6c757d" };
-  };
+  const getSortIcon = () => {
+    if (sortOrder === "asc") return <FaSortUp />
+    return <FaSortDown />
+  }
 
-  if (loading) return (
-    <div style={{ width: "100%", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-<div style={styles.spinner} className="spinner"></div>
-    <div style={styles.loadingText}>Đang tải dữ liệu tồn kho...</div>
-  </div>
-);
+  if (loading) {
+    return (
+      <Container fluid className="py-4">
+        <Card className="border-0 shadow-sm">
+          <Card.Body className="text-center py-5">
+            <Spinner animation="border" variant="primary" className="mb-3" />
+            <p className="text-muted">Đang tải dữ liệu tồn kho...</p>
+          </Card.Body>
+        </Card>
+      </Container>
+    )
+  }
 
-  if (error) return <div style={styles.error}>Lỗi: {error}</div>;
+  if (error) {
+    return (
+      <Container fluid className="py-4">
+        <Alert variant="danger" className="text-center">
+          <strong>Lỗi:</strong> {error}
+        </Alert>
+      </Container>
+    )
+  }
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Danh sách tồn kho</h2>
-
-      <div style={styles.controls}>
-        
-          
-          <input
-          type="text"
-          placeholder="Tìm kiếm sản phẩm..."
-          value={searchQuery}
-          onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-          style={styles.input}
-          
-        />
-        
-        
-        <div style={styles.filterRight}>
-          <label style={{ marginRight: 10 }}>Lọc theo trạng thái:</label>
-          <select
-            value={filterStatus}
-            onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-            style={styles.select}
-          >
-            <option value="Tất cả">Tất cả</option>
-            {statusList.map((status) => (
-              <option key={status._id} value={status.productdetail_status_name}>
-                {status.productdetail_status_name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.th}>Ảnh</th>
-            <th style={styles.th}>Tên sản phẩm</th>
-            <th style={styles.th}>
-              <div style={styles.sortHeader}>
-                <span style={styles.sortText}>Số lượng tồn</span>
-                <button onClick={toggleSortOrder} style={styles.sortButton}>
-                  {sortOrder === "asc" ? <AiFillCaretUp size={12} color="black" /> : <AiFillCaretDown size={12} color="black" />}
-                </button>
+    <Container fluid className="py-4">
+      {/* Header */}
+      <Row className="mb-4">
+        <Col>
+          <Card className="border-0 shadow-sm">
+            <Card.Body>
+              <div className="d-flex align-items-center justify-content-between">
+                <div>
+                  <h2 className="mb-1 fw-bold text-primary d-flex align-items-center">
+                    <FaBox className="me-2" />
+                    Danh sách tồn kho
+                  </h2>
+                  <p className="text-muted mb-0">Quản lý tồn kho sản phẩm</p>
+                </div>
+                <Badge bg="info" className="fs-6 px-3 py-2">
+                  {filteredInventory.length} sản phẩm
+                </Badge>
               </div>
-            </th>
-            <th style={styles.th}>Giá sau giảm</th>
-            <th style={styles.th}>Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.length === 0 ? (
-            <tr>
-              <td colSpan="5" style={styles.noData}>Không có sản phẩm phù hợp</td>
-            </tr>
-          ) : (
-            currentItems.map((item) => (
-              <tr key={item.productDetailId} style={styles.tr}>
-                <td style={styles.td}>
-                  <img src={item.images[0]} alt={item.productName} style={styles.productImage} />
-                </td>
-                <td style={styles.td}>{item.productName}</td>
-                <td style={styles.td}>{item.inventory_number}</td>
-                <td style={styles.td}>{item.price_after_discount.toLocaleString("vi-VN")} đ</td>
-                <td style={styles.td}>
-                  <span style={{ ...styles.badge, ...getStatusColor(item.product_detail_status) }}>
-                    {item.product_detail_status}
-                  </span>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-<div style={{ width: "100%", textAlign: "center" }}>
-      <div style={styles.pagination}>
-        <button
-          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          style={currentPage === 1 ? styles.disabledButton : styles.pageButton}
-        >
-          Prev
-        </button>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-        <span style={styles.currentPage}>{currentPage}</span>
+      {/* Controls */}
+      <Row className="mb-4">
+        <Col md={4}>
+          <InputGroup>
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              type="text"
+              placeholder="Tìm kiếm sản phẩm..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
+            />
+          </InputGroup>
+        </Col>
+        <Col md={4}>
+          <InputGroup>
+            <InputGroup.Text>
+              <FaFilter />
+            </InputGroup.Text>
+            <Form.Select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value)
+                setCurrentPage(1)
+              }}
+            >
+              <option value="Tất cả">Tất cả trạng thái</option>
+              {statusList.map((status) => (
+                <option key={status._id} value={status.productdetail_status_name}>
+                  {status.productdetail_status_name}
+                </option>
+              ))}
+            </Form.Select>
+          </InputGroup>
+        </Col>
+        <Col md={4}>
+          <Button variant="outline-primary" onClick={toggleSortOrder} className="w-100">
+            <FaSort className="me-2" />
+            Sắp xếp số lượng {getSortIcon()}
+          </Button>
+        </Col>
+      </Row>
 
-        <button
-          onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          style={currentPage === totalPages ? styles.disabledButton : styles.pageButton}
-        >
-          Next
-        </button>
-      </div>
-    </div>
-    </div>
-  );
-};
+      {/* Inventory Table */}
+      <Row>
+        <Col>
+          <Card className="border-0 shadow-sm">
+            <Card.Body className="p-0">
+              {currentItems.length === 0 ? (
+                <div className="text-center py-5">
+                  <Alert variant="info" className="d-inline-block">
+                    <FaSearch className="me-2" />
+                    Không có sản phẩm phù hợp
+                  </Alert>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <Table hover className="mb-0">
+                    <thead className="bg-light">
+                      <tr>
+                        <th className="border-0 fw-semibold text-center">Ảnh</th>
+                        <th className="border-0 fw-semibold">Tên sản phẩm</th>
+                        <th className="border-0 fw-semibold text-center">
+                          <Button
+                            variant="link"
+                            className="p-0 text-decoration-none fw-semibold"
+                            onClick={toggleSortOrder}
+                          >
+                            Số lượng tồn {getSortIcon()}
+                          </Button>
+                        </th>
+                        <th className="border-0 fw-semibold text-center">Giá sau giảm</th>
+                        <th className="border-0 fw-semibold text-center">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentItems.map((item) => (
+                        <tr key={item.productDetailId}>
+                          <td className="align-middle text-center">
+                            <Image
+                              src={item.images[0] || "/placeholder.svg?height=60&width=60"}
+                              alt={item.productName}
+                              width={60}
+                              height={60}
+                              className="rounded border"
+                              style={{ objectFit: "cover" }}
+                            />
+                          </td>
+                          <td className="align-middle">
+                            <div>
+                              <div className="fw-semibold">{item.productName}</div>
+                              <small className="text-muted">ID: {item.productDetailId}</small>
+                            </div>
+                          </td>
+                          <td className="align-middle text-center">
+                            <Badge
+                              bg={
+                                item.inventory_number > 50
+                                  ? "success"
+                                  : item.inventory_number > 10
+                                    ? "warning"
+                                    : "danger"
+                              }
+                              className="fs-6 px-3 py-2"
+                            >
+                              {item.inventory_number}
+                            </Badge>
+                          </td>
+                          <td className="align-middle text-center">
+                            <div className="fw-bold text-success">
+                              {item.price_after_discount?.toLocaleString("vi-VN")} ₫
+                            </div>
+                          </td>
+                          <td className="align-middle text-center">
+                            <Badge bg={getStatusVariant(item.product_detail_status)} className="px-3 py-2">
+                              {item.product_detail_status}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-const styles = {
-  container: {
-    width: "100%",
-    padding: "0 0 20px 0",
-    margin: 0,
-    boxSizing: "border-box",
-    fontFamily: "Arial, sans-serif",
-  },
-  title: {
-    textAlign: "center",
-    marginTop: 30,
-    marginBottom: 20,
-  },
-  loading: {
-    textAlign: "center",
-    padding: 20,
-    fontSize: 16,
-  },
-  error: {
-    color: "red",
-    textAlign: "center",
-    padding: 20,
-    fontSize: 16,
-  },
-  controls: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-    padding: "0 10px",
-    boxSizing: "border-box",
-  },
-  badge: {
-    color: "#fff",
-    padding: "4px 8px",
-    borderRadius: 12,
-    fontSize: 14,
-    display: "inline-block",
-  },
-  input: {
-    width: "20%",
-    padding: "8px 12px",
-    fontSize: 14,
-    borderRadius: 4,
-    border: "1px solid #ccc",
-    boxSizing: "border-box",
-  },
-  filterRight: {
-    width: "30%",
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  select: {
-    padding: "8px 12px",
-    fontSize: 14,
-    borderRadius: 4,
-    border: "1px solid #ccc",
-    boxSizing: "border-box",
-  },
-  table: {
-    width: "98%", // Lùi vào lề trái 1 chút
-    marginLeft: "auto",
-    marginRight: "auto",
-    borderCollapse: "collapse",
-    border: "1px solid #ccc",
-  },
-  th: {
-    border: "1px solid #ccc",
-    padding: "8px",
-    backgroundColor: "#f7f7f7",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  sortHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center">
+            <Pagination>
+              <Pagination.First disabled={currentPage === 1} onClick={() => setCurrentPage(1)} />
+              <Pagination.Prev disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} />
 
-  sortText: {
-    width: "80%",
-    textAlign: "center",
-  },
+              {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                let pageNumber
+                if (totalPages <= 5) {
+                  pageNumber = index + 1
+                } else if (currentPage <= 3) {
+                  pageNumber = index + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + index
+                } else {
+                  pageNumber = currentPage - 2 + index
+                }
 
-  sortButton: {
-    width: "20%",
-    backgroundColor: "transparent",
-    border: "none",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+                return (
+                  <Pagination.Item
+                    key={pageNumber}
+                    active={pageNumber === currentPage}
+                    onClick={() => setCurrentPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </Pagination.Item>
+                )
+              })}
 
-  },
-  
+              <Pagination.Next disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} />
+              <Pagination.Last disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)} />
+            </Pagination>
+          </Col>
+        </Row>
+      )}
+    </Container>
+  )
+}
 
-  // Thêm animation keyframes
-  loadingWrapper: {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  height: "100vh", // Chiếm toàn bộ màn hình
-},
-
-spinner: {
-  border: "6px solid #f3f3f3",
-  borderTop: "6px solid #3498db",
-  borderRadius: "50%",
-  width: 50,
-  height: 50,
-  animation: "spin 1s linear infinite",
-},
-
-loadingText: {
-  marginTop: 10,
-  fontSize: 16,
-},
-
-
-  tr: {
-    border: "1px solid #ccc",
-  },
-  td: {
-    border: "1px solid #ccc",
-    padding: "8px",
-    textAlign: "center",
-    verticalAlign: "middle",
-  },
-  productImage: {
-    width: 50,
-    height: 50,
-    objectFit: "cover",
-    borderRadius: 4,
-  },
-  noData: {
-    textAlign: "center",
-    padding: 20,
-    fontStyle: "italic",
-  },
-  pagination: {
-    marginTop: 15,
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: "0 10px",
-    gap: 5,
-    
-  },
-
-  pageButton: {
-    padding: "5px 10px",
-    fontSize: 12,
-    cursor: "pointer",
-    borderRadius: 4,
-    border: "1px solid rgb(193, 236, 90)",
-    backgroundColor: "rgb(193, 236, 90)",
-    color: "white",
-    width: 60
-  },
-
-  disabledButton: {
-    padding: "5px 10px",
-    fontSize: 12,
-    borderRadius: 4,
-    border: "1px solid #ccc",
-    backgroundColor: "#eee",
-    color: "#888",
-    cursor: "not-allowed",
-    width: 60
-  },
-  currentPage: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-};
-
-export default InventoryList;
+export default InventoryList
