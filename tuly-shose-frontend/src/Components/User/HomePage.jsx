@@ -22,8 +22,12 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [bestSellers, setBestSellers] = useState([]);
+  const [mensShoes, setMensShoes] = useState([]);
+  const [womensShoes, setWomensShoes] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingMensShoes, setLoadingMensShoes] = useState(false);
+  const [loadingWomensShoes, setLoadingWomensShoes] = useState(false);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [form] = Form.useForm();
   const [loadingSupport, setLoadingSupport] = useState(false);
@@ -53,6 +57,36 @@ const HomePage = () => {
       }
     };
 
+    // Lấy sản phẩm giày nam
+    const fetchMensShoes = async () => {
+      setLoadingMensShoes(true);
+      try {
+        const data = await fetchData(
+          "/products/customers/listproducts?gender=685b71c0b8a801593cb7f606&limit=4"
+        );
+        setMensShoes(data.data);
+      } catch (err) {
+        console.error("Lỗi khi lấy sản phẩm giày nam:", err);
+      } finally {
+        setLoadingMensShoes(false);
+      }
+    };
+
+    // Lấy sản phẩm giày nữ
+    const fetchWomensShoes = async () => {
+      setLoadingWomensShoes(true);
+      try {
+        const data = await fetchData(
+          "/products/customers/listproducts?gender=685b71c1b8a801593cb7f607&limit=4"
+        );
+        setWomensShoes(data.data);
+      } catch (err) {
+        console.error("Lỗi khi lấy sản phẩm giày nữ:", err);
+      } finally {
+        setLoadingWomensShoes(false);
+      }
+    };
+
     // Lấy đánh giá 5 sao ngẫu nhiên
     const fetchTestimonials = async () => {
       setLoadingReviews(true);
@@ -70,6 +104,8 @@ const HomePage = () => {
 
     // Gọi các hàm bất đồng bộ
     fetchBestSellers();
+    fetchMensShoes();
+    fetchWomensShoes();
     fetchTestimonials();
   }, []);
 
@@ -210,6 +246,132 @@ const HomePage = () => {
       setLoadingSupport(false);
     }
   };
+
+  const renderProductSection = (products, loading, title, genderFilterId) => (
+    <section className={`${styles.collectionsSection} ${styles.fadeSlide}`}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 className={styles.sectionTitle}>{title}</h2>
+        <Button
+          type="link"
+          onClick={() => navigate(`/products?gender=${genderFilterId}`)}
+        >
+          Xem thêm
+        </Button>
+      </div>
+      {loading ? (
+        <div className={styles.loadingContainer}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Row gutter={[16, 16]} className={styles.flexRow}>
+          {products.length === 0 ? (
+            <Paragraph>Không tìm thấy sản phẩm nào.</Paragraph>
+          ) : (
+            products.map((product) => {
+              const hasDiscount = product.detail?.discount_percent > 0;
+              const isOutOfStock = product.detail?.inventory_number === 0;
+
+              return (
+                <Col
+                  xs={24}
+                  sm={12}
+                  md={6}
+                  key={product._id}
+                  className={styles.sameHeightCol}
+                >
+                  <Card
+                    hoverable
+                    className={styles.productCard}
+                    onClick={() => navigate(`/products/${product.detail._id}`)}
+                    cover={
+                      <div className={styles.productImageContainer}>
+                        <img
+                          alt={product.productName}
+                          src={
+                            product.detail?.images?.[0] ||
+                            "/placeholder-image.jpg"
+                          }
+                          className={`${styles.productImage}`}
+                          style={{
+                            filter: isOutOfStock ? "grayscale(50%)" : "none",
+                          }}
+                        />
+                        {isOutOfStock && (
+                          <div className={styles.outOfStockOverlay}>
+                            Hết hàng
+                          </div>
+                        )}
+                      </div>
+                    }
+                  >
+                    {hasDiscount && (
+                      <Tag color="red" className={styles.discountTag}>
+                        -{product.detail.discount_percent}%
+                      </Tag>
+                    )}
+                    <Card.Meta
+                      title={
+                        <span className={styles.productName}>
+                          {product.productName}
+                        </span>
+                      }
+                      description={
+                        <Paragraph
+                          ellipsis={{ rows: 2 }}
+                          className={styles.productDescription}
+                        >
+                          {product.title}
+                        </Paragraph>
+                      }
+                    />
+                    <div className={styles.priceAndCartContainer}>
+                      <div className={styles.priceContainer}>
+                        <span
+                          className={styles.originalPrice}
+                          style={{
+                            visibility: hasDiscount ? "visible" : "hidden",
+                          }}
+                        >
+                          {formatVND(product.price)}
+                        </span>
+                        <span className={styles.currentPrice}>
+                          {hasDiscount
+                            ? formatVND(product.detail?.price_after_discount)
+                            : formatVND(product.price)}
+                        </span>
+                      </div>
+                      <Button
+                        icon={<i className="bi bi-bag-heart" />}
+                        className={
+                          isOutOfStock
+                            ? styles.addToCartDisabled
+                            : styles.addToCart
+                        }
+                        onClick={(e) => {
+                          if (!isOutOfStock) {
+                            e.stopPropagation();
+                            handleAddToCart(product);
+                          }
+                        }}
+                        disabled={isOutOfStock}
+                        aria-label={`Add ${product.productName} to cart`}
+                      />
+                    </div>
+                  </Card>
+                </Col>
+              );
+            })
+          )}
+        </Row>
+      )}
+    </section>
+  );
 
   return (
     <main className={styles.main}>
@@ -373,6 +535,22 @@ const HomePage = () => {
         )}
       </section>
 
+      {/* Men's Shoes Section */}
+      {renderProductSection(
+        mensShoes,
+        loadingMensShoes,
+        "Giày Nam",
+        "685b71c0b8a801593cb7f606"
+      )}
+
+      {/* Women's Shoes Section */}
+      {renderProductSection(
+        womensShoes,
+        loadingWomensShoes,
+        "Giày Nữ",
+        "685b71c1b8a801593cb7f607"
+      )}
+
       {/* About Us Section */}
       <section
         id="about"
@@ -413,6 +591,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
       {/* Testimonials Section */}
       <section
         id="testimonials"
