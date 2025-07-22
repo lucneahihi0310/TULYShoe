@@ -768,7 +768,8 @@ const ManagerProduct = () => {
                         icon={<PlusOutlined />}
                         onClick={() => {
                             form_add_product_detail.setFieldsValue({
-                                product_id: currentProductId
+                                product_id: currentProductId,
+                                sold_number: 0
                             });
                             setAddProductDetail(true);
                         }}>
@@ -911,15 +912,11 @@ const ManagerProduct = () => {
                                 />
                             </Form.Item>
 
-                            <Form.Item
-                                label="Sold number"
-                                name="sold_number"
-                                rules={[
-                                    { required: true, message: "Please enter sold number" },
-                                ]}>
-                                <InputNumber
-                                    placeholder="Enter sold number"
+                            <Form.Item label="Sold number" name="sold_number">
+                                <Input
+                                value={0}
                                     style={{ width: "100%" }}
+                                    disabled
                                 />
                             </Form.Item>
 
@@ -1260,15 +1257,10 @@ const ManagerProduct = () => {
                             />
                         </Form.Item>
 
-                        <Form.Item
-                            label="Sold number"
-                            name="sold_number"
-                            rules={[
-                                { required: true, message: "Please enter sold number" },
-                            ]}>
+                        <Form.Item label="Sold number" name="sold_number">
                             <InputNumber
-                                placeholder="Enter sold number"
                                 style={{ width: "100%" }}
+                                disabled
                             />
                         </Form.Item>
 
