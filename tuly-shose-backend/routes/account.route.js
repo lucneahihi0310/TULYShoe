@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const middleware = require('../middlewares/auth.middleware');
 const { listAll, login, register, getUser, addAccount, forgotPassword, resetPassword, getFullUserInfo,
-     getProfile, updateProfile, changePassword, updateProfileUser,uploadAvatar, changePasswordUser } = require('../controllers/account.controller');
+    getProfile, updateProfile, changePassword, updateProfileUser, uploadAvatar, changePasswordUser, updateStatusAccount, delete_account, updateAccount } = require('../controllers/account.controller');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinaryUser');
@@ -37,7 +37,11 @@ router.put('/profile', middleware, updateProfileUser);
 router.put('/upload/avatar', middleware, upload.single('avatar'), uploadAvatar);
 router.put('/change-password-user', middleware, changePasswordUser);
 
-router.get('/profile/:id',middleware, getProfile);
-router.put('/profile/:id',middleware, updateProfile);
-router.put('/profile/:id/change-password',middleware, changePassword);
+router.get('/profile/:id', middleware, getProfile);
+router.put('/profile/:id', middleware, updateProfile);
+router.put('/profile/update/:id', middleware, updateAccount);
+router.patch('/profile/ban/:id', middleware, updateStatusAccount);
+router.patch('/profile/unban/:id', middleware, updateStatusAccount);
+router.delete('/profile/delete/:id', middleware, delete_account);
+router.put('/profile/:id/change-password', middleware, changePassword);
 module.exports = router;

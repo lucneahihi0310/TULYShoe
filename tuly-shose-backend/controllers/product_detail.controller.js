@@ -47,7 +47,7 @@ exports.list_product_detail_by_id = async (req, res, next) => {
                 color_id: p.color_id,
                 size_id: p.size_id,
                 discount_id: p.discount_id,
-                inventory_numer: p.inventory_numer,
+                inventory_number: p.inventory_number,
                 sold_number: p.sold_number,
                 price_after_discount: p.price_after_discount,
                 images: p.images,
@@ -91,12 +91,58 @@ exports.create_product_detail = async (req, res, next) => {
             sold_number,
             product_detail_status,
             images,
-            create_at: new Date().toISOString(),
-            update_at: new Date().toISOString(),
+            create_at: new Date(),
+            update_at: new Date(),
         });
 
         const savedDetail = await newDetail.save();
         return res.status(201).json(savedDetail);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.edit_product_detail = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const updateData = req.body;
+        updateData.update_at = new Date();
+        const updatedDetail = await product_detail.findByIdAndUpdate(id, updateData, { new: true });
+        if (!updatedDetail) {
+            return res.status(404).json({ message: 'Product detail not found' });
+        }
+        res.status(200).json(updatedDetail);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.delete_product_detail = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const deletedDetail = await product_detail.findByIdAndDelete(id);
+        if (!deletedDetail) {
+            return res.status(404).json({ message: 'Product detail not found' });
+        }
+        res.status(200).json({ message: 'Product detail deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.get_product_detail_by_id = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const productDetail = await product_detail.findById(id)
+            .populate("product_id")
+            .populate("color_id")
+            .populate("size_id")
+            .populate("discount_id")
+            .populate("product_detail_status");
+        if (!productDetail) {
+            return res.status(404).json({ message: 'Product detail not found' });
+        }
+        res.status(200).json(productDetail);
     } catch (error) {
         next(error);
     }

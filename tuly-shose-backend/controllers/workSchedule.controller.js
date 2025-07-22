@@ -1,5 +1,5 @@
 const WorkSchedule = require('../models/workSchedule.model');
-const WorkStatus = require('../models/workStatus.model'); 
+const WorkStatus = require('../models/workStatus.model');
 const Account = require('../models/account.modle');
 const moment = require('moment');
 
@@ -9,8 +9,8 @@ const getSchedulesByStaff = async (req, res) => {
 
     const schedules = await WorkSchedule.find({ staff_id: staffId })
       .populate('work_status_id')
-      .populate('staff_id', 'first_name last_name') 
-      .populate('created_by', 'first_name last_name') 
+      .populate('staff_id', 'first_name last_name')
+      .populate('created_by', 'first_name last_name')
       .sort({ schedule_date: 1, scheduled_start_time: 1 });
     if (!schedules || schedules.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy lịch làm việc' });
@@ -95,4 +95,50 @@ const checkOut = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message || JSON.stringify(error) });
   }
 };
-module.exports = { getSchedulesByStaff, checkIn ,checkOut};
+
+const createSchedule = async (req, res) => {
+  try {
+    const { staff_id, schedule_date, scheduled_start_time, scheduled_end_time, notes, is_recurring, recurrence_end_date } = req.body;
+    const schedule = new WorkSchedule({
+      staff_id,
+      schedule_date,
+      scheduled_start_time,
+      scheduled_end_time,
+      notes,
+      is_recurring: is_recurring || false,
+      recurrence_end_date: is_recurring ? recurrence_end_date : null,
+      created_by: req.user._id, // Giả định req.user chứa thông tin người dùng đã xác thực
+    });
+    await schedule.save();
+    res.status(201).json({ message: 'Tạo lịch làm việc thành công', schedule });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi tạo lịch làm việc', error });
+  }
+};
+
+const updateSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedSchedule = await WorkSchedule.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedSchedule) {
+      return res.status(404).json({ message: 'Không tìm thấy lịch làm việc' });
+    }
+    res.status(200).json({ message: 'Cập nhật lịch làm việc thành công', schedule: updatedSchedule });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi cập nhật lịch làm việc', error });
+  }
+};
+
+const deleteSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedSchedule = await WorkSchedule.findByIdAndDelete(id);
+    if (!deletedSchedule) {
+      return res.status(404).json({ message: 'Không tìm thấy lịch làm việc' });
+    }
+    res.status(200).json({ message: 'Xóa lịch làm việc thành công' });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi xóa lịch làm việc', error });
+  }
+};
+module.exports = { getSchedulesByStaff, checkIn, checkOut, createSchedule, updateSchedule, deleteSchedule };

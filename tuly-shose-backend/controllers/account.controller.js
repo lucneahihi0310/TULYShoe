@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-
+// Configure nodemailer
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -13,6 +13,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS,
     },
 });
+
 
 exports.getFullUserInfo = async (req, res) => {
     try {
@@ -132,12 +133,6 @@ exports.login = async (req, res, next) => {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: 'Email hoặc mật khẩu không đúng!' });
-
-        if (!user.is_active) {
-            return res.status(403).json({
-                message: 'Tài khoản đã bị khóa. Vui lòng liên hệ với đội ngũ hỗ trợ để xử lý!'
-            });
-        }
 
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) return res.status(400).json({ message: 'Email hoặc mật khẩu không đúng!' });
@@ -304,7 +299,7 @@ exports.forgotPassword = async (req, res, next) => {
         await user.save();
 
         const mailOptions = {
-            from: `"TULY Shoe Support" <${process.env.EMAIL_USER}>`,
+            from: process.env.EMAIL_USER,
             to: email,
             subject: "Đặt lại mật khẩu của bạn",
             html: `
@@ -379,6 +374,7 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 // GET /account/info
+
 exports.getProfile = async (req, res) => {
     try {
         const account = await User.findById(req.params.id)
@@ -401,6 +397,7 @@ exports.getProfile = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 exports.updateProfile = async (req, res) => {
     try {
@@ -428,6 +425,37 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.updateStatusAccount = async (req, res) => {
+    try {
+        const { is_active } = req.body;
+
+        const updatedAccount = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                is_active,
+                update_at: new Date()
+            },
+            { new: true, runValidators: true }
+        ).select('-password -resetToken -resetTokenExpiration');
+
+        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
+
+        res.status(200).json({ message: 'Account change status successfully', account: updatedAccount });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.delete_account = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const deleteAccount = await User.findByIdAndDelete(id);
+        res.status(201).json({ message: 'Account delete successfully', account: deleteAccount });
+    } catch (error) {
+        next(error);
+    }
+}
 
 exports.changePassword = async (req, res) => {
     try {
@@ -460,6 +488,32 @@ exports.changePassword = async (req, res) => {
         res.status(200).json({ message: 'Password changed successfully' });
     } catch (err) {
         console.error('Server error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.updateAccount = async (req, res) => {
+    try {
+        const { first_name, last_name, dob, gender, phone, email } = req.body;
+
+        const updatedAccount = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                first_name,
+                last_name,
+                dob,
+                gender,
+                phone,
+                email,
+                update_at: new Date()
+            },
+            { new: true, runValidators: true }
+        ).select('-password -resetToken -resetTokenExpiration');
+
+        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
+
+        res.status(200).json({ message: 'Profile updated successfully', account: updatedAccount });
+    } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
 };

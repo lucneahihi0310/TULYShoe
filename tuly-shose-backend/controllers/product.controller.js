@@ -276,7 +276,7 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
 
 exports.list_product = async (req, res, next) => {
   try {
-    const newProduct = await Product.find().populate("categories_id").populate("brand_id").populate("material_id").populate("form_id");
+    const newProduct = await Product.find().populate("categories_id").populate("brand_id").populate("material_id").populate("form_id").populate("gender_id");
     const listProduct = newProduct.map((p) => {
       return {
         _id: p.id,
@@ -288,6 +288,7 @@ exports.list_product = async (req, res, next) => {
         brand_id: p.brand_id,
         material_id: p.material_id,
         form_id: p.form_id,
+        gender_id: p.gender_id,
         create_at: formatDateTime(p.create_at),
         update_at: formatDateTime(p.update_at)
       }
@@ -308,7 +309,10 @@ exports.create_product = async (req, res, next) => {
       categories_id: req.body.categories_id,
       brand_id: req.body.brand_id,
       material_id: req.body.material_id,
-      form_id: req.body.form_id
+      form_id: req.body.form_id,
+      gender_id: req.body.gender_id,
+      create_at: new Date(),
+      update_at: new Date()
     })
     const insertProduct = await newProduct.save();
     res.status(201).json(insertProduct);
@@ -332,7 +336,8 @@ exports.edit_product = async (req, res, next) => {
         brand_id,
         material_id,
         form_id,
-        update_at: new Date().toISOString()
+        gender_id,
+        update_at: new Date()
       }
     )
     res.status(201).json(newProduct);

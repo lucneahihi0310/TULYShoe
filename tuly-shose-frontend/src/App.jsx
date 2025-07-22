@@ -89,7 +89,7 @@ function App() {
 
         <Route
           path="/manager"
-          element={<Navigate to="/manager/brands" replace />}
+          element={<Navigate to="/manager/statistic" replace />}
         />
         <Route
           path="/manager/:section"

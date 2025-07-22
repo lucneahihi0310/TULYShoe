@@ -225,7 +225,7 @@ const ManagerMaterial = () => {
         }
     ];
     return (
-        <div style={{ borderRadius: '20px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
+        <div style={{ borderRadius: '0px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
             <Row gutter={16} style={{ padding: '10px' }}>
                 <Col span={4}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>

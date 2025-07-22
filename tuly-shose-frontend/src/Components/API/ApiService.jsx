@@ -123,6 +123,23 @@ export const deleteData = async (endpoint, id, includeAuth = false) => {
     throw new Error(message);
   }
 };
+
+//PATCH
+export const patchData = async (endpoint, id, data, includeAuth = false) => {
+  try {
+    const config = includeAuth
+      ? { headers: { Authorization: `Bearer ${getToken()}` } }
+      : {};
+
+    const response = await axiosInstance.patch(`${endpoint}/${id}`, data, config);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to patch.";
+    throw new Error(message);
+  }
+};
+
+
 export const uploadAvatar = async (formData) => {
   try {
     const token =
