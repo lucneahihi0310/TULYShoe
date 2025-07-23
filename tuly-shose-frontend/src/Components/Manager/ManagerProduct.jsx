@@ -50,7 +50,7 @@ const ManagerProduct = () => {
         });
         const json = await res.json();
         if (json.secure_url) {
-            const croppedUrl = json.secure_url.replace('/upload/', '/upload/c_crop,h_560,w_560/');
+            const croppedUrl = json.secure_url.replace('/upload/', '/upload/c_crop,h_1000,w_1000/');
             return croppedUrl;
         }
 
