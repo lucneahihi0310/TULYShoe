@@ -1,5 +1,6 @@
 const CartItem = require('../models/cartItem.model');
 const ProductDetail = require('../models/productDetail.model');
+const mongoose = require('mongoose');
 
 exports.getAllCartItems = async (req, res) => {
     try {
@@ -198,9 +199,25 @@ exports.updateCartItemQuantity = async (req, res) => {
 
 exports.deleteCartItem = async (req, res) => {
     try {
-        const deleted = await CartItem.findByIdAndDelete(req.params.id);
-        if (!deleted) return res.status(404).json({ message: "Không tìm thấy mục để xóa" });
-        res.json({ message: "Đã xóa khỏi giỏ hàng" });
+        const { id } = req.params;
+        const { pdetail_ids, user_id } = req.body;
+
+        if (id) {
+            // Delete single item by ID
+            const deleted = await CartItem.findByIdAndDelete(id);
+            if (!deleted) return res.status(404).json({ message: "Không tìm thấy mục để xóa" });
+            return res.json({ message: "Đã xóa khỏi giỏ hàng" });
+        } else if (pdetail_ids && Array.isArray(pdetail_ids) && user_id) {
+            // Delete multiple items by pdetail_ids and user_id
+            const deleted = await CartItem.deleteMany({
+                pdetail_id: { $in: pdetail_ids.map(id => new mongoose.Types.ObjectId(id)) },
+                user_id: new mongoose.Types.ObjectId(user_id)
+            });
+            if (deleted.deletedCount === 0) return res.status(404).json({ message: "Không tìm thấy mục để xóa" });
+            return res.json({ message: `Đã xóa ${deleted.deletedCount} mục khỏi giỏ hàng` });
+        } else {
+            return res.status(400).json({ message: "Thiếu id hoặc pdetail_ids và user_id để xóa" });
+        }
     } catch (error) {
         res.status(500).json({ message: "Lỗi khi xóa", error: error.message });
     }
