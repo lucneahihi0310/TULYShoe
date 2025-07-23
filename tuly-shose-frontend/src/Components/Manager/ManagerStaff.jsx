@@ -123,9 +123,9 @@ const ManagerStaff = () => {
     // };
 
     // Hủy modal thêm nhân viên
-    const handleStaffCancel = () => {
-        setIsStaffModalVisible(false);
-    };
+    // const handleStaffCancel = () => {
+    //     setIsStaffModalVisible(false);
+    // };
 
     // Cột của bảng nhân viên
     const columns = [

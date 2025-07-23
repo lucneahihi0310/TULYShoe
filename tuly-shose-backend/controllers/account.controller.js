@@ -517,3 +517,66 @@ exports.updateAccount = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.addStaff = async (req, res, next) => {
+    try {
+        const {
+            first_name,
+            last_name,
+            dob,
+            gender,
+            address,
+            email,
+            phone,
+            password
+        } = req.body;
+
+        // Validate required fields
+        if (!first_name || !last_name || !dob || !gender || !address || !email || !phone || !password) {
+            return res.status(400).json({ message: 'Vui lòng điền đầy đủ các trường bắt buộc!' });
+        }
+
+        // Check for existing email
+        const existsEmail = await User.findOne({ email });
+        if (existsEmail) return res.status(400).json({ message: 'Email đã tồn tại!' });
+
+        // Check for existing phone
+        const existsPhone = await User.findOne({ phone });
+        if (existsPhone) return res.status(400).json({ message: 'Số điện thoại đã tồn tại!' });
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Create new address
+        const newAddress = await Address.create({
+            address,
+            create_at: Date.now(),
+            update_at: null
+        });
+
+        // Create new user
+        const user = await User.create({
+            first_name,
+            last_name,
+            dob,
+            gender,
+            address_shipping_id: newAddress._id,
+            email,
+            phone,
+            password: passwordHash,
+            role: "staff",
+            avatar_image: null,
+            is_active: true,
+            create_at: Date.now(),
+            update_at: Date.now()
+        });
+
+        // Update address with user_id
+        await Address.findByIdAndUpdate(newAddress._id, { user_id: user._id });
+
+        res.status(201).json(user);
+    } catch (error) {
+        console.error("Lỗi thêm tài khoản:", error);
+        next(error);
+    }
+};
