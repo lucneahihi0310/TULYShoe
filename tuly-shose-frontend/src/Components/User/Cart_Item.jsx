@@ -48,6 +48,7 @@ function CartItem() {
           inventory_number: item.pdetail_id.inventory_number,
         }));
         setCartItems(mapped);
+        setSelectedRowKeys(mapped.map((item) => item._id));
       } else {
         const guest = JSON.parse(localStorage.getItem("guest_cart") || "[]");
         const details = await Promise.all(
@@ -74,7 +75,9 @@ function CartItem() {
             }
           })
         );
-        setCartItems(details.filter(Boolean));
+        const filtered = details.filter(Boolean);
+        setCartItems(filtered);
+        setSelectedRowKeys(filtered.map((item) => item._id));
       }
     } catch (e) {
       console.error("Lỗi khi lấy giỏ hàng:", e);
