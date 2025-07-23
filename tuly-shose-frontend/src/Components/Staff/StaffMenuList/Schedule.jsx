@@ -42,11 +42,20 @@ const ScheduleCalendar = () => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
     if (name === 'date' && value) {
-    setCurrentDate(new Date(value));
-  }
+      setCurrentDate(new Date(value));
+    }
   };
 
   const handleCheckIn = async (schedule) => {
+    const now = moment();
+    const startTime = moment(`${schedule.schedule_date}T${schedule.scheduled_start_time}`);
+    const diffMinutes = startTime.diff(now, 'minutes');
+
+    if (diffMinutes > 10) {
+      toast.warn('Bạn chỉ được check-in trong vòng 10 phút trước khi ca làm bắt đầu.');
+      return;
+    }
+
     try {
       await checkInSchedule(schedule._id);
       toast.success('Check-in thành công!');
@@ -58,6 +67,15 @@ const ScheduleCalendar = () => {
   };
 
   const handleCheckOut = async (schedule) => {
+    const now = moment();
+    const endTime = moment(`${schedule.schedule_date}T${schedule.scheduled_end_time}`);
+    const diffMinutes = endTime.diff(now, 'minutes');
+
+    if (diffMinutes > 10) {
+      toast.warn('Bạn chỉ được check-out trong vòng 10 phút trước khi ca làm kết thúc.');
+      return;
+    }
+
     try {
       await checkOutSchedule(schedule._id);
       toast.success('Check-out thành công!');
@@ -97,16 +115,15 @@ const ScheduleCalendar = () => {
   }));
 
   const eventPropGetter = (event) => {
-  const status = event.resource.work_status;
-  let className = '';
-  if (status === 'Chưa bắt đầu ca làm') className = 'chua-bat-dau';
-  else if (status === 'Đang thực hiện công việc') className = 'dang-lam';
-  else if (status === 'Ca làm đã hoàn thành') className = 'hoan-thanh';
-  return { className };
-};
+    const status = event.resource.work_status;
+    let className = '';
+    if (status === 'Chưa bắt đầu ca làm') className = 'chua-bat-dau';
+    else if (status === 'Đang thực hiện công việc') className = 'dang-lam';
+    else if (status === 'Ca làm đã hoàn thành') className = 'hoan-thanh';
+    return { className };
+  };
 
-
-  const customTimeGutterFormat = (date, culture, localizer) => {
+  const customTimeGutterFormat = (date) => {
     const hour = moment(date).hour();
     if (hour >= 7 && hour < 12) return '7:00 - 12:00';
     if (hour >= 12 && hour < 17) return '12:00 - 17:00';
@@ -115,15 +132,11 @@ const ScheduleCalendar = () => {
   };
 
   const CustomEvent = ({ event }) => (
-  <div className="custom-event">
-    <span>{event.title}</span>
-    <FaEye
-      className="clickable"
-      onClick={() => handleSelectEvent(event)}
-    />
-  </div>
-);
-
+    <div className="custom-event">
+      <span>{event.title}</span>
+      <FaEye className="clickable" onClick={() => handleSelectEvent(event)} />
+    </div>
+  );
 
   return (
     <Container fluid className="mt-4 calendar-container">
@@ -136,8 +149,9 @@ const ScheduleCalendar = () => {
       ) : (
         <>
           <div className="header-bar mb-4">
-            <h3>Lịch làm việc tuần: {moment(currentDate).startOf('week').format('DD/MM')} - {moment(currentDate).endOf('week').format('DD/MM')}</h3>
-            
+            <h3>
+              Lịch làm việc tuần: {moment(currentDate).startOf('week').format('DD/MM')} - {moment(currentDate).endOf('week').format('DD/MM')}
+            </h3>
           </div>
 
           <Row className="mb-3">
@@ -154,11 +168,11 @@ const ScheduleCalendar = () => {
                 <option value="Ca làm đã hoàn thành">Hoàn thành</option>
               </Form.Control>
             </Col>
-            <Col md ={6}>
-            <div className="button-group" >
-              <Button variant="outline-primary" onClick={handlePrevWeek}>Tuần trước</Button>
-              <Button variant="outline-primary" onClick={handleNextWeek}>Tuần sau</Button>
-            </div>
+            <Col md={6}>
+              <div className="button-group">
+                <Button variant="outline-primary" onClick={handlePrevWeek}>Tuần trước</Button>
+                <Button variant="outline-primary" onClick={handleNextWeek}>Tuần sau</Button>
+              </div>
             </Col>
           </Row>
 
@@ -178,7 +192,6 @@ const ScheduleCalendar = () => {
             min={new Date(1970, 1, 1, 7, 0)}
             max={new Date(1970, 1, 1, 21, 0)}
             formats={{ timeGutterFormat: customTimeGutterFormat }}
-            
           />
 
           <Modal show={!!selectedEvent} onHide={() => setSelectedEvent(null)} centered>

@@ -63,3 +63,21 @@ export const updateOrderStatus = async (orderId, newStatusName) => {
     throw error;
   }
 };
+
+export const fetchOrderStatuses = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/staff/orders/order-status`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch order statuses");
+    }
+    const data = await response.json();
+    return data.statuses; // mảng chứa các trạng thái
+  } catch (error) {
+    console.error("Error fetching order statuses:", error);
+    return [];
+  }
+};

@@ -17,7 +17,7 @@ import {
   Alert,
 } from "react-bootstrap"
 import { FaEye, FaCheck, FaSearch, FaFilter, FaUser, FaMapMarkerAlt } from "react-icons/fa"
-import { fetchOrders, confirmOrder, updateOrderStatus } from "../../API/orderApi"
+import { fetchOrders, confirmOrder, updateOrderStatus, fetchOrderStatuses } from "../../API/orderApi"
 import { AuthContext } from "../../API/AuthContext"
 import Swal from "sweetalert2"
 
@@ -31,7 +31,7 @@ const OrderList = () => {
   const [loading, setLoading] = useState(false)
   const itemsPerPage = 6
   const { user } = useContext(AuthContext)
-
+const [statusList, setStatusList] = useState([]);
   const statusVariants = {
     "Chờ xác nhận": "warning",
     "Đã xác nhận": "info",
@@ -40,7 +40,6 @@ const OrderList = () => {
     "Đã hủy": "danger",
   }
 
-  const statusOptions = ["Chờ xác nhận", "Đã xác nhận", "Đang vận chuyển", "Hoàn thành"]
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -58,6 +57,19 @@ const OrderList = () => {
     }
     loadOrders()
   }, [])
+
+  useEffect(() => {
+  const loadStatuses = async () => {
+    try {
+      const data = await fetchOrderStatuses();
+      setStatusList(data); // data là mảng trạng thái từ API
+    } catch (error) {
+      console.error("Lỗi khi tải trạng thái:", error);
+    }
+  };
+  loadStatuses();
+}, []);
+console.log(statusList);
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value)
   const handleFilterChange = (e) => setFilterStatus(e.target.value)
@@ -209,14 +221,16 @@ const OrderList = () => {
             <InputGroup.Text>
               <FaFilter />
             </InputGroup.Text>
-            <Form.Select value={filterStatus} onChange={handleFilterChange}>
-              <option value="">Tất cả trạng thái</option>
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </Form.Select>
+            
+<Form.Select value={filterStatus} onChange={handleFilterChange}>
+  <option value="">Tất cả trạng thái</option>
+  {statusList.map((status) => (
+    <option key={status._id || status.order_status_name} value={status.order_status_name}>
+      {status.order_status_name}
+    </option>
+  ))}
+</Form.Select>
+
           </InputGroup>
         </Col>
         <Col md={2}>
@@ -291,18 +305,23 @@ const OrderList = () => {
                             </td>
                             <td className="align-middle">
                               <Form.Select
-                                size="sm"
-                                value={order.order_status}
-                                onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                                disabled={!order.accepted_by}
-                                className="w-auto"
-                              >
-                                {getAvailableStatusOptions(order.order_status).map((status) => (
-                                  <option key={status} value={status}>
-                                    {status}
-                                  </option>
-                                ))}
-                              </Form.Select>
+  size="sm"
+  value={order.order_status}
+  onChange={(e) => handleStatusChange(order._id, e.target.value)}
+  disabled={!order.accepted_by}
+  className="w-auto"
+>
+  {statusList
+    .filter((status) =>
+      getAvailableStatusOptions(order.order_status).includes(status.order_status_name)
+    )
+    .map((status) => (
+      <option key={status._id || status.order_status_name} value={status.order_status_name}>
+        {status.order_status_name}
+      </option>
+    ))}
+</Form.Select>
+
                               
                             </td>
                             

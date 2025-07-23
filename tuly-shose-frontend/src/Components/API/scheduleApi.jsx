@@ -19,7 +19,7 @@ export const fetchSchedulesByStaff = async (staffId) => {
 // Check-in
 export const checkInSchedule = async (scheduleId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/staff/schedules/checkin/${scheduleId}`, { method: 'PUT' });
+    const response = await fetch(`${BASE_URL}/staff/schedules/checkin/${scheduleId}`, { method: 'PUT' });
     if (!response.ok) throw new Error('Check-in thất bại');
     return await response.json();
   } catch (error) {
@@ -31,7 +31,7 @@ export const checkInSchedule = async (scheduleId) => {
 // Check-out
 export const checkOutSchedule = async (scheduleId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/staff/schedules/checkout/${scheduleId}`, { method: 'PUT' });
+    const response = await fetch(`${BASE_URL}/staff/schedules/checkout/${scheduleId}`, { method: 'PUT' });
     if (!response.ok) throw new Error('Check-out thất bại');
     return await response.json();
   } catch (error) {

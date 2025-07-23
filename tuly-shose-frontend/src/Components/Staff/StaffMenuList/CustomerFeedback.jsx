@@ -44,7 +44,7 @@ const ReviewTable = () => {
 
   useEffect(() => {
     let filtered = [...reviews];
-
+    filtered.sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
     if (searchTerm.trim()) {
       filtered = filtered.filter((r) =>
         r.userName?.toLowerCase().includes(searchTerm.toLowerCase())
