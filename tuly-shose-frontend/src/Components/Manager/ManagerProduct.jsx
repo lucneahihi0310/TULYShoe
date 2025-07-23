@@ -60,7 +60,7 @@ const ManagerProduct = () => {
   const [croppedImages, setCroppedImages] = useState([]);
   const cropperRef = useRef(null);
   const [fileQueue, setFileQueue] = useState([]);
-
+  const [expanded, setExpanded] = useState(false);
   // Hàm upload lên Cloudinary
   const uploadToCloudinary = async (file) => {
     const data = new FormData();
@@ -384,21 +384,29 @@ const ManagerProduct = () => {
       dataIndex: "description",
       key: "description",
       width: 200,
-      render: (value, record) => {
-        if (record._id == edittingRow) {
-          return (
-            <Form.Item
-              name="description"
-              rules={[
-                { required: true, message: "Please enter product description" },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          );
-        } else {
-          return <div>{value}</div>;
-        }
+      render: (value) => {
+        const toggleExpanded = () => {
+          setExpanded((prev) => !prev);
+        };
+
+        const shortText = value?.slice(0, 120);
+
+        return (
+          <div>
+            {expanded ? value : shortText + (value.length > 120 ? "..." : "")}
+            {value.length > 120 && (
+              <div>
+                <Button
+                  type="link"
+                  onClick={toggleExpanded}
+                  style={{ padding: 0 }}
+                >
+                  {expanded ? "Ẩn bớt" : "Xem thêm"}
+                </Button>
+              </div>
+            )}
+          </div>
+        );
       },
     },
     {
