@@ -75,7 +75,7 @@ const ManagerProduct = () => {
     );
     const json = await res.json();
     if (json.secure_url) {
-      return json.secure_url.replace("/upload/", "/upload/c_crop,h_560,w_560/");
+      return json.secure_url;
     }
     throw new Error("Upload failed");
   };
@@ -91,13 +91,22 @@ const ManagerProduct = () => {
   // Crop và upload ảnh
   const handleCropAndUpload = async () => {
     if (cropperRef.current?.cropper) {
-      const croppedCanvas = cropperRef.current.cropper.getCroppedCanvas();
+      const cropper = cropperRef.current.cropper;
+      const cropBoxData = cropper.getCropBoxData();
+
+      const croppedCanvas = cropper.getCroppedCanvas({
+        width: cropBoxData.width,
+        height: cropBoxData.height,
+      });
+
       croppedCanvas.toBlob(async (blob) => {
         const croppedFile = new File([blob], `cropped-${Date.now()}.png`, {
           type: "image/png",
         });
+
         try {
           const url = await uploadToCloudinary(croppedFile);
+
           setCroppedImages((prev) => [...prev, url]);
           setFileList((prev) =>
             prev.map((f) =>
