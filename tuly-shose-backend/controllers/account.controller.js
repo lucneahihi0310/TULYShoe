@@ -204,7 +204,7 @@ exports.register = async (req, res, next) => {
 
 exports.listAll = async (req, res, next) => {
     try {
-        const users = await User.find();
+        const users = await User.find().populate("address_shipping_id");
         res.json(users);
     } catch (error) {
         next(error);
@@ -494,27 +494,43 @@ exports.changePassword = async (req, res) => {
 
 exports.updateAccount = async (req, res) => {
     try {
-        const { first_name, last_name, dob, gender, phone, email } = req.body;
+        const { first_name, last_name, phone, dob, gender, address, email } = req.body;
 
-        const updatedAccount = await User.findByIdAndUpdate(
-            req.params.id,
-            {
-                first_name,
-                last_name,
-                dob,
-                gender,
-                phone,
-                email,
-                update_at: new Date()
+        const user = await User.findById(req.params.id);
+
+        if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+
+        user.first_name = first_name || "";
+        user.last_name = last_name || user.last_name;
+        user.dob = dob || user.dob;
+        user.gender = gender || user.gender;
+        user.phone = phone || user.phone;
+        user.email = email || user.email;
+        user.update_at = new Date();
+
+        if (address && user.address_shipping_id) {
+            await Address.findByIdAndUpdate(user.address_shipping_id, {
+                address,
+                update_at: new Date(),
+            });
+        }
+
+        await user.save();
+
+        res.json({
+            message: 'Cập nhật thông tin thành công',
+            user: {
+                first_name: user.first_name,
+                last_name: user.last_name,
+                dob: user.dob,
+                gender: user.gender,
+                phone: user.phone,
+                email: user.email,
             },
-            { new: true, runValidators: true }
-        ).select('-password -resetToken -resetTokenExpiration');
-
-        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
-
-        res.status(200).json({ message: 'Profile updated successfully', account: updatedAccount });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        });
+    } catch (error) {
+        console.error('Cập nhật thông tin thất bại:', error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật thông tin' });
     }
 };
 

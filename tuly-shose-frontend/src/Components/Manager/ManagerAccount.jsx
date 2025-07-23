@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message } from "antd";
 import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import { fetchData, postData, updateData, deleteData, patchData } from "../API/ApiService";
 
 const ManagerAccount = () => {
     const [categories, setCategories] = useState([]);
-    const [addresses, setAddresses] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -28,6 +27,7 @@ const ManagerAccount = () => {
             last_name: record.last_name,
             dob: isoLocal,
             gender: record.gender,
+            address: record.address_shipping_id.address,
             email: record.email,
             phone: record.phone
         });
@@ -83,15 +83,10 @@ const ManagerAccount = () => {
     //fetch data và filter category
     useEffect(() => {
         fetchCategories();
-        fetchAddress();
     }, [])
     const fetchCategories = async () => {
         const res = await fetchData('/account', true);
         setCategories(res);
-    }
-    const fetchAddress = async () => {
-        const res = await fetchData('/address/customers', true);
-        setAddresses(res);
     }
     const searchCategory = categories.filter((c) => {
         if (!filterCategoryName) return true;
@@ -157,7 +152,7 @@ const ManagerAccount = () => {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            width: 100,
+            width: 80,
             render: (value, record) => {
                 return (
                     <div>
@@ -396,6 +391,7 @@ const ManagerAccount = () => {
                                 last_name: values.last_name,
                                 dob: values.dob,
                                 gender: values.gender,
+                                address: values.address,
                                 phone: values.phone,
                                 email: values.email
                             }, true);
@@ -423,7 +419,7 @@ const ManagerAccount = () => {
                             { label: "Khác", value: "Khác" },
                         ]} />
                     </Form.Item>
-                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: true }]}>
+                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: false }]}>
                         <Input />
                     </Form.Item>
                     <Form.Item name="email" label="Email" rules={[{ type: 'email', required: false }]}>
