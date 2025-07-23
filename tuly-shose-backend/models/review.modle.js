@@ -15,18 +15,17 @@ const reviewSchema = new mongoose.Schema({
         required: true,
     },
     review_content: { type: String, required: true },
-    images: [{ type: String, required: true }],
+    images: [{ type: String }],
     rating: { type: Number, required: true },
     review_date: { type: Date, required: true },
     is_approved: { type: Boolean, required: true },
     replies: {
         replier_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Account",
-            required: true,
+            ref: "Account"
         },
-        reply_content: { type: String, required: true },
-        reply_date: { type: Date, required: true },
+        reply_content: { type: String },
+        reply_date: { type: Date },
         create_at: { type: Date, default: Date.now },
         update_at: { type: Date, default: Date.now }
     },

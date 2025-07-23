@@ -1,16 +1,23 @@
-import React, { useEffect, useState, useContext } from "react";
-import { Card, Avatar, Button, Input, Tabs, Row, Col, Select } from "antd";
-import { AuthContext } from "../../API/AuthContext";
-import Swal from "sweetalert2";
-import { fetchStaffProfile, updateStaffProfile, changeStaffPassword, updateShippingAddress, uploadImage } from "../../API/staffApi";
+"use client"
 
-const { TabPane } = Tabs;
+import { useEffect, useState, useContext } from "react"
+import { Container, Row, Col, Card, Form, Button, Image, Tabs, Tab, Spinner, Alert } from "react-bootstrap"
+import { AuthContext } from "../../API/AuthContext"
+import Swal from "sweetalert2"
+import { FaUser, FaLock, FaCamera, FaEdit, FaSave } from "react-icons/fa"
+import {
+  fetchStaffProfile,
+  updateStaffProfile,
+  changeStaffPassword,
+  updateShippingAddress,
+  uploadImage,
+} from "../../API/staffApi"
 
 const StaffProfile = () => {
-  const { user } = useContext(AuthContext);
-  const staffId = user?._id;
-
-  const [staff, setStaff] = useState(null);
+  const { user } = useContext(AuthContext)
+  const staffId = user?._id
+  const [staff, setStaff] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({
     fullName: "",
     username: "",
@@ -23,15 +30,15 @@ const StaffProfile = () => {
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
-  });
-  const { Option } = Select;
+  })
 
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
 
   const isFormChanged = () => {
-    const [first_name, ...rest] = form.fullName.trim().split(" ");
-    const last_name = rest.join(" ");
+    if (!staff) return false
+    const [first_name, ...rest] = form.fullName.trim().split(" ")
+    const last_name = rest.join(" ")
     return (
       first_name !== staff.first_name ||
       last_name !== staff.last_name ||
@@ -40,17 +47,18 @@ const StaffProfile = () => {
       form.dob !== (staff.dob ? staff.dob.substring(0, 10) : "") ||
       form.address !== staff.address ||
       selectedFile !== null
-    );
-  };
+    )
+  }
 
   useEffect(() => {
-    if (staffId) loadProfile();
-  }, [staffId]);
+    if (staffId) loadProfile()
+  }, [staffId])
 
   const loadProfile = async () => {
     try {
-      const res = await fetchStaffProfile(staffId);
-      setStaff(res);
+      setLoading(true)
+      const res = await fetchStaffProfile(staffId)
+      setStaff(res)
       setForm({
         fullName: `${res.first_name} ${res.last_name}`,
         username: res.first_name.toLowerCase() + res.last_name.toLowerCase(),
@@ -63,45 +71,46 @@ const StaffProfile = () => {
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
-      });
+      })
     } catch (error) {
-      Swal.fire("Error", "Failed to load profile.", "error");
+      Swal.fire("Error", "Failed to load profile.", "error")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   const handleInputChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
 
   const handleUpdateInfo = async () => {
     if (!isFormChanged()) {
       return Swal.fire({
-        icon: 'info',
-        title: 'Không có thay đổi',
-        text: 'Vui lòng cập nhật thông tin trước khi lưu!',
-      });
+        icon: "info",
+        title: "Không có thay đổi",
+        text: "Vui lòng cập nhật thông tin trước khi lưu!",
+      })
     }
 
     const confirmResult = await Swal.fire({
-      title: 'Bạn có chắc chắn muốn cập nhật không?',
-      text: 'Thao tác này sẽ thay đổi thông tin cá nhân của bạn!',
-      icon: 'warning',
+      title: "Xác nhận cập nhật",
+      text: "Bạn có chắc chắn muốn cập nhật thông tin?",
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: '#ff4d4f',
-      cancelButtonColor: '#d9d9d9',
-      confirmButtonText: 'Cập nhật',
-      cancelButtonText: 'Huỷ',
-
-    });
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Cập nhật",
+      cancelButtonText: "Hủy",
+    })
 
     if (confirmResult.isConfirmed) {
       try {
-        const [first_name, ...rest] = form.fullName.trim().split(" ");
-        const last_name = rest.join(" ");
+        const [first_name, ...rest] = form.fullName.trim().split(" ")
+        const last_name = rest.join(" ")
+        let avatarUrl = staff.avatar_image
 
-        let avatarUrl = staff.avatar_image;
         if (selectedFile) {
-          avatarUrl = await uploadImage(selectedFile);
+          avatarUrl = await uploadImage(selectedFile)
         }
 
         await updateStaffProfile(staffId, {
@@ -111,196 +120,282 @@ const StaffProfile = () => {
           dob: form.dob,
           gender: form.gender,
           avatar_image: avatarUrl,
-        });
+        })
 
-        await updateShippingAddress(staff.address_id, form.address);
+        await updateShippingAddress(staff.address_id, form.address)
 
         await Swal.fire({
-          icon: 'success',
-          title: 'Cập nhật thành công!',
+          icon: "success",
+          title: "Cập nhật thành công!",
           showConfirmButton: false,
           timer: 1500,
-        });
+        })
 
-        loadProfile();
+        loadProfile()
+        setSelectedFile(null)
+        setSelectedImage(null)
       } catch (error) {
         Swal.fire({
-          icon: 'error',
-          title: 'Cập nhật thất bại!',
-          text: error.message || 'Vui lòng thử lại.',
-        });
+          icon: "error",
+          title: "Cập nhật thất bại!",
+          text: error.message || "Vui lòng thử lại.",
+        })
       }
     }
-  };
-
-
+  }
 
   const handleChangePassword = async () => {
     if (form.newPassword !== form.confirmPassword) {
-      return Swal.fire("Error", "Mật khẩu mới không trùng với mật khẩu xác nhận.", "error");
+      return Swal.fire("Error", "Mật khẩu mới không trùng với mật khẩu xác nhận.", "error")
     }
 
     try {
-      await changeStaffPassword(staffId, form.oldPassword, form.newPassword);
-      Swal.fire("Success", "Thay đổi mật khẩu thành công.", "success");
-      setForm({ ...form, oldPassword: "", newPassword: "", confirmPassword: "" });
+      await changeStaffPassword(staffId, form.oldPassword, form.newPassword)
+      Swal.fire("Success", "Thay đổi mật khẩu thành công.", "success")
+      setForm({ ...form, oldPassword: "", newPassword: "", confirmPassword: "" })
     } catch (error) {
-      Swal.fire("Error", "Cập nhật mật khẩu thất bại.", "error");
+      Swal.fire("Error", "Cập nhật mật khẩu thất bại.", "error")
     }
-  };
+  }
 
-  if (!staff) return <p>Loading...</p>;
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 1024 * 1024) {
+        Swal.fire("Error", "Kích thước file không được vượt quá 1MB", "error")
+        return
+      }
+      setSelectedImage(URL.createObjectURL(file))
+      setSelectedFile(file)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Container fluid className="py-4">
+        <div className="text-center">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-3">Đang tải thông tin...</p>
+        </div>
+      </Container>
+    )
+  }
+
+  if (!staff) return <Alert variant="danger">Không thể tải thông tin người dùng</Alert>
 
   return (
-    <div
-      style={{
-
-        background: "#f0f2f5",
-        minHeight: "100vh",
-        padding: "32px 16px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 1100,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          overflow: "hidden",
-        }}
-      >
-        <Row gutter={32} style={{ padding: "20px" }}>
-          <Col xs={24} md={8}>
-            <Card style={{ borderRadius: 12, textAlign: "center", paddingTop: 24 }}>
-              <Avatar size={100} src={selectedImage || staff.avatar_image} />
-              <h2 style={{ marginTop: 16 }}>{form.fullName}</h2>
-              <p>@{form.username}</p>
-              <Button
-                type="primary"
-                style={{ marginTop: 12, backgroundColor: "#ff4d4f" }}
-                onClick={() => document.getElementById('upload-photo').click()}
-              >
-                Chọn Ảnh Mới
-              </Button>
-
-              <input
-                type="file"
-                id="upload-photo"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    setSelectedImage(URL.createObjectURL(file)); // Xem trước ảnh
-                    setSelectedFile(file); // Lưu file để upload
-                  }
-                }}
-              />
-
-
-              <label htmlFor="upload-photo">
-
-              </label>
-
-              <p style={{ marginTop: 12, fontSize: 12 }}>
-                Tải lên ảnh đại diện mới. Ảnh lớn hơn sẽ tự động được thay đổi kích thước.
-                <br />
-
-                Kích thước tải lên tối đa là <strong>1 MB</strong>
-              </p>
-            </Card>
-          </Col>
-
-          <Col xs={24} md={16}>
-            <Card style={{ borderRadius: 12 }}>
-              <h2>Cập nhật thông tin</h2>
-              <Tabs defaultActiveKey="1" style={{ marginTop: 24 }}>
-                <TabPane tab="Thông tin cá nhân" key="1">
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <label>Họ và Tên</label>
-                      <Input name="fullName" value={form.fullName} onChange={handleInputChange} />
-                    </Col>
-                    <Col span={12}>
-                      <label>Username</label>
-                      <Input name="username" value={form.username} disabled />
-                    </Col>
-
-                    <Col span={12} style={{ marginTop: 16 }}>
-                      <label>Email </label>
-                      <Input name="email" value={form.email} disabled />
-                    </Col>
-
-                    <Col span={12} style={{ marginTop: 16 }}>
-                      <label>Số điện thoại</label>
-                      <Input name="phone" value={form.phone} onChange={handleInputChange} />
-                    </Col>
-
-                    <Col span={12} style={{ marginTop: 16 }}>
-                      <label>Giới tính</label>
-                      <Select
-                        name="gender"
-                        value={form.gender}
-                        onChange={(value) => setForm({ ...form, gender: value })}
-                        style={{ width: '100%' }}
-                      >
-                        <Option value="Male">Nam</Option>
-                        <Option value="Female">Nữ</Option>
-                      </Select>
-                    </Col>
-
-
-                    <Col span={12} style={{ marginTop: 16 }}>
-                      <label>Ngày sinh</label>
-                      <Input name="dob" type="date" value={form.dob} onChange={handleInputChange} />
-                    </Col>
-
-                    <Col span={24} style={{ marginTop: 16 }}>
-                      <label>Địa chỉ</label>
-                      <Input name="address" value={form.address} onChange={handleInputChange} />
-                    </Col>
-                  </Row>
-
+    <Container fluid className="py-4" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+      <Row className="justify-content-center">
+        <Col lg={10}>
+          <Row>
+            {/* Profile Card */}
+            <Col md={4} className="mb-4">
+              <Card className="border-0 shadow-sm h-100">
+                <Card.Body className="text-center p-4">
+                  <div className="position-relative d-inline-block mb-3">
+                    <Image
+                      src={selectedImage || staff.avatar_image || "/placeholder.svg?height=120&width=120"}
+                      roundedCircle
+                      width={120}
+                      height={120}
+                      className="border border-3 border-light shadow-sm"
+                    />
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="position-absolute bottom-0 end-0 rounded-circle"
+                      style={{ width: "35px", height: "35px" }}
+                      onClick={() => document.getElementById("upload-photo").click()}
+                    >
+                      <FaCamera />
+                    </Button>
+                    <input
+                      type="file"
+                      id="upload-photo"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={handleImageChange}
+                    />
+                  </div>
+                  <h4 className="mb-1">{form.fullName}</h4>
+                  <p className="text-muted mb-3">@{form.username}</p>
                   <Button
-                    type="primary"
-                    style={{ marginTop: 24, backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" }}
-                    onClick={handleUpdateInfo}
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => document.getElementById("upload-photo").click()}
                   >
+                    <FaCamera className="me-2" />
+                    Đổi ảnh đại diện
+                  </Button>
+                  <Alert variant="info" className="mt-3 small">
+                    <strong>Lưu ý:</strong> Kích thước tối đa 1MB. Ảnh sẽ được tự động resize.
+                  </Alert>
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Form Card */}
+            <Col md={8}>
+              <Card className="border-0 shadow-sm">
+                <Card.Header className="bg-white border-bottom">
+                  <h4 className="mb-0 text-primary">
+                    <FaEdit className="me-2" />
                     Cập nhật thông tin
-                  </Button>
-                </TabPane>
+                  </h4>
+                </Card.Header>
+                <Card.Body className="p-4">
+                  <Tabs defaultActiveKey="personal" className="mb-4">
+                    <Tab
+                      eventKey="personal"
+                      title={
+                        <span>
+                          <FaUser className="me-2" />
+                          Thông tin cá nhân
+                        </span>
+                      }
+                    >
+                      <Row>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Họ và Tên</Form.Label>
+                            <Form.Control
+                              type="text"
+                              name="fullName"
+                              value={form.fullName}
+                              onChange={handleInputChange}
+                              placeholder="Nhập họ và tên"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Username</Form.Label>
+                            <Form.Control type="text" name="username" value={form.username} disabled />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Email</Form.Label>
+                            <Form.Control type="email" name="email" value={form.email} disabled />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Số điện thoại</Form.Label>
+                            <Form.Control
+                              type="tel"
+                              name="phone"
+                              value={form.phone}
+                              onChange={handleInputChange}
+                              placeholder="Nhập số điện thoại"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Giới tính</Form.Label>
+                            <Form.Select
+                              name="gender"
+                              value={form.gender}
+                              onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                            >
+                              <option value="">Chọn giới tính</option>
+                              <option value="Male">Nam</option>
+                              <option value="Female">Nữ</option>
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Ngày sinh</Form.Label>
+                            <Form.Control type="date" name="dob" value={form.dob} onChange={handleInputChange} />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Địa chỉ</Form.Label>
+                            <Form.Control
+                              as="textarea"
+                              rows={3}
+                              name="address"
+                              value={form.address}
+                              onChange={handleInputChange}
+                              placeholder="Nhập địa chỉ"
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Button variant="primary" onClick={handleUpdateInfo} disabled={!isFormChanged()}>
+                        <FaSave className="me-2" />
+                        Cập nhật thông tin
+                      </Button>
+                    </Tab>
 
-                <TabPane tab="Thay đổi mật khẩu" key="2">
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <label>Mật khẩu cũ</label>
-                      <Input.Password name="oldPassword" value={form.oldPassword} onChange={handleInputChange} />
-                    </Col>
-                    <Col span={12}>
-                      <label>Mật khẩu mới</label>
-                      <Input.Password name="newPassword" value={form.newPassword} onChange={handleInputChange} />
-                    </Col>
-                    <Col span={12} style={{ marginTop: 16 }}>
-                      <label>Xác nhận mật khẩu</label>
-                      <Input.Password name="confirmPassword" value={form.confirmPassword} onChange={handleInputChange} />
-                    </Col>
-                  </Row>
-                  <Button
-                    type="primary"
-                    style={{ marginTop: 24, backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" }}
-                    onClick={handleChangePassword}
-                  >
-                    Thay đổi mật khẩu
-                  </Button>
-                </TabPane>
-              </Tabs>
-            </Card>
-          </Col>
-        </Row>
-      </div>
-    </div>
-  );
-};
+                    <Tab
+                      eventKey="password"
+                      title={
+                        <span>
+                          <FaLock className="me-2" />
+                          Đổi mật khẩu
+                        </span>
+                      }
+                    >
+                      <Row>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Mật khẩu cũ</Form.Label>
+                            <Form.Control
+                              type="password"
+                              name="oldPassword"
+                              value={form.oldPassword}
+                              onChange={handleInputChange}
+                              placeholder="Nhập mật khẩu cũ"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Mật khẩu mới</Form.Label>
+                            <Form.Control
+                              type="password"
+                              name="newPassword"
+                              value={form.newPassword}
+                              onChange={handleInputChange}
+                              placeholder="Nhập mật khẩu mới"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                          <Form.Group>
+                            <Form.Label className="fw-semibold">Xác nhận mật khẩu</Form.Label>
+                            <Form.Control
+                              type="password"
+                              name="confirmPassword"
+                              value={form.confirmPassword}
+                              onChange={handleInputChange}
+                              placeholder="Xác nhận mật khẩu mới"
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Button
+                        variant="danger"
+                        onClick={handleChangePassword}
+                        disabled={!form.oldPassword || !form.newPassword || !form.confirmPassword}
+                      >
+                        <FaLock className="me-2" />
+                        Thay đổi mật khẩu
+                      </Button>
+                    </Tab>
+                  </Tabs>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+    </Container>
+  )
+}
 
-export default StaffProfile;
+export default StaffProfile

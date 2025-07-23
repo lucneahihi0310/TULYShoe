@@ -7,10 +7,12 @@ import StaffProfile from '../StaffMenuList/StaffProfile';
 import OrderList from '../StaffMenuList/OrderList';
 import NotificationList from '../StaffMenuList/NotificationsList';
 import ScheduleCalendar from '../StaffMenuList/Schedule';
+import DashboardOverview from '../StaffMenuList/DashboardOverview';
 const DashboardContent = () => {
   const { section } = useParams();
 
   switch (section) {
+    
     case 'feedbacks':
       return <CustomerFeedback />;
     case 'products':
@@ -23,7 +25,8 @@ const DashboardContent = () => {
       return <NotificationList />;
       case 'schedule':
       return <ScheduleCalendar />;
-      
+      case 'dashboard':
+      return <DashboardOverview/>;
     default:
       return <div>Welcome to Staff Dashboard</div>;
   }

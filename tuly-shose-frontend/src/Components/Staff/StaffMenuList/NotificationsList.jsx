@@ -1,4 +1,7 @@
+"use client"
+
 import { useEffect, useState, useContext } from "react"
+import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Pagination } from "react-bootstrap"
 import { AuthContext } from "../../API/AuthContext"
 import { fetchNotifications, markAllAsRead, markAsRead } from "../../API/notificationApi"
 import { FaCheck, FaBell, FaClock, FaExclamationTriangle, FaInfoCircle, FaCheckCircle, FaTimes } from "react-icons/fa"
@@ -38,8 +41,6 @@ const NotificationList = () => {
     loadNotifications()
   }, [user])
 
-
-
   const unreadCount = notifications.filter((noti) => !noti.is_read).length
 
   // Phân trang
@@ -47,12 +48,6 @@ const NotificationList = () => {
   const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage
   const currentNotifications = notifications.slice(indexOfFirstNotification, indexOfLastNotification)
   const totalPages = Math.ceil(notifications.length / notificationsPerPage)
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
-    }
-  }
 
   const getTypeIcon = (typeName) => {
     switch (typeName?.toLowerCase()) {
@@ -69,18 +64,18 @@ const NotificationList = () => {
     }
   }
 
-  const getTypeBadgeClass = (typeName) => {
+  const getTypeBadgeVariant = (typeName) => {
     switch (typeName?.toLowerCase()) {
       case "info":
-        return "badge bg-info"
+        return "info"
       case "warning":
-        return "badge bg-warning text-dark"
+        return "warning"
       case "error":
-        return "badge bg-danger"
+        return "danger"
       case "success":
-        return "badge bg-success"
+        return "success"
       default:
-        return "badge bg-secondary"
+        return "secondary"
     }
   }
 
@@ -99,254 +94,172 @@ const NotificationList = () => {
   }
 
   return (
-    <>
-      {/* Bootstrap CSS CDN */}
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
-      <div className="container-fluid bg-light min-vh-100 py-4">
-        <div className="container">
-          {/* Header */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="card shadow-sm border-0">
-                <div className="card-body py-4">
-                  <div className="row align-items-center">
-                    {/* Left side - Icon và Title */}
-                    <div className="col-md-8">
-                      <div className="d-flex align-items-center">
-                        <div className="position-relative me-3">
-                          <FaBell className="text-primary" style={{ fontSize: "2.5rem" }} />
-                          {unreadCount > 0 && (
-                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                              {unreadCount > 99 ? "99+" : unreadCount}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <h1 className="mb-0 fw-bold text-dark" style={{ fontSize: "2.5rem" }}>
-                            Thông báo
-                          </h1>
-                          <small className="text-muted">Quản lý thông báo của bạn</small>
-                        </div>
-                      </div>
+    <Container fluid className="py-4">
+      {/* Header */}
+      <Row className="mb-4">
+        <Col>
+          <Card className="border-0 shadow-sm">
+            <Card.Body className="py-4">
+              <Row className="align-items-center">
+                <Col md={8}>
+                  <div className="d-flex align-items-center">
+                    <div className="position-relative me-3">
+                      <FaBell className="text-primary" style={{ fontSize: "2.5rem" }} />
+                      {unreadCount > 0 && (
+                        <Badge bg="danger" pill className="position-absolute top-0 start-100 translate-middle">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </Badge>
+                      )}
                     </div>
-
-                    {/* Right side - Action Button */}
-
+                    <div>
+                      <h1 className="mb-0 fw-bold text-dark" style={{ fontSize: "2.5rem" }}>
+                        Thông báo
+                      </h1>
+                      <small className="text-muted">Quản lý thông báo của bạn</small>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-          {/* Stats & Controls */}
-          <div className="row mb-4 align-items-center">
-            {/* Thông báo chưa đọc */}
-            <div className="col-md-4 d-flex align-items-center">
-              <div className="alert alert-info border-0 rounded-pill d-inline-flex align-items-center mb-0 px-3 py-2">
+      {/* Stats & Controls */}
+      <Row className="mb-4 align-items-center">
+        <Col md={4}>
+          <Alert variant="info" className="d-inline-flex align-items-center mb-0 rounded-pill">
+            <FaBell className="me-2" />
+            Bạn có <strong className="mx-1 text-danger">{unreadCount}</strong> thông báo chưa đọc
+          </Alert>
+        </Col>
+        <Col md={8} className="d-flex justify-content-end gap-3">
+          <Button
+            variant="primary"
+            className="rounded-pill position-relative"
+            onClick={handleMarkAllAsRead}
+            disabled={unreadCount === 0}
+          >
+            <FaCheck className="me-2" />
+            Đánh dấu đã đọc
+            {unreadCount > 0 && (
+              <Badge bg="warning" text="dark" pill className="position-absolute top-0 start-100 translate-middle">
+                {unreadCount}
+              </Badge>
+            )}
+          </Button>
+
+          <Button variant="outline-secondary" className="rounded-pill" onClick={loadNotifications} disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Đang tải...
+              </>
+            ) : (
+              <>
                 <FaBell className="me-2" />
-                Bạn có <strong className="mx-1 text-danger">{unreadCount}</strong> thông báo chưa đọc
-              </div>
-            </div>
+                Làm mới
+              </>
+            )}
+          </Button>
+        </Col>
+      </Row>
 
-            {/* Cụm nút: Đánh dấu đã đọc + Làm mới */}
-            <div className="col-md-8 d-flex justify-content-end" style={{ gap: "20px" }}>
-              {/* Nút đánh dấu đã đọc */}
-              <button
-                onClick={handleMarkAllAsRead}
-                disabled={unreadCount === 0}
-                className="btn btn-primary rounded-pill px-3 py-2 shadow-sm position-relative overflow-hidden d-flex align-items-center justify-content-center"
-                style={{
-                  background: unreadCount > 0 ? "linear-gradient(45deg, #007bff, #0056b3)" : "",
-                  border: "none",
-                  transition: "all 0.3s ease",
-                  transform: unreadCount > 0 ? "scale(1.02)" : "scale(1)",
-                  width: "180px",
-                  fontSize: "14px"
-                }}
-              >
-                <FaCheck className="me-2" />
-                <span className="fw-semibold">Đánh dấu đã đọc</span>
-                {unreadCount > 0 && (
-                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Nút làm mới */}
-              <button
-                onClick={loadNotifications}
-                disabled={loading}
-                className="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center"
-                style={{
-                  width: "120px",
-                  padding: "6px 12px",
-                  fontSize: "14px"
-                }}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                    Đang tải...
-                  </>
-                ) : (
-                  <>
-                    <FaBell className="me-2" />
-                    Làm mới
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-
-          {/* Notifications List */}
-          <div className="row">
-            <div className="col-12">
-              {loading ? (
-                <div className="card shadow-sm border-0">
-                  <div className="card-body text-center py-5">
-                    <div className="spinner-border text-primary mb-3" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p className="text-muted">Đang tải thông báo...</p>
-                  </div>
-                </div>
-              ) : currentNotifications.length > 0 ? (
-                <div className="row g-3">
-                  {currentNotifications.map((notification) => {
-                    const typeName = notification.notification_type_id?.type_name || "default"
-
-                    return (
-                      <div key={notification._id} className="col-12">
-                        <div
-                          className={`card shadow-sm border-0 h-100 ${!notification.is_read ? "border-start border-primary border-4" : ""}`}
-                        >
-                          <div className="card-body">
-                            <div className="row align-items-center">
-                              {/* Left side - Content */}
-                              <div className="col-lg-10 col-md-7">
-                                <div className="d-flex align-items-start mb-2">
-                                  <span className={`${getTypeBadgeClass(typeName)} me-2`}>
-                                    {getTypeIcon(typeName)}
-                                    <span className="ms-1">{typeName.charAt(0).toUpperCase() + typeName.slice(1)}</span>
-                                  </span>
-                                  {!notification.is_read && <span className="badge bg-primary rounded-pill">Mới</span>}
-                                </div>
-
-                                <p className={`mb-2 ${!notification.is_read ? "fw-semibold" : "text-muted"}`}>
-                                  {notification.message}
-                                </p>
-
-                                <div className="d-flex align-items-center text-muted small">
-                                  <FaClock className="me-1" />
-                                  <span>{formatTime(notification.create_at)}</span>
-                                </div>
-                              </div>
-
-                              {/* Right side - Actions */}
-                              <div className="col-lg-2 col-md-5 text-md-end text-center mt-3 mt-md-0">
-                                {!notification.is_read && (
-                                  <button
-                                    onClick={() => handleMarkAsRead(notification._id)}
-                                    className="btn btn-success rounded-pill btn-sm"
-                                  >
-                                    <FaCheck className="me-1" />
-                                    Đã đọc
-                                  </button>
-                                )}
-                              </div>
+      {/* Notifications List */}
+      <Row>
+        <Col>
+          {loading ? (
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="text-center py-5">
+                <Spinner animation="border" variant="primary" className="mb-3" />
+                <p className="text-muted">Đang tải thông báo...</p>
+              </Card.Body>
+            </Card>
+          ) : currentNotifications.length > 0 ? (
+            <Row className="g-3">
+              {currentNotifications.map((notification) => {
+                const typeName = notification.notification_type_id?.type_name || "default"
+                return (
+                  <Col xs={12} key={notification._id}>
+                    <Card
+                      className={`border-0 shadow-sm h-100 ${
+                        !notification.is_read ? "border-start border-primary border-4" : ""
+                      }`}
+                    >
+                      <Card.Body>
+                        <Row className="align-items-center">
+                          <Col lg={10} md={7}>
+                            <div className="d-flex align-items-start mb-2">
+                              <Badge bg={getTypeBadgeVariant(typeName)} className="me-2 d-flex align-items-center">
+                                {getTypeIcon(typeName)}
+                                <span className="ms-1">{typeName.charAt(0).toUpperCase() + typeName.slice(1)}</span>
+                              </Badge>
+                              {!notification.is_read && (
+                                <Badge bg="primary" pill>
+                                  Mới
+                                </Badge>
+                              )}
                             </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="card shadow-sm border-0">
-                  <div className="card-body text-center py-5">
-                    <FaBell className="text-muted mb-3" style={{ fontSize: "4rem" }} />
-                    <h5 className="text-muted">Không có thông báo</h5>
-                    <p className="text-muted">Thông báo mới sẽ xuất hiện ở đây</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="row mt-4">
-              <div className="col-12 d-flex justify-content-end">
-                <nav aria-label="Pagination">
-                  <ul className="pagination pagination-lg mb-0" style={{ display: 'flex', gap: '8px' }}>
-                    <li className="page-item" style={{ pointerEvents: currentPage === 1 ? "none" : "auto", opacity: currentPage === 1 ? 0.5 : 1 }}>
-                      <button
-                        className="page-link"
-                        style={{
-                          minWidth: "80px",
-                          borderRadius: "50px",
-                          backgroundColor: "#f1f1f1",
-                          color: "#007bff",
-                          border: "none",
-                        }}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                      >
-                        Trước
-                      </button>
-                    </li>
-
-                    {Array.from({ length: totalPages }, (_, index) => {
-                      const page = index + 1;
-                      const isActive = currentPage === page;
-                      return (
-                        <li key={page} className="page-item">
-                          <button
-                            className="page-link"
-                            style={{
-                              minWidth: "50px",
-                              borderRadius: "50px",
-                              backgroundColor: isActive ? "#007bff" : "#e0e0e0",
-                              color: isActive ? "#fff" : "#333",
-                              fontWeight: isActive ? "500" : "normal",
-                              border: "none",
-                            }}
-                            onClick={() => handlePageChange(page)}
-                          >
-                            {page}
-                          </button>
-                        </li>
-                      );
-                    })}
-
-                    <li className="page-item" style={{ pointerEvents: currentPage === totalPages ? "none" : "auto", opacity: currentPage === totalPages ? 0.5 : 1 }}>
-                      <button
-                        className="page-link"
-                        style={{
-                          minWidth: "80px",
-                          borderRadius: "50px",
-                          backgroundColor: "#f1f1f1",
-                          color: "#007bff",
-                          border: "none",
-                        }}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                      >
-                        Sau
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
-            </div>
+                            <p className={`mb-2 ${!notification.is_read ? "fw-semibold" : "text-muted"}`}>
+                              {notification.message}
+                            </p>
+                            <div className="d-flex align-items-center text-muted small">
+                              <FaClock className="me-1" />
+                              <span>{formatTime(notification.create_at)}</span>
+                            </div>
+                          </Col>
+                          <Col lg={2} md={5} className="text-md-end text-center mt-3 mt-md-0">
+                            {!notification.is_read && (
+                              <Button
+                                variant="success"
+                                size="sm"
+                                className="rounded-pill"
+                                onClick={() => handleMarkAsRead(notification._id)}
+                              >
+                                <FaCheck className="me-1" />
+                                Đã đọc
+                              </Button>
+                            )}
+                          </Col>
+                        </Row>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                )
+              })}
+            </Row>
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="text-center py-5">
+                <FaBell className="text-muted mb-3" style={{ fontSize: "4rem" }} />
+                <h5 className="text-muted">Không có thông báo</h5>
+                <p className="text-muted">Thông báo mới sẽ xuất hiện ở đây</p>
+              </Card.Body>
+            </Card>
           )}
+        </Col>
+      </Row>
 
-
-
-        </div>
-      </div>
-    </>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-end">
+            <Pagination>
+              <Pagination.Prev disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} />
+              {Array.from({ length: totalPages }, (_, index) => {
+                const page = index + 1
+                return (
+                  <Pagination.Item key={page} active={currentPage === page} onClick={() => setCurrentPage(page)}>
+                    {page}
+                  </Pagination.Item>
+                )
+              })}
+              <Pagination.Next disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} />
+            </Pagination>
+          </Col>
+        </Row>
+      )}
+    </Container>
   )
 }
 

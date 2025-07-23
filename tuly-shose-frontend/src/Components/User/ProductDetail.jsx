@@ -69,6 +69,7 @@ function ProductDetail() {
         const resReviews = await fetchData(
           `reviews/customers/detail/${resDetail._id}`
         );
+        console.log("Reviews data:", JSON.stringify(resReviews, null, 2)); // Debug
         setReviews(resReviews);
         const resRelated = await fetchData(
           `productDetail/customers/related/${id}`
@@ -97,6 +98,7 @@ function ProductDetail() {
           const resReviews = await fetchData(
             `reviews/customers/detail/${productDetail._id}`
           );
+          console.log("Reviews data:", JSON.stringify(resReviews, null, 2)); // Debug
           setReviews(resReviews);
         } catch (err) {
           console.error("Lỗi khi tải đánh giá:", err);
@@ -168,7 +170,6 @@ function ProductDetail() {
   const handleAddToCart = async () => {
     if (!productDetail) return;
 
-    // Kiểm tra xem đã chọn màu và kích thước chưa
     if (!selectedColor || !selectedSize) {
       notification.error({
         message: "Chưa chọn đủ thông tin",
@@ -205,7 +206,6 @@ function ProductDetail() {
 
     try {
       if (user && user._id) {
-        // Fetch current cart items for the user
         const cartData = await fetchData(
           `cartItem/customers/user/${user._id}`,
           true
@@ -269,7 +269,6 @@ function ProductDetail() {
   const handleBuyNow = () => {
     if (!productDetail) return;
 
-    // Kiểm tra xem đã chọn màu và kích thước chưa
     if (!selectedColor || !selectedSize) {
       notification.error({
         message: "Chưa chọn đủ thông tin",
@@ -332,7 +331,6 @@ function ProductDetail() {
 
     try {
       if (user && user._id) {
-        // Fetch current cart items for the user
         const cartData = await fetchData(
           `cartItem/customers/user/${user._id}`,
           true
@@ -485,6 +483,7 @@ function ProductDetail() {
                   className={styles.thumbnail}
                   onClick={() => setMainImage(img)}
                   alt={`thumbnail-${i}`}
+                  onError={(e) => (e.target.src = "path/to/placeholder-image.jpg")}
                 />
               ))}
             </div>
@@ -703,10 +702,11 @@ function ProductDetail() {
               <Card key={r._id} className={styles.reviewCard}>
                 <div className={styles.review}>
                   <img
-                    src={r.user_id?.avatar_image}
+                    src={r.user_id?.avatar_image || "path/to/placeholder-image.jpg"}
                     loading="lazy"
                     className={styles.avatar}
                     alt="user"
+                    onError={(e) => (e.target.src = "path/to/placeholder-image.jpg")}
                   />
                   <div>
                     <Text strong>
@@ -733,6 +733,7 @@ function ProductDetail() {
                             height={80}
                             style={{ borderRadius: 4 }}
                             alt={`review-image-${i}`}
+                            onError={(e) => (e.target.src = "path/to/placeholder-image.jpg")}
                           />
                         ))}
                       </div>
@@ -742,40 +743,37 @@ function ProductDetail() {
                       type="secondary"
                       style={{ fontSize: "13px", fontStyle: "italic" }}
                     >
-                      Đánh giá lúc:{" "}
-                      {new Date(r.review_date).toLocaleString("vi-VN")}
+                      Đánh giá lúc: {new Date(r.review_date).toLocaleString("vi-VN")}
                     </Paragraph>
                   </div>
                 </div>
 
-                {r.replies.length > 0 &&
-                  r.replies.map((rep) => (
-                    <div key={rep._id} className={styles.reply}>
-                      <img
-                        src={rep.replier_id?.avatar_image}
-                        loading="lazy"
-                        className={styles.replyAvatar}
-                        alt="reply user"
-                      />
-                      <div className={styles.replyContent}>
-                        <Text strong>
-                          {rep.replier_id?.first_name}{" "}
-                          {rep.replier_id?.last_name}:
-                        </Text>{" "}
-                        {rep.reply_content}
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "#999",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          Phản hồi lúc:{" "}
-                          {new Date(rep.reply_date).toLocaleString("vi-VN")}
-                        </div>
+                {r.replies && r.replies.reply_content && (
+                  <div className={styles.reply}>
+                    <img
+                      src={r.replies.replier_id?.avatar_image || "path/to/placeholder-image.jpg"}
+                      loading="lazy"
+                      className={styles.replyAvatar}
+                      alt="reply user"
+                      onError={(e) => (e.target.src = "path/to/placeholder-image.jpg")}
+                    />
+                    <div className={styles.replyContent}>
+                      <Text strong>
+                        {r.replies.replier_id?.first_name || "Ẩn danh"} {r.replies.replier_id?.last_name || ""}:
+                      </Text>{" "}
+                      {r.replies.reply_content}
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#999",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        Phản hồi lúc: {new Date(r.replies.reply_date).toLocaleString("vi-VN")}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                )}
               </Card>
             ))}
 
