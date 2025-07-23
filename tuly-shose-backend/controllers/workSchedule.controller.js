@@ -99,18 +99,31 @@ const checkOut = async (req, res) => {
 const createSchedule = async (req, res) => {
   try {
     const { staff_id, schedule_date, scheduled_start_time, scheduled_end_time, notes, is_recurring, recurrence_end_date } = req.body;
-    const schedule = new WorkSchedule({
-      staff_id,
-      schedule_date,
-      scheduled_start_time,
-      scheduled_end_time,
-      notes,
-      is_recurring: is_recurring || false,
-      recurrence_end_date: is_recurring ? recurrence_end_date : null,
-      created_by: req.user._id, // Giả định req.user chứa thông tin người dùng đã xác thực
-    });
-    await schedule.save();
-    res.status(201).json({ message: 'Tạo lịch làm việc thành công', schedule });
+
+    if (is_recurring && !recurrence_end_date) {
+      return res.status(400).json({ message: 'Vui lòng cung cấp ngày kết thúc lặp lại' });
+    }
+
+    const schedulesToCreate = [];
+    let currentDate = moment(schedule_date, 'YYYY-MM-DD');
+    const endDate = is_recurring ? moment(recurrence_end_date, 'YYYY-MM-DD') : currentDate;
+
+    while (currentDate <= endDate) {
+      schedulesToCreate.push({
+        staff_id,
+        schedule_date: currentDate.format('YYYY-MM-DD'),
+        scheduled_start_time,
+        scheduled_end_time,
+        notes,
+        is_recurring,
+        recurrence_end_date: is_recurring ? recurrence_end_date : null,
+        created_by: req.customerId._id, // Lấy từ token xác thực
+      });
+      currentDate.add(1, 'days');
+    }
+
+    const createdSchedules = await WorkSchedule.insertMany(schedulesToCreate);
+    res.status(201).json({ message: 'Tạo lịch làm việc thành công', schedules: createdSchedules });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi tạo lịch làm việc', error });
   }
