@@ -243,7 +243,11 @@ exports.createOrder = async (req, res) => {
     }));
 
     if (user_id && isFromCart) {
-      await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
+      const pdetail_ids = orderItems.map(item => item.pdetail_id);
+      await CartItem.deleteMany({
+        user_id: new mongoose.Types.ObjectId(user_id),
+        pdetail_id: { $in: pdetail_ids.map(id => new mongoose.Types.ObjectId(id)) }
+      });
     }
 
     // Create notification
@@ -425,17 +429,12 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     order.order_status_id = newStatus._id;
-    order.update_at = new Date();
-
+    order.update_at = Date.now();
     await order.save();
 
-    res.status(200).json({
-      success: true,
-      message: `Đã cập nhật trạng thái đơn hàng thành: ${newStatusName}`,
-      order
-    });
+    res.status(200).json({ message: "Cập nhật trạng thái đơn hàng thành công", order });
   } catch (error) {
-    console.error("Lỗi cập nhật trạng thái đơn hàng:", error);
-    res.status(500).json({ message: "Lỗi server" });
+    console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+    res.status(500).json({ message: "Lỗi server khi cập nhật trạng thái đơn hàng" });
   }
 };

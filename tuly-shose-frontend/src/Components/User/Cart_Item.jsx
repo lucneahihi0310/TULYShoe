@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Table, Button, InputNumber, Modal, notification } from "antd";
+import {
+  Table,
+  Button,
+  InputNumber,
+  Modal,
+  notification,
+  Checkbox,
+} from "antd";
 import { AuthContext } from "../API/AuthContext";
 import styles from "../../CSS/CartItem.module.css";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +24,7 @@ function CartItem() {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const navigate = useNavigate();
 
   const fetchCartItems = async () => {
@@ -120,7 +128,6 @@ function CartItem() {
     }
 
     try {
-      // Cập nhật state cục bộ trước để cải thiện UX
       setCartItems((prev) =>
         prev.map((item) =>
           item._id === record._id ? { ...item, quantity: newQty } : item
@@ -144,11 +151,9 @@ function CartItem() {
         localStorage.setItem("guest_cart", JSON.stringify(guest));
       }
 
-      // Không kích hoạt cartUpdated để tránh gọi lại fetchCartItems
       notification.success({ message: "Cập nhật số lượng thành công!" });
     } catch (error) {
       console.error("Lỗi cập nhật số lượng:", error);
-      // Khôi phục state nếu API thất bại
       setCartItems((prev) =>
         prev.map((item) =>
           item._id === record._id
@@ -160,7 +165,6 @@ function CartItem() {
         message: "Lỗi cập nhật số lượng",
         description: error.message || "Vui lòng thử lại.",
       });
-      // Gọi lại fetchCartItems để đồng bộ nếu có lỗi
       window.dispatchEvent(new Event("cartUpdated"));
     }
   };
@@ -181,6 +185,9 @@ function CartItem() {
         setCartItems((prev) =>
           prev.filter((item) => item._id !== selectedRecord._id)
         );
+        setSelectedRowKeys((prev) =>
+          prev.filter((key) => key !== selectedRecord._id)
+        );
         window.dispatchEvent(new Event("cartUpdated"));
         notification.success({ message: "Đã xóa khỏi giỏ hàng!" });
         setIsModalVisible(false);
@@ -194,8 +201,18 @@ function CartItem() {
   };
 
   const handleCheckout = () => {
+    if (selectedRowKeys.length === 0) {
+      notification.error({
+        message: "Chưa chọn sản phẩm!",
+        description: "Vui lòng chọn ít nhất một sản phẩm để thanh toán.",
+        placement: "bottomLeft",
+      });
+      return;
+    }
+
     const outOfStockItems = cartItems.filter(
-      (item) => item.inventory_number === 0
+      (item) =>
+        selectedRowKeys.includes(item._id) && item.inventory_number === 0
     );
     if (outOfStockItems.length > 0) {
       const outOfStockNames = outOfStockItems
@@ -210,7 +227,9 @@ function CartItem() {
     }
 
     const overStockItems = cartItems.filter(
-      (item) => item.quantity > item.inventory_number
+      (item) =>
+        selectedRowKeys.includes(item._id) &&
+        item.quantity > item.inventory_number
     );
     if (overStockItems.length > 0) {
       const overStockNames = overStockItems
@@ -227,18 +246,41 @@ function CartItem() {
       return;
     }
 
+    const selectedItems = cartItems
+      .filter((item) => selectedRowKeys.includes(item._id))
+      .map((item) => ({
+        pdetail_id: item.pdetail_id,
+        quantity: item.quantity,
+      }));
+
     navigate("/order", {
       state: {
         fromCart: true,
-        orderItems: cartItems.map((item) => ({
-          pdetail_id: item.pdetail_id,
-          quantity: item.quantity,
-        })),
+        orderItems: selectedItems,
       },
     });
   };
 
   const columns = [
+    {
+      title: "Chọn",
+      key: "select",
+      align: "center",
+      render: (_, record) => (
+        <Checkbox
+          checked={selectedRowKeys.includes(record._id)}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            setSelectedRowKeys((prev) =>
+              checked
+                ? [...prev, record._id]
+                : prev.filter((key) => key !== record._id)
+            );
+          }}
+          disabled={record.inventory_number === 0}
+        />
+      ),
+    },
     {
       title: "Sản phẩm",
       dataIndex: "",
@@ -334,11 +376,10 @@ function CartItem() {
     },
   ];
 
-  const subtotal = cartItems.reduce(
-    (sum, i) => sum + i.price_after_discount * i.quantity,
-    0
-  );
-  const shipping = cartItems.length > 0 ? 30000 : 0;
+  const subtotal = cartItems
+    .filter((item) => selectedRowKeys.includes(item._id))
+    .reduce((sum, i) => sum + i.price_after_discount * i.quantity, 0);
+  const shipping = selectedRowKeys.length > 0 ? 30000 : 0;
   const total = subtotal + shipping;
 
   return (
@@ -406,7 +447,7 @@ function CartItem() {
           <Button
             className={styles.checkoutButton}
             onClick={handleCheckout}
-            disabled={cartItems.length === 0}
+            disabled={cartItems.length === 0 || selectedRowKeys.length === 0}
           >
             Thanh toán
           </Button>
