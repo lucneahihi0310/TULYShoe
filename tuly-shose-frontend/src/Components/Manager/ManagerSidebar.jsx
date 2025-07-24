@@ -9,13 +9,13 @@ const ManagerSidebar = () => {
         { key: 'accounts', label: 'Quản lý tài khoản' },
         { key: 'staffs', label: 'Quản lý nhân viên' },
         { key: 'orders', label: 'Quản lý order' },
-        { key: 'brands', label: 'Quản lý brand' },
-        { key: 'categories', label: 'Quản lý category' },
-        { key: 'colors', label: 'Quản lý màu sắc' },
-        { key: 'forms', label: 'Quản lý form' },
-        { key: 'genders', label: 'Quản lý gender' },
-        { key: 'materials', label: 'Quản lý vật liệu' },
-        { key: 'sizes', label: 'Quản lý size' },
+        // { key: 'brands', label: 'Quản lý brand' },
+        // { key: 'categories', label: 'Quản lý category' },
+        // { key: 'colors', label: 'Quản lý màu sắc' },
+        // { key: 'forms', label: 'Quản lý form' },
+        // { key: 'genders', label: 'Quản lý gender' },
+        // { key: 'materials', label: 'Quản lý vật liệu' },
+        // { key: 'sizes', label: 'Quản lý size' },
         { key: 'products', label: 'Quản lý sản phẩm' }
     ];
 

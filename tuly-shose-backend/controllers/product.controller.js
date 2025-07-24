@@ -324,7 +324,7 @@ exports.create_product = async (req, res, next) => {
 exports.edit_product = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const { productName, title, description, price, categories_id, brand_id, material_id, form_id } = req.body;
+    const { productName, title, description, price, categories_id, brand_id, material_id, gender_id ,form_id } = req.body;
     const newProduct = await Product.findByIdAndUpdate(
       id,
       {

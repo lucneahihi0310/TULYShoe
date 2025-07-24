@@ -213,7 +213,7 @@ const ManagerBrand = () => {
                             </Button>
                         </Popconfirm>
 
-                    </Space >
+                    </Space>
                 )
             }
         }

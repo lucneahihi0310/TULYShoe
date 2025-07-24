@@ -98,19 +98,64 @@ const checkOut = async (req, res) => {
 
 const createSchedule = async (req, res) => {
   try {
-    const { staff_id, schedule_date, scheduled_start_time, scheduled_end_time, notes, is_recurring, recurrence_end_date } = req.body;
-    const schedule = new WorkSchedule({
-      staff_id,
-      schedule_date,
-      scheduled_start_time,
-      scheduled_end_time,
-      notes,
-      is_recurring: is_recurring || false,
-      recurrence_end_date: is_recurring ? recurrence_end_date : null,
-      created_by: req.user._id, // Giả định req.user chứa thông tin người dùng đã xác thực
-    });
-    await schedule.save();
-    res.status(201).json({ message: 'Tạo lịch làm việc thành công', schedule });
+    const { staff_id, schedule_date, scheduled_start_time, scheduled_end_time, notes, is_recurring, work_status_id, recurrence_end_date } = req.body;
+
+    if (is_recurring && !recurrence_end_date) {
+      return res.status(400).json({ message: 'Vui lòng cung cấp ngày kết thúc lặp lại' });
+    }
+
+    // Convert time to minutes for comparison
+    const startTimeMinutes = parseInt(scheduled_start_time.split(':')[0]) * 60 + parseInt(scheduled_start_time.split(':')[1]);
+    const endTimeMinutes = parseInt(scheduled_end_time.split(':')[0]) * 60 + parseInt(scheduled_end_time.split(':')[1]);
+
+    // Check for overlapping schedules across all staff
+    const checkOverlap = async (date, start, end) => {
+      const existingSchedules = await WorkSchedule.find({ schedule_date: date });
+
+      for (const schedule of existingSchedules) {
+        const existingStart = parseInt(schedule.scheduled_start_time.split(':')[0]) * 60 + parseInt(schedule.scheduled_start_time.split(':')[1]);
+        const existingEnd = parseInt(schedule.scheduled_end_time.split(':')[0]) * 60 + parseInt(schedule.scheduled_end_time.split(':')[1]);
+
+        // Check for overlap: new schedule starts before existing ends AND ends after existing starts
+        if (start < existingEnd && end > existingStart && staff_id.toString() !== schedule.staff_id.toString()) {
+          const conflictingStaff = await Account.findById(schedule.staff_id, 'first_name last_name');
+          return {
+            overlap: true,
+            message: `Lịch làm việc trùng với lịch của nhân viên ${conflictingStaff.first_name} ${conflictingStaff.last_name} vào ngày ${date}, vui lòng chọn thời gian khác`
+          };
+        }
+      }
+      return { overlap: false };
+    };
+
+    const schedulesToCreate = [];
+    let currentDate = moment(schedule_date, 'YYYY-MM-DD');
+    const endDate = is_recurring ? moment(recurrence_end_date, 'YYYY-MM-DD') : currentDate;
+
+    // Check for overlaps for each date in the range
+    while (currentDate <= endDate) {
+      const dateStr = currentDate.format('YYYY-MM-DD');
+      const overlapResult = await checkOverlap(dateStr, startTimeMinutes, endTimeMinutes);
+      if (overlapResult.overlap) {
+        return res.status(400).json({ message: overlapResult.message });
+      }
+
+      schedulesToCreate.push({
+        staff_id,
+        schedule_date: dateStr,
+        scheduled_start_time,
+        scheduled_end_time,
+        notes,
+        is_recurring,
+        recurrence_end_date: is_recurring ? recurrence_end_date : null,
+        created_by: req.customerId._id,
+        work_status_id: "685b9cbdb8a801593cb7f641",
+      });
+      currentDate.add(1, 'days');
+    }
+
+    const createdSchedules = await WorkSchedule.insertMany(schedulesToCreate);
+    res.status(201).json({ message: 'Tạo lịch làm việc thành công', schedules: createdSchedules });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi tạo lịch làm việc', error });
   }
@@ -141,4 +186,5 @@ const deleteSchedule = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi xóa lịch làm việc', error });
   }
 };
+
 module.exports = { getSchedulesByStaff, checkIn, checkOut, createSchedule, updateSchedule, deleteSchedule };

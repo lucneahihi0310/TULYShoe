@@ -204,7 +204,7 @@ exports.register = async (req, res, next) => {
 
 exports.listAll = async (req, res, next) => {
     try {
-        const users = await User.find();
+        const users = await User.find().populate("address_shipping_id");
         res.json(users);
     } catch (error) {
         next(error);
@@ -494,26 +494,105 @@ exports.changePassword = async (req, res) => {
 
 exports.updateAccount = async (req, res) => {
     try {
-        const { first_name, last_name, dob, gender, phone, email } = req.body;
+        const { first_name, last_name, phone, dob, gender, address, email } = req.body;
 
-        const updatedAccount = await User.findByIdAndUpdate(
-            req.params.id,
-            {
-                first_name,
-                last_name,
-                dob,
-                gender,
-                phone,
-                email,
-                update_at: new Date()
+        const user = await User.findById(req.params.id);
+
+        if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+
+        user.first_name = first_name || "";
+        user.last_name = last_name || user.last_name;
+        user.dob = dob || user.dob;
+        user.gender = gender || user.gender;
+        user.phone = phone || user.phone;
+        user.email = email || user.email;
+        user.update_at = new Date();
+
+        if (address && user.address_shipping_id) {
+            await Address.findByIdAndUpdate(user.address_shipping_id, {
+                address,
+                update_at: new Date(),
+            });
+        }
+
+        await user.save();
+
+        res.json({
+            message: 'Cập nhật thông tin thành công',
+            user: {
+                first_name: user.first_name,
+                last_name: user.last_name,
+                dob: user.dob,
+                gender: user.gender,
+                phone: user.phone,
+                email: user.email,
             },
-            { new: true, runValidators: true }
-        ).select('-password -resetToken -resetTokenExpiration');
+        });
+    } catch (error) {
+        console.error('Cập nhật thông tin thất bại:', error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật thông tin' });
+    }
+};
 
-        if (!updatedAccount) return res.status(404).json({ message: 'Account not found' });
+exports.addStaff = async (req, res, next) => {
+    try {
+        const {
+            first_name,
+            last_name,
+            dob,
+            gender,
+            address,
+            email,
+            phone,
+            password
+        } = req.body;
 
-        res.status(200).json({ message: 'Profile updated successfully', account: updatedAccount });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        // Validate required fields
+        if (!first_name || !last_name || !dob || !gender || !address || !email || !phone || !password) {
+            return res.status(400).json({ message: 'Vui lòng điền đầy đủ các trường bắt buộc!' });
+        }
+
+        // Check for existing email
+        const existsEmail = await User.findOne({ email });
+        if (existsEmail) return res.status(400).json({ message: 'Email đã tồn tại!' });
+
+        // Check for existing phone
+        const existsPhone = await User.findOne({ phone });
+        if (existsPhone) return res.status(400).json({ message: 'Số điện thoại đã tồn tại!' });
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Create new address
+        const newAddress = await Address.create({
+            address,
+            create_at: Date.now(),
+            update_at: null
+        });
+
+        // Create new user
+        const user = await User.create({
+            first_name,
+            last_name,
+            dob,
+            gender,
+            address_shipping_id: newAddress._id,
+            email,
+            phone,
+            password: passwordHash,
+            role: "staff",
+            avatar_image: null,
+            is_active: true,
+            create_at: Date.now(),
+            update_at: Date.now()
+        });
+
+        // Update address with user_id
+        await Address.findByIdAndUpdate(newAddress._id, { user_id: user._id });
+
+        res.status(201).json(user);
+    } catch (error) {
+        console.error("Lỗi thêm tài khoản:", error);
+        next(error);
     }
 };

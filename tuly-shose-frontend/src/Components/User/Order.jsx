@@ -366,6 +366,10 @@ const Order = () => {
   };
 
   const onQuantityChange = (value, index) => {
+    if (value === null || value <= 0) {
+      message.error("Số lượng phải lớn hơn 0.");
+      return;
+    }
 
     const item = orderItems[index];
     if (value > item.inventory_number) {
@@ -385,7 +389,6 @@ const Order = () => {
       return message.warning("Không có sản phẩm để đặt hàng.");
     }
 
-    // Validate inventory for all items before submission
     const invalidItems = orderItems.filter(
       (item) => item.quantity > item.inventory_number
     );
@@ -455,7 +458,16 @@ const Order = () => {
               if (data?.order_code) {
                 message.success("Đặt hàng thành công!");
                 if (!user && location.state?.fromCart) {
-                  localStorage.removeItem("guest_cart");
+                  let guestCart = JSON.parse(
+                    localStorage.getItem("guest_cart") || "[]"
+                  );
+                  guestCart = guestCart.filter(
+                    (item) =>
+                      !payload.orderItems.some(
+                        (orderItem) => orderItem.pdetail_id === item.pdetail_id
+                      )
+                  );
+                  localStorage.setItem("guest_cart", JSON.stringify(guestCart));
                   sessionStorage.removeItem("guest_cart");
                 }
                 window.dispatchEvent(new Event("cartUpdated"));
@@ -478,7 +490,16 @@ const Order = () => {
 
               if (data?.paymentUrl) {
                 if (!user && location.state?.fromCart) {
-                  localStorage.removeItem("guest_cart");
+                  let guestCart = JSON.parse(
+                    localStorage.getItem("guest_cart") || "[]"
+                  );
+                  guestCart = guestCart.filter(
+                    (item) =>
+                      !payload.orderItems.some(
+                        (orderItem) => orderItem.pdetail_id === item.pdetail_id
+                      )
+                  );
+                  localStorage.setItem("guest_cart", JSON.stringify(guestCart));
                   sessionStorage.removeItem("guest_cart");
                 }
                 window.dispatchEvent(new Event("cartUpdated"));
@@ -622,7 +643,6 @@ const Order = () => {
                           min={1}
                           max={item.inventory_number}
                           value={item.quantity}
-                          disabled={!!location.state?.fromCart}
                           onChange={(val) => onQuantityChange(val, idx)}
                           className={styles.qtyInput}
                           size="small"

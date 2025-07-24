@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const middleware = require('../middlewares/auth.middleware');
 const { listAll, login, register, getUser, addAccount, forgotPassword, resetPassword, getFullUserInfo,
-    getProfile, updateProfile, changePassword, updateProfileUser, uploadAvatar, changePasswordUser, updateStatusAccount, delete_account, updateAccount } = require('../controllers/account.controller');
+    getProfile, updateProfile, changePassword, updateProfileUser, uploadAvatar, changePasswordUser, updateStatusAccount, delete_account, updateAccount, addStaff } = require('../controllers/account.controller');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinaryUser');
@@ -30,6 +30,7 @@ router.post('/login', login);
 router.post('/register', register);
 router.get('/user', middleware, getUser);
 router.post('/add', middleware, addAccount);
+router.post('/add_staff', middleware, addStaff);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/info', middleware, getFullUserInfo);

@@ -34,7 +34,7 @@ const HomePage = () => {
   const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
-    // Xử lý hiệu ứng fade cho các slide
+    // Handle fade effect for slides
     const fadeSlides = document.querySelectorAll(`.${styles.fadeSlide}`);
     fadeSlides.forEach((el, index) => {
       setTimeout(() => {
@@ -42,7 +42,7 @@ const HomePage = () => {
       }, index * 300);
     });
 
-    // Lấy sản phẩm bán chạy
+    // Fetch best-selling products
     const fetchBestSellers = async () => {
       setLoadingProducts(true);
       try {
@@ -51,43 +51,43 @@ const HomePage = () => {
         );
         setBestSellers(data.data);
       } catch (err) {
-        console.error("Lỗi khi lấy sản phẩm bán chạy:", err);
+        console.error("Error fetching best sellers:", err);
       } finally {
         setLoadingProducts(false);
       }
     };
 
-    // Lấy sản phẩm giày nam
+    // Fetch top 8 men's shoes
     const fetchMensShoes = async () => {
       setLoadingMensShoes(true);
       try {
         const data = await fetchData(
-          "/products/customers/listproducts?gender=685b71c0b8a801593cb7f606&limit=4"
+          "/products/customers/listproducts?gender=685b71c0b8a801593cb7f606&sortBy=sold-desc&limit=8"
         );
         setMensShoes(data.data);
       } catch (err) {
-        console.error("Lỗi khi lấy sản phẩm giày nam:", err);
+        console.error("Error fetching men's shoes:", err);
       } finally {
         setLoadingMensShoes(false);
       }
     };
 
-    // Lấy sản phẩm giày nữ
+    // Fetch top 8 women's shoes
     const fetchWomensShoes = async () => {
       setLoadingWomensShoes(true);
       try {
         const data = await fetchData(
-          "/products/customers/listproducts?gender=685b71c1b8a801593cb7f607&limit=4"
+          "/products/customers/listproducts?gender=685b71c1b8a801593cb7f607&sortBy=sold-desc&limit=8"
         );
         setWomensShoes(data.data);
       } catch (err) {
-        console.error("Lỗi khi lấy sản phẩm giày nữ:", err);
+        console.error("Error fetching women's shoes:", err);
       } finally {
         setLoadingWomensShoes(false);
       }
     };
 
-    // Lấy đánh giá 5 sao ngẫu nhiên
+    // Fetch random 5-star reviews
     const fetchTestimonials = async () => {
       setLoadingReviews(true);
       try {
@@ -96,13 +96,13 @@ const HomePage = () => {
         );
         setTestimonials(data);
       } catch (err) {
-        console.error("Lỗi khi lấy đánh giá:", err);
+        console.error("Error fetching reviews:", err);
       } finally {
         setLoadingReviews(false);
       }
     };
 
-    // Gọi các hàm bất đồng bộ
+    // Call async functions
     fetchBestSellers();
     fetchMensShoes();
     fetchWomensShoes();
@@ -194,7 +194,7 @@ const HomePage = () => {
         notifyAddSuccess();
       }
     } catch (err) {
-      console.error("Lỗi khi thêm vào giỏ hàng (user):", err);
+      console.error("Error adding to cart (user):", err);
       notification.error({
         message: "Thêm giỏ hàng thất bại!",
         description: err.message || "Vui lòng thử lại sau.",
@@ -206,7 +206,7 @@ const HomePage = () => {
   const handleSupportSubmit = async (values) => {
     setLoadingSupport(true);
     try {
-      // Kiểm tra thời gian chờ trước khi gửi
+      // Check cooldown before submitting
       const email = values.email;
       const response = await fetchData(
         `/support/check-cooldown?email=${encodeURIComponent(email)}`
@@ -223,9 +223,9 @@ const HomePage = () => {
         return;
       }
 
-      // Gửi yêu cầu hỗ trợ nếu không có thời gian chờ
+      // Submit support request if no cooldown
       const submitResponse = await postData("/support/submit", values);
-      setTimeLeft(30); // Đặt lại thời gian chờ
+      setTimeLeft(30); // Reset cooldown
       notification.success({
         message: "Gửi yêu cầu thành công!",
         description: submitResponse.message,
@@ -233,7 +233,7 @@ const HomePage = () => {
         duration: 3,
       });
       form.resetFields();
-      setTimeLeft(null); // Xóa thông báo thời gian chờ sau khi gửi thành công
+      setTimeLeft(null); // Clear cooldown message after success
     } catch (err) {
       notification.error({
         message: "Lỗi khi gửi yêu cầu",
@@ -249,126 +249,124 @@ const HomePage = () => {
 
   const renderProductSection = (products, loading, title, genderFilterId) => (
     <section className={`${styles.collectionsSection} ${styles.fadeSlide}`}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h2 className={styles.sectionTitle}>{title}</h2>
-        <Button
-          type="link"
-          onClick={() => navigate(`/products?gender=${genderFilterId}`)}
-        >
-          Xem thêm
-        </Button>
-      </div>
+      <h2 className={styles.sectionTitle}>{title}</h2>
       {loading ? (
         <div className={styles.loadingContainer}>
           <Spin size="large" />
         </div>
       ) : (
-        <Row gutter={[16, 16]} className={styles.flexRow}>
-          {products.length === 0 ? (
-            <Paragraph>Không tìm thấy sản phẩm nào.</Paragraph>
-          ) : (
-            products.map((product) => {
-              const hasDiscount = product.detail?.discount_percent > 0;
-              const isOutOfStock = product.detail?.inventory_number === 0;
+        <>
+          <Row gutter={[16, 16]} className={styles.flexRow}>
+            {products.length === 0 ? (
+              <Paragraph>Không tìm thấy sản phẩm nào.</Paragraph>
+            ) : (
+              products.map((product) => {
+                const hasDiscount = product.detail?.discount_percent > 0;
+                const isOutOfStock = product.detail?.inventory_number === 0;
 
-              return (
-                <Col
-                  xs={24}
-                  sm={12}
-                  md={6}
-                  key={product._id}
-                  className={styles.sameHeightCol}
-                >
-                  <Card
-                    hoverable
-                    className={styles.productCard}
-                    onClick={() => navigate(`/products/${product.detail._id}`)}
-                    cover={
-                      <div className={styles.productImageContainer}>
-                        <img
-                          alt={product.productName}
-                          src={
-                            product.detail?.images?.[0] ||
-                            "/placeholder-image.jpg"
-                          }
-                          className={`${styles.productImage}`}
-                          style={{
-                            filter: isOutOfStock ? "grayscale(50%)" : "none",
-                          }}
-                        />
-                        {isOutOfStock && (
-                          <div className={styles.outOfStockOverlay}>
-                            Hết hàng
-                          </div>
-                        )}
-                      </div>
-                    }
+                return (
+                  <Col
+                    xs={24}
+                    sm={12}
+                    md={6}
+                    key={product._id}
+                    className={styles.sameHeightCol}
                   >
-                    {hasDiscount && (
-                      <Tag color="red" className={styles.discountTag}>
-                        -{product.detail.discount_percent}%
-                      </Tag>
-                    )}
-                    <Card.Meta
-                      title={
-                        <span className={styles.productName}>
-                          {product.productName}
-                        </span>
+                    <Card
+                      hoverable
+                      className={styles.productCard}
+                      onClick={() =>
+                        navigate(`/products/${product.detail._id}`)
                       }
-                      description={
-                        <Paragraph
-                          ellipsis={{ rows: 2 }}
-                          className={styles.productDescription}
-                        >
-                          {product.title}
-                        </Paragraph>
+                      cover={
+                        <div className={styles.productImageContainer}>
+                          <img
+                            alt={product.productName}
+                            src={
+                              product.detail?.images?.[0] ||
+                              "/placeholder-image.jpg"
+                            }
+                            className={`${styles.productImage}`}
+                            style={{
+                              filter: isOutOfStock ? "grayscale(50%)" : "none",
+                            }}
+                          />
+                          {isOutOfStock && (
+                            <div className={styles.outOfStockOverlay}>
+                              Hết hàng
+                            </div>
+                          )}
+                        </div>
                       }
-                    />
-                    <div className={styles.priceAndCartContainer}>
-                      <div className={styles.priceContainer}>
-                        <span
-                          className={styles.originalPrice}
-                          style={{
-                            visibility: hasDiscount ? "visible" : "hidden",
-                          }}
-                        >
-                          {formatVND(product.price)}
-                        </span>
-                        <span className={styles.currentPrice}>
-                          {hasDiscount
-                            ? formatVND(product.detail?.price_after_discount)
-                            : formatVND(product.price)}
-                        </span>
-                      </div>
-                      <Button
-                        icon={<i className="bi bi-bag-heart" />}
-                        className={
-                          isOutOfStock
-                            ? styles.addToCartDisabled
-                            : styles.addToCart
+                    >
+                      {hasDiscount && (
+                        <Tag color="red" className={styles.discountTag}>
+                          -{product.detail.discount_percent}%
+                        </Tag>
+                      )}
+                      <Card.Meta
+                        title={
+                          <span className={styles.productName}>
+                            {product.productName}
+                          </span>
                         }
-                        onClick={(e) => {
-                          if (!isOutOfStock) {
-                            e.stopPropagation();
-                            handleAddToCart(product);
-                          }
-                        }}
-                        disabled={isOutOfStock}
-                        aria-label={`Add ${product.productName} to cart`}
+                        description={
+                          <Paragraph
+                            ellipsis={{ rows: 2 }}
+                            className={styles.productDescription}
+                          >
+                            {product.title}
+                          </Paragraph>
+                        }
                       />
-                    </div>
-                  </Card>
-                </Col>
-              );
-            })
-          )}
-        </Row>
+                      <div className={styles.priceAndCartContainer}>
+                        <div className={styles.priceContainer}>
+                          <span
+                            className={styles.originalPrice}
+                            style={{
+                              visibility: hasDiscount ? "visible" : "hidden",
+                            }}
+                          >
+                            {formatVND(product.price)}
+                          </span>
+                          <span className={styles.currentPrice}>
+                            {hasDiscount
+                              ? formatVND(product.detail?.price_after_discount)
+                              : formatVND(product.price)}
+                          </span>
+                        </div>
+                        <Button
+                          icon={<i className="bi bi-bag-heart" />}
+                          className={
+                            isOutOfStock
+                              ? styles.addToCartDisabled
+                              : styles.addToCart
+                          }
+                          onClick={(e) => {
+                            if (!isOutOfStock) {
+                              e.stopPropagation();
+                              handleAddToCart(product);
+                            }
+                          }}
+                          disabled={isOutOfStock}
+                          aria-label={`Add ${product.productName} to cart`}
+                        />
+                      </div>
+                    </Card>
+                  </Col>
+                );
+              })
+            )}
+          </Row>
+          <div style={{ textAlign: "center", marginTop: "2rem" }}>
+            <Button
+              type="link"
+              onClick={() => navigate(`/products?gender=${genderFilterId}`)}
+            >
+              Xem thêm
+            </Button>
+          </div>
+        </>
       )}
     </section>
   );

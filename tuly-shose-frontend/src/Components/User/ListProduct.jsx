@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
   Row,
@@ -24,6 +24,7 @@ function ListProduct() {
   const [isVisible, setIsVisible] = useState(false);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation(); // Added to access URL query parameters
   const [filters, setFilters] = useState({
     category: "",
     brand: "",
@@ -36,9 +37,6 @@ function ListProduct() {
     currentPage: 1,
     totalPages: 1,
   });
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
   const [loading, setLoading] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
     categories: [],
@@ -48,6 +46,17 @@ function ListProduct() {
   });
 
   const limit = 12;
+
+  // Initialize filters based on URL query parameters
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const gender = searchParams.get("gender") || "";
+    setFilters((prev) => ({
+      ...prev,
+      gender,
+    }));
+    setIsVisible(true);
+  }, [location.search]);
 
   const formatVND = (price) =>
     new Intl.NumberFormat("vi-VN", {

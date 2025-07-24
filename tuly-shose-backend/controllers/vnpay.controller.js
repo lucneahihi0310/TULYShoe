@@ -199,7 +199,11 @@ exports.ipn = async (req, res) => {
     }
 
     if (user_id && isFromCart) {
-      await CartItem.deleteMany({ user_id: new mongoose.Types.ObjectId(user_id) });
+      const pdetail_ids = orderItems.map(item => item.pdetail_id);
+      await CartItem.deleteMany({
+        user_id: new mongoose.Types.ObjectId(user_id),
+        pdetail_id: { $in: pdetail_ids.map(id => new mongoose.Types.ObjectId(id)) }
+      });
     }
 
     // Create notification

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
-import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message } from "antd";
+import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import { fetchData, postData, updateData, deleteData, patchData } from "../API/ApiService";
 
@@ -8,8 +8,10 @@ const ManagerAccount = () => {
     const [categories, setCategories] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [filterCategoryName, setFilterCategoryName] = useState("");
     const [form] = Form.useForm();
+    const [form_add] = Form.useForm();
 
     const openEditModal = (record) => {
         setSelectedRecord(record._id);
@@ -25,6 +27,7 @@ const ManagerAccount = () => {
             last_name: record.last_name,
             dob: isoLocal,
             gender: record.gender,
+            address: record.address_shipping_id.address,
             email: record.email,
             phone: record.phone
         });
@@ -38,9 +41,15 @@ const ManagerAccount = () => {
 
     //delete account
     const handleDeleteCategory = async (id) => {
-        console.log("Delete : ", id);
-        await deleteData('/account/profile/delete', id, true);
-        fetchCategories();
+        try {
+            console.log("Delete : ", id);
+            await deleteData('/account/profile/delete', id, true);
+            message.success("Xóa tài khoản thành công!");
+            fetchCategories();
+        }
+        catch (error) {
+            console.log(error);
+        }
     };
 
     //ban account
@@ -78,7 +87,6 @@ const ManagerAccount = () => {
     const fetchCategories = async () => {
         const res = await fetchData('/account', true);
         setCategories(res);
-        console.log(res);
     }
     const searchCategory = categories.filter((c) => {
         if (!filterCategoryName) return true;
@@ -144,11 +152,24 @@ const ManagerAccount = () => {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            width: 100,
+            width: 80,
             render: (value, record) => {
                 return (
                     <div>
                         {value}
+                    </div>
+                )
+            }
+        },
+        {
+            title: 'Địa chỉ',
+            dataIndex: 'address_shipping_id',
+            key: 'address_shipping_id',
+            width: 100,
+            render: (value, record) => {
+                return (
+                    <div>
+                        {value.address}
                     </div>
                 )
             }
@@ -243,11 +264,6 @@ const ManagerAccount = () => {
                                     variant="solid"
                                     icon={<EditOutlined />}
                                     onClick={() => {
-                                        // setEdittingRow(record._id);
-                                        // form.setFieldsValue({
-                                        //     color_code: record.color_code,
-                                        //     status: record.status
-                                        // })
                                         openEditModal(record);
                                     }}>
                                     Edit
@@ -337,12 +353,23 @@ const ManagerAccount = () => {
                 <Col span={8} offset={4}>
                     <Input placeholder="Tìm kiếm khách hàng..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
                 </Col>
+                <Col span={4} offset={4}>
+                    <Button
+                        shape="round" icon={<PlusOutlined />}
+                        onClick={() => {
+                            setIsAddModalOpen(true);
+                        }}>
+                        Thêm nhân viên
+                    </Button>
+                </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
                 <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
             </div>
+
+            {/* MODAL CHỈNH SỬA TÀI KHOẢN */}
             <Modal
-                width={800}
+                width={600}
                 title="Chỉnh sửa tài khoản"
                 open={isModalOpen}
                 onCancel={cancelEdit}
@@ -364,9 +391,11 @@ const ManagerAccount = () => {
                                 last_name: values.last_name,
                                 dob: values.dob,
                                 gender: values.gender,
+                                address: values.address,
                                 phone: values.phone,
                                 email: values.email
                             }, true);
+                            message.success("Cập nhật thành công!");
                             cancelEdit(false);
                             fetchCategories();
                         } catch (error) {
@@ -384,10 +413,13 @@ const ManagerAccount = () => {
                         <Input type="datetime-local" style={{ width: '100%' }} />
                     </Form.Item>
                     <Form.Item name="gender" label="Giới tính" rules={[{ required: false }]}>
-                        {/* <Select options={[
-                            { label: "Male", value: "male" },
-                            { label: "Female", value: "female" },
-                        ]} /> */}
+                        <Select options={[
+                            { label: "Nam", value: "Nam" },
+                            { label: "Nữ", value: "Nữ" },
+                            { label: "Khác", value: "Khác" },
+                        ]} />
+                    </Form.Item>
+                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: false }]}>
                         <Input />
                     </Form.Item>
                     <Form.Item name="email" label="Email" rules={[{ type: 'email', required: false }]}>
@@ -395,6 +427,92 @@ const ManagerAccount = () => {
                     </Form.Item>
                     <Form.Item name="phone" label="SĐT" rules={[
                         { required: false },
+                        {
+                            pattern: /^\d{10}$/,
+                            message: "SĐT phải là 10 chữ số",
+                        }
+                    ]}>
+                        <Input maxLength={10} />
+                    </Form.Item>
+                    <Form.Item
+                        label=" ">
+                        <Button
+                            type="primary"
+                            htmlType="submit">
+                            Submit
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* MODAL TẠO TÀI KHOẢN CHO STAFF*/}
+            <Modal
+                width={600}
+                title="Tạo tài khoản nhân viên"
+                open={isAddModalOpen}
+                onCancel={() => setIsAddModalOpen(false)}
+                footer={null}
+            >
+                <Form
+                    form={form_add}
+                    name="wrap"
+                    labelCol={{ flex: '110px' }}
+                    labelAlign="left"
+                    labelWrap
+                    wrapperCol={{ flex: 1 }}
+                    colon={false}
+                    onFinish={async (values) => {
+                        try {
+                            console.log(values);
+                            await postData('/account/add_staff', {
+                                first_name: values.first_name,
+                                last_name: values.last_name,
+                                dob: values.dob,
+                                gender: values.gender,
+                                address: values.address,
+                                email: values.email,
+                                phone: values.phone,
+                                password: values.password
+                            }, true);
+                            message.success("Thêm tài khoản thành công!");
+                            form_add.resetFields();
+                            setIsAddModalOpen(false);
+                            fetchCategories();
+                        } catch (error) {
+                            console.log(error)
+                        }
+                    }}
+                >
+                    <Form.Item name="first_name" label="Họ" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="last_name" label="Tên" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="dob" label="Ngày sinh" rules={[{ required: true }]}>
+                        <Input type="datetime-local" style={{ width: '100%' }} />
+                    </Form.Item>
+                    <Form.Item name="gender" label="Giới tính" rules={[{ required: true }]}>
+                        <Select options={[
+                            { label: "Nam", value: "Nam" },
+                            { label: "Nữ", value: "Nữ" },
+                            { label: "Khác", value: "Khác" },
+                        ]} />
+                    </Form.Item>
+                    <Form.Item name="email" label="Email" rules={[{ type: 'email', required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="password" label="Password" rules={[{ required: true }]}>
+                        <Input.Password
+                            placeholder="Enter your password"
+                            visibilityToggle={true}
+                        />
+                    </Form.Item>
+                    <Form.Item name="phone" label="SĐT" rules={[
+                        { required: true },
                         {
                             pattern: /^\d{10}$/,
                             message: "SĐT phải là 10 chữ số",
