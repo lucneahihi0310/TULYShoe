@@ -27,16 +27,17 @@ const ScheduleCalendar = () => {
   }, [user]);
 
   const loadSchedules = async (staffId) => {
-    try {
-      setLoading(true);
-      const data = await fetchSchedulesByStaff(staffId);
-      setScheduleData(data);
-    } catch (error) {
-      toast.error('Lỗi khi tải lịch làm việc!');
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  const data = await fetchSchedulesByStaff(staffId);
+
+  if (!data || data.length === 0) {
+    toast.info("Không có lịch làm việc nào được tìm thấy.");
+  }
+
+  setScheduleData(data);
+  setLoading(false);
+};
+
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -101,10 +102,17 @@ const ScheduleCalendar = () => {
   };
 
   const filteredData = scheduleData.filter(item => {
-    const matchDate = filters.date ? item.schedule_date === filters.date : true;
-    const matchStatus = filters.status ? item.work_status === filters.status : true;
-    return matchDate && matchStatus;
-  });
+  const hasValidTime =
+    item.schedule_date &&
+    item.scheduled_start_time &&
+    item.scheduled_end_time;
+
+  const matchDate = filters.date ? item.schedule_date === filters.date : true;
+  const matchStatus = filters.status ? item.work_status === filters.status : true;
+
+  return hasValidTime && matchDate && matchStatus;
+});
+
 
   const events = filteredData.map(item => ({
     id: item._id,
@@ -132,11 +140,29 @@ const ScheduleCalendar = () => {
   };
 
   const CustomEvent = ({ event }) => (
-    <div className="custom-event">
-      <span>{event.title}</span>
-      <FaEye className="clickable" onClick={() => handleSelectEvent(event)} />
-    </div>
-  );
+  <div
+    className="custom-event clickable"
+    onClick={() => handleSelectEvent(event)}
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      fontSize: '12px',
+      padding: '0 2px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    }}
+    title={`${event.title} - Bấm để xem`}
+  >
+    <span>{event.title}</span>
+    <FaEye style={{ minWidth: 12 }} />
+  </div>
+);
+
+
+
+
 
   return (
     <Container fluid className="mt-4 calendar-container">
@@ -176,23 +202,30 @@ const ScheduleCalendar = () => {
             </Col>
           </Row>
 
-          <Calendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 520 }}
-            eventPropGetter={eventPropGetter}
-            components={{ event: CustomEvent }}
-            date={currentDate}
-            view={Views.WEEK}
-            toolbar={false}
-            step={300}
-            timeslots={1}
-            min={new Date(1970, 1, 1, 7, 0)}
-            max={new Date(1970, 1, 1, 21, 0)}
-            formats={{ timeGutterFormat: customTimeGutterFormat }}
-          />
+          {events.length > 0 ? (
+  <Calendar
+    localizer={localizer}
+    events={events}
+    startAccessor="start"
+    endAccessor="end"
+    style={{ height: 520 }}
+    eventPropGetter={eventPropGetter}
+    components={{ event: CustomEvent }}
+    date={currentDate}
+    view={Views.WEEK}
+    toolbar={false}
+    step={300}
+    timeslots={1}
+    min={new Date(1970, 1, 1, 7, 0)}
+    max={new Date(1970, 1, 1, 21, 0)}
+    formats={{ timeGutterFormat: customTimeGutterFormat }}
+  />
+) : (
+  <div className="text-center text-muted mt-4">
+    <p>Không có ca làm việc nào trong tuần này.</p>
+  </div>
+)}
+
 
           <Modal show={!!selectedEvent} onHide={() => setSelectedEvent(null)} centered>
             <Modal.Header closeButton>

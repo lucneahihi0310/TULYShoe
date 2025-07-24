@@ -150,14 +150,17 @@ console.log(statusList);
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
 
   const getAvailableStatusOptions = (currentStatus) => {
-    const statusFlow = {
-      "Chờ xác nhận": ["Chờ xác nhận", "Đã xác nhận"],
-      "Đã xác nhận": ["Đã xác nhận", "Đang vận chuyển"],
-      "Đang vận chuyển": ["Đang vận chuyển", "Hoàn thành"],
-      "Hoàn thành": ["Hoàn thành"],
-    }
-    return statusFlow[currentStatus] || []
+  const statusFlow = {
+    "Chờ xác nhận": ["Chờ xác nhận", "Đã xác nhận"],
+    "Đã xác nhận": ["Đã xác nhận", "Đã xác nhận và đang chờ vận chuyển"],
+    "Đã xác nhận và đang chờ vận chuyển": [ "Đang vận chuyển"],
+    "Đang vận chuyển": ["Đang vận chuyển", "Hoàn thành"],
+    "Hoàn thành": ["Hoàn thành"],
+    "Đã hủy": ["Đã hủy"]
   }
+  return statusFlow[currentStatus] || []
+}
+
 
   const formatDateTime = (dateString) => {
     const date = new Date(dateString)
