@@ -10,9 +10,11 @@ import { fetchData, postData } from "../API/ApiService";
 const ManagerStaff = () => {
     const [staffList, setStaffList] = useState([]);
     const [isScheduleModalVisible, setIsScheduleModalVisible] = useState(false);
+    const [isViewSchedulesModalVisible, setIsViewSchedulesModalVisible] = useState(false);
     const [schedules, setSchedules] = useState([]);
     const [filteredSchedules, setFilteredSchedules] = useState([]);
     const [selectedStaffId, setSelectedStaffId] = useState(null);
+    const [selectedStaffName, setSelectedStaffName] = useState('');
     const [searchDate, setSearchDate] = useState(null);
     const [scheduleForm] = Form.useForm();
     const calendarRef = useRef(null);
@@ -43,22 +45,27 @@ const ManagerStaff = () => {
     }, []);
 
     // Fetch schedules for a staff member
-    const fetchSchedules = async (staffId) => {
+    const fetchSchedules = async (staffId, staffName) => {
         try {
             const data = await fetchData(`/staff/schedules/${staffId}`, true);
             const calendarEvents = data.map(schedule => ({
                 id: schedule._id,
                 title: `${schedule.staff_name}: ${schedule.scheduled_start_time} - ${schedule.scheduled_end_time}`,
-                start: `${schedule.schedule_date}T${schedule.scheduled_start_time}:00`,
-                end: `${schedule.schedule_date}T${schedule.scheduled_end_time}:00`,
+                start: moment(`${schedule.schedule_date}T${schedule.scheduled_start_time}:00`).toISOString(),
+                end: moment(`${schedule.schedule_date}T${schedule.scheduled_end_time}:00`).toISOString(),
                 extendedProps: {
                     work_status: schedule.work_status,
                     notes: schedule.notes
                 }
             }));
+            if (calendarEvents.length === 0) {
+                message.warning('Không có lịch làm việc cho nhân viên này.');
+            }
             setSchedules(calendarEvents);
             setFilteredSchedules(calendarEvents);
             setSelectedStaffId(staffId);
+            setSelectedStaffName(staffName);
+            setIsViewSchedulesModalVisible(true); // Show modal with FullCalendar
         } catch (error) {
             message.error('Lỗi khi lấy lịch làm việc: ' + error.message);
         }
@@ -73,7 +80,7 @@ const ManagerStaff = () => {
                 moment(schedule.start).format('YYYY-MM-DD') === formattedDate
             );
             setFilteredSchedules(filtered);
-            if (calendarRef.current) {
+            if (calendarRef.current && filtered.length > 0) {
                 calendarRef.current.getApi().gotoDate(date.toDate());
             }
         } else {
@@ -105,10 +112,10 @@ const ManagerStaff = () => {
             scheduleForm.resetFields();
             setIsScheduleModalVisible(false);
             if (selectedStaffId) {
-                fetchSchedules(selectedStaffId); // Refresh schedules
+                fetchSchedules(selectedStaffId, selectedStaffName); // Refresh schedules
             }
         } catch (error) {
-            message.error('Lỗi khi thêm lịch làm việc: ' + error.message);
+            message.error(error.message || 'Lỗi khi thêm lịch làm việc');
         }
     };
 
@@ -116,6 +123,15 @@ const ManagerStaff = () => {
     const handleScheduleCancel = () => {
         scheduleForm.resetFields();
         setIsScheduleModalVisible(false);
+    };
+
+    // Cancel view schedules modal
+    const handleViewSchedulesCancel = () => {
+        setIsViewSchedulesModalVisible(false);
+        setSchedules([]);
+        setFilteredSchedules([]);
+        setSelectedStaffId(null);
+        setSelectedStaffName('');
     };
 
     // Table columns for staff
@@ -147,10 +163,29 @@ const ManagerStaff = () => {
             title: 'Hành động',
             key: 'actions',
             render: (text, record) => (
-                <Button onClick={() => fetchSchedules(record.id)}>Xem lịch</Button>
+                <Button onClick={() => fetchSchedules(record.id, record.name)}>Xem lịch</Button>
             ),
         },
     ];
+
+    // Validation for time range (9:00 AM to 8:00 PM, inclusive)
+    const isValidTimeRange = (time) => {
+        if (!time) return false;
+        const startOfDay = moment().startOf('day');
+        const timeInMinutes = time.diff(startOfDay, 'minutes');
+        return timeInMinutes >= 9 * 60 && timeInMinutes <= 20 * 60;
+    };
+
+    // Check if current time is past working hours (8:00 PM) for today
+    const isPastWorkingHours = (date) => {
+        const now = moment();
+        const selectedDate = moment(date);
+        if (selectedDate.isSame(now, 'day')) {
+            const currentTimeInMinutes = now.hour() * 60 + now.minute();
+            return currentTimeInMinutes >= 20 * 60;
+        }
+        return false;
+    };
 
     return (
         <div style={{ padding: '20px' }}>
@@ -177,38 +212,51 @@ const ManagerStaff = () => {
 
             <Table columns={columns} dataSource={staffList} rowKey="id" style={{ marginBottom: '20px' }} />
 
-            {selectedStaffId && (
-                <FullCalendar
-                    ref={calendarRef}
-                    plugins={[dayGridPlugin, timeGridPlugin]}
-                    initialView="dayGridMonth"
-                    events={filteredSchedules}
-                    headerToolbar={{
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek'
-                    }}
-                    eventClick={(info) => {
-                        Modal.info({
-                            title: 'Chi tiết lịch làm việc',
-                            content: (
-                                <div>
-                                    <p><strong>Nhân viên:</strong> {info.event.title.split(':')[0]}</p>
-                                    <p><strong>Ngày:</strong> {moment(info.event.start).format('YYYY-MM-DD')}</p>
-                                    <p><strong>Thời gian:</strong> {info.event.title.split(':')[1]}</p>
-                                    <p><strong>Trạng thái:</strong> {info.event.extendedProps.work_status || 'Chưa bắt đầu'}</p>
-                                    <p><strong>Ghi chú:</strong> {info.event.extendedProps.notes || 'Không có'}</p>
-                                </div>
-                            ),
-                            onOk() { },
-                        });
-                    }}
-                    locale="vi"
-                    eventColor="#1890ff"
-                    eventTextColor="#fff"
-                    height="600px"
-                />
-            )}
+            {/* Modal to view schedules with FullCalendar */}
+            <Modal
+                title={`Lịch làm việc của ${selectedStaffName}`}
+                open={isViewSchedulesModalVisible}
+                onCancel={handleViewSchedulesCancel}
+                footer={null}
+                width={2000}
+                style={{ top: 20 }} // Adjust modal position if needed
+                styles={{ height: '600px', overflowY: 'auto' }} // Add scroll if content overflows
+            >
+                {filteredSchedules.length > 0 ? (
+                    <FullCalendar
+                        ref={calendarRef}
+                        plugins={[dayGridPlugin, timeGridPlugin]}
+                        initialView="dayGridMonth"
+                        events={filteredSchedules}
+                        headerToolbar={{
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek'
+                        }}
+                        eventClick={(info) => {
+                            Modal.info({
+                                title: 'Chi tiết lịch làm việc',
+                                content: (
+                                    <div>
+                                        <p><strong>Nhân viên:</strong> {info.event.title.split(':')[0]}</p>
+                                        <p><strong>Ngày:</strong> {moment(info.event.start).format('YYYY-MM-DD')}</p>
+                                        <p><strong>Thời gian:</strong> {`${moment(info.event.start).format('HH:mm')} - ${moment(info.event.end).format('HH:mm')}`}</p>
+                                        <p><strong>Trạng thái:</strong> {info.event.extendedProps.work_status || 'Chưa bắt đầu'}</p>
+                                        <p><strong>Ghi chú:</strong> {info.event.extendedProps.notes || 'Không có'}</p>
+                                    </div>
+                                ),
+                                onOk() { },
+                            });
+                        }}
+                        locale="vi"
+                        eventColor="#1890ff"
+                        eventTextColor="#fff"
+                        height="500px"
+                    />
+                ) : (
+                    <p style={{ textAlign: 'center', padding: '20px' }}>Không có lịch làm việc để hiển thị.</p>
+                )}
+            </Modal>
 
             {/* Modal to add schedule */}
             <Modal
@@ -238,21 +286,68 @@ const ManagerStaff = () => {
                     <Form.Item
                         name="scheduleDate"
                         label="Ngày làm việc"
-                        rules={[{ required: true, message: 'Vui lòng chọn ngày' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng chọn ngày' },
+                            () => ({
+                                validator(_, value) {
+                                    if (!value) {
+                                        return Promise.reject(new Error('Vui lòng chọn ngày'));
+                                    }
+                                    const selectedDate = moment(value);
+                                    const today = moment();
+                                    if (selectedDate.isBefore(today, 'day')) {
+                                        return Promise.reject(new Error('Ngày làm việc phải từ hôm nay trở đi'));
+                                    }
+                                    if (isPastWorkingHours(value)) {
+                                        return Promise.reject(new Error('Đã quá giờ làm việc, vui lòng chọn ngày khác'));
+                                    }
+                                    return Promise.resolve();
+                                },
+                            }),
+                        ]}
                     >
                         <DatePicker format="YYYY-MM-DD" />
                     </Form.Item>
                     <Form.Item
                         name="startTime"
                         label="Giờ bắt đầu"
-                        rules={[{ required: true, message: 'Vui lòng chọn giờ bắt đầu' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng chọn giờ bắt đầu' },
+                            () => ({
+                                validator(_, value) {
+                                    if (!value) return Promise.reject(new Error('Vui lòng chọn giờ bắt đầu'));
+                                    if (!isValidTimeRange(value)) {
+                                        return Promise.reject(new Error('Giờ bắt đầu phải từ 9:00 sáng đến 20:00 tối'));
+                                    }
+                                    return Promise.resolve();
+                                },
+                            }),
+                        ]}
                     >
                         <TimePicker format="HH:mm" />
                     </Form.Item>
                     <Form.Item
                         name="endTime"
                         label="Giờ kết thúc"
-                        rules={[{ required: true, message: 'Vui lòng chọn giờ kết thúc' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng chọn giờ kết thúc' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value) return Promise.reject(new Error('Vui lòng chọn giờ kết thúc'));
+                                    if (!isValidTimeRange(value)) {
+                                        return Promise.reject(new Error('Giờ kết thúc phải từ 9:00 sáng đến 20:00 tối'));
+                                    }
+                                    const startTime = getFieldValue('startTime');
+                                    if (startTime) {
+                                        const diff = value.diff(startTime, 'hours', true);
+                                        if (diff < 1) {
+                                            return Promise.reject(new Error('Giờ kết thúc phải lớn hơn giờ bắt đầu ít nhất 1 tiếng'));
+                                        }
+                                    }
+                                    return Promise.resolve();
+                                },
+                            }),
+                        ]}
                     >
                         <TimePicker format="HH:mm" />
                     </Form.Item>
