@@ -98,7 +98,7 @@ const checkOut = async (req, res) => {
 
 const createSchedule = async (req, res) => {
   try {
-    const { staff_id, schedule_date, scheduled_start_time, scheduled_end_time, notes, is_recurring, recurrence_end_date } = req.body;
+    const { staff_id, schedule_date, scheduled_start_time, scheduled_end_time, notes, is_recurring, work_status_id, recurrence_end_date } = req.body;
 
     if (is_recurring && !recurrence_end_date) {
       return res.status(400).json({ message: 'Vui lòng cung cấp ngày kết thúc lặp lại' });
@@ -148,7 +148,8 @@ const createSchedule = async (req, res) => {
         notes,
         is_recurring,
         recurrence_end_date: is_recurring ? recurrence_end_date : null,
-        created_by: req.customerId._id, // Lấy từ token xác thực
+        created_by: req.customerId._id,
+        work_status_id: "685b9cbdb8a801593cb7f641",
       });
       currentDate.add(1, 'days');
     }
