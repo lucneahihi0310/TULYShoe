@@ -1,26 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CheckOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
+import { fetchOrders, confirmOrder, updateOrderStatus } from "../API/orderApi";
+import { AuthContext } from "../API/AuthContext"
 import moment from 'moment';
 import Swal from "sweetalert2"
 
 const ManagerOrder = () => {
     const [orders, setOrders] = useState([]);
+    const [orderStatus, setOrderStatus] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
+    const { user } = useContext(AuthContext)
 
     useEffect(() => {
         fetchOrders();
+        fetchOrderStatus()
     }, [])
     const fetchOrders = async () => {
         const res = await fetchData('/staff/orders');
         const sortedOrders = res.formattedOrders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date))
         setOrders(sortedOrders);
         console.log(sortedOrders);
+    }
+    const fetchOrderStatus = async () => {
+        const res = await fetchData('/order_status/get_all_order_statuses');
+        setOrderStatus(res);
+        console.log(res);
     }
 
     const handleView = (record) => {
@@ -72,6 +82,32 @@ const ManagerOrder = () => {
         }
     }
 
+    const handleStatusChange = async (orderId, newStatus) => {
+        try {
+            await updateOrderStatus(orderId, newStatus)
+            setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, order_status: newStatus } : o)))
+            Swal.fire({
+                icon: "success",
+                title: "Cập nhật thành công",
+                text: `Trạng thái đơn hàng đã đổi sang "${newStatus}"`,
+                timer: 2000,
+                showConfirmButton: false,
+            })
+        } catch (error) {
+            Swal.fire("Lỗi", "Không thể cập nhật trạng thái", "error")
+        }
+    }
+
+    const getAvailableStatusOptions = (currentStatus) => {
+        const statusFlow = {
+            "Chờ xác nhận": ["Chờ xác nhận", "Đã xác nhận"],
+            "Đã xác nhận": ["Đã xác nhận", "Đang vận chuyển"],
+            "Đang vận chuyển": ["Đang vận chuyển", "Hoàn thành"],
+            "Hoàn thành": ["Hoàn thành"],
+        }
+        return statusFlow[currentStatus] || []
+    }
+
     const formatDateTime = (dateString) => {
         const date = new Date(dateString)
         return {
@@ -119,7 +155,28 @@ const ManagerOrder = () => {
         {
             title: 'Trạng thái',
             dataIndex: 'order_status',
-            key: 'order_status'
+            key: 'order_status',
+            render: (value, record) => {
+                const availableOptions = getAvailableStatusOptions(record?.order_status);
+                return (
+                    <>
+                        <span>{record?.order_status}</span>
+                        {record.accepted_by && availableOptions.length > 0 && (
+                            <Select
+                                placeholder="Chọn trạng thái tiếp theo"
+                                onChange={(newStatus) => handleStatusChange(record?._id, newStatus)}
+                                style={{ width: 120, marginLeft: 8 }}
+                            >
+                                {availableOptions.map((status) => (
+                                    <Option key={status} value={status}>
+                                        {status}
+                                    </Option>
+                                ))}
+                            </Select>
+                        )}
+                    </>
+                )
+            }
         },
         {
             title: 'Giao hàng dự kiến',
@@ -173,7 +230,7 @@ const ManagerOrder = () => {
                         </Button>
                     </Space>
                 ) : (
-                    <Space  >
+                    <Space>
                         <div>
                             <Row style={{ marginBottom: '5px' }}>
                                 <Button
@@ -184,7 +241,7 @@ const ManagerOrder = () => {
                                     onClick={() => {
                                         handleView(record);
                                     }}>
-                                    Chi tiết
+                                    Xem chi tiết
                                 </Button>
                             </Row>
                             <Row>
@@ -192,10 +249,10 @@ const ManagerOrder = () => {
                                     title="Xác nhân đơn hàng"
                                     color="green"
                                     variant="solid"
-                                    icon={<CheckOutlined />}>
+                                    icon={<CheckOutlined />}
                                     onClick={() => {
                                         handleConfirmOrder(record._id);
-                                    }}
+                                    }}>
                                     Xác nhận
                                 </Button>
                             </Row>
