@@ -10,7 +10,7 @@ const ManagerDashboard = () => {
                 width: '15%',
                 backgroundColor: '#1e1e2f',
                 color: 'white',
-                padding: '16px'
+                padding: '0px'
             }}>
                 <ManagerSidebar />
             </div>
