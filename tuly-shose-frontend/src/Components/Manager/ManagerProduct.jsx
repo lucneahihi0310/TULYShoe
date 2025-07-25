@@ -501,12 +501,12 @@ const ManagerProduct = () => {
       }}
     >
       <Row gutter={16} style={{ padding: "10px" }}>
-        <Col span={4}>
+        <Col span={5}>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <h4>Products</h4>
+            <h4>Quản Lý Sản Phẩm</h4>
           </div>
         </Col>
-        <Col span={8} offset={4}>
+        <Col span={8} offset={3}>
           <Input
             placeholder="Tìm kiếm theo tên sản phẩm..."
             prefix={<SearchOutlined />}
@@ -603,7 +603,24 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Price"
                 name="price"
-                rules={[{ required: true, message: "Please enter price" }]}
+                rules={[
+                  { required: true, message: "Please enter price" },
+                  {
+                    validator: (_, value) => {
+                      const num = parseFloat(value);
+                      if (isNaN(num)) {
+                        return Promise.reject("Giá phải là một số");
+                      }
+                      if (num <= 0) {
+                        return Promise.reject("Giá phải lơn hơn 0");
+                      }
+                      if (!Number.isInteger(num)) {
+                        return Promise.reject("Giá phải là số nguyên");
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
               >
                 <Input placeholder="Enter product price" />
               </Form.Item>
