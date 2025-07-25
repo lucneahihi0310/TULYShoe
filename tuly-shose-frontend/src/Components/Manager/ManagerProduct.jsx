@@ -508,9 +508,10 @@ const ManagerProduct = () => {
         </Col>
         <Col span={8} offset={4}>
           <Input
-            placeholder="Search product..."
+            placeholder="Tìm kiếm theo tên sản phẩm..."
             prefix={<SearchOutlined />}
             onChange={(e) => setFilterCategoryName(e.target.value)}
+            size="large"
           />
         </Col>
         <Col span={4} offset={4}>
@@ -518,6 +519,7 @@ const ManagerProduct = () => {
             shape="round"
             icon={<PlusOutlined />}
             onClick={showAddCategoryModal}
+            size="large"
           >
             Tạo Thêm Sản Phẩm
           </Button>
