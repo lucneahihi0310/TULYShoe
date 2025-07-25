@@ -93,7 +93,7 @@ const ProfileSection = ({
       setAvatar(data.avatar_image);
       setLastValidAvatar(data.avatar_image);
     } catch (err) {
-      message.error("Không thể tải thông tin người dùng." + err.message);
+      message.error("Không thể tải thông tin người dùng: " + err.message);
     }
   };
 
@@ -104,7 +104,7 @@ const ProfileSection = ({
       const data = await response.json();
       setProvinces(data);
     } catch (err) {
-      message.error("Không thể tải danh sách tỉnh/thành phố." + err.message);
+      message.error("Không thể tải danh sách tỉnh/thành phố: " + err.message);
     } finally {
       setIsLoadingProvinces(false);
     }
@@ -125,7 +125,7 @@ const ProfileSection = ({
         [provinceCode]: data.districts,
       }));
     } catch (err) {
-      message.error("Không thể tải danh sách quận/huyện." + err.message);
+      message.error("Không thể tải danh sách quận/huyện: " + err.message);
     } finally {
       setIsLoadingDistricts(false);
     }
@@ -143,7 +143,7 @@ const ProfileSection = ({
       const data = await response.json();
       setWardsCache((prev) => ({ ...prev, [districtCode]: data.wards }));
     } catch (err) {
-      message.error("Không thể tải danh sách phường/xã." + err.message);
+      message.error("Không thể tải danh sách phường/xã: " + err.message);
     } finally {
       setIsLoadingWards(false);
     }
@@ -315,7 +315,7 @@ const ProfileSection = ({
         first_name: firstName,
         last_name: lastName,
         phone: values.phone,
-        dob: values.dob,
+        dob: values.dob ? values.dob.toISOString() : null,
         gender: values.gender,
         address: values.address,
         email: values.email,
@@ -327,7 +327,17 @@ const ProfileSection = ({
       await fetchUser();
       setIsEditing(false);
     } catch (err) {
-      message.error("Cập nhật thông tin thất bại." + err.message);
+      if (err.status === 400 && err.message === "Email đã tồn tại!") {
+        message.error("Email đã tồn tại, vui lòng sử dụng email khác!");
+        form.setFields([
+          {
+            name: "email",
+            errors: ["Email đã tồn tại!"],
+          },
+        ]);
+      } else {
+        message.error("Cập nhật thông tin thất bại: " + err.message);
+      }
     } finally {
       setProfileLoading(false);
     }

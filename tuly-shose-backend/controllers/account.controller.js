@@ -14,7 +14,6 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-
 exports.getFullUserInfo = async (req, res) => {
     try {
         const user = await User.findById(req.customerId)
@@ -50,6 +49,12 @@ exports.updateProfileUser = async (req, res) => {
         const user = await User.findById(req.customerId);
 
         if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+
+        // Check if email exists and belongs to another user
+        if (email && email !== user.email) {
+            const existsEmail = await User.findOne({ email });
+            if (existsEmail) return res.status(400).json({ message: 'Email đã tồn tại!' });
+        }
 
         user.first_name = first_name || "";
         user.last_name = last_name || user.last_name;
@@ -134,6 +139,13 @@ exports.login = async (req, res, next) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: 'Email hoặc mật khẩu không đúng!' });
 
+        // Check if account is active
+        if (!user.is_active) {
+            return res.status(403).json({
+                message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với đội ngũ hỗ trợ để xử lý!'
+            });
+        }
+
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) return res.status(400).json({ message: 'Email hoặc mật khẩu không đúng!' });
 
@@ -204,8 +216,7 @@ exports.register = async (req, res, next) => {
 
 exports.listAll = async (req, res, next) => {
     try {
-        const users = await User.find().populate("address_shipping_id");
-        res.json(users);
+        const users = await User.find().populate("address");
     } catch (error) {
         next(error);
     }
@@ -374,7 +385,6 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 // GET /account/info
-
 exports.getProfile = async (req, res) => {
     try {
         const account = await User.findById(req.params.id)
@@ -398,10 +408,19 @@ exports.getProfile = async (req, res) => {
     }
 };
 
-
 exports.updateProfile = async (req, res) => {
     try {
-        const { first_name, last_name, dob, gender, phone, avatar_image, address } = req.body;
+        const { first_name, last_name, dob, gender, phone, avatar_image, address, email } = req.body;
+
+        const user = await User.findById(req.params.id);
+
+        if (!user) return res.status(404).json({ message: 'Account not found' });
+
+        // Check if email exists and belongs to another user
+        if (email && email !== user.email) {
+            const existsEmail = await User.findOne({ email });
+            if (existsEmail) return res.status(400).json({ message: 'Email đã tồn tại!' });
+        }
 
         const updatedAccount = await User.findByIdAndUpdate(
             req.params.id,
@@ -413,6 +432,7 @@ exports.updateProfile = async (req, res) => {
                 phone,
                 avatar_image,
                 address,
+                email,
                 update_at: new Date()
             },
             { new: true, runValidators: true }
@@ -499,6 +519,12 @@ exports.updateAccount = async (req, res) => {
         const user = await User.findById(req.params.id);
 
         if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+
+        // Check if email exists and belongs to another user
+        if (email && email !== user.email) {
+            const existsEmail = await User.findOne({ email });
+            if (existsEmail) return res.status(400).json({ message: 'Email đã tồn tại!' });
+        }
 
         user.first_name = first_name || "";
         user.last_name = last_name || user.last_name;

@@ -438,3 +438,13 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: "Lỗi server khi cập nhật trạng thái đơn hàng" });
   }
 };
+
+exports.getOrderStatuses = async (req, res) => {
+  try {
+    const statuses = await OrderStatus.find({ is_active: true }).sort({ create_at: 1 });
+    res.status(200).json({ statuses });
+  } catch (err) {
+    console.error("Error fetching order statuses:", err);
+    res.status(500).json({ message: "Failed to fetch order statuses" });
+  }
+};

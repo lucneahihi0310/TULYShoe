@@ -80,7 +80,7 @@ const LoginRegister = () => {
     } catch (err) {
       if (err.status === 403) {
         setErrorMessage(
-          "Tài khoản đã bị khóa. Vui lòng liên hệ với đội ngũ hỗ trợ để xử lý!"
+          "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với đội ngũ hỗ trợ để xử lý!"
         );
       } else {
         setErrorMessage(err.message || "Email hoặc mật khẩu không đúng!");
@@ -107,6 +107,25 @@ const LoginRegister = () => {
       validationErrors.email = "Email không được để trống!";
     } else if (!emailRegex.test(email)) {
       validationErrors.email = "Định dạng email không hợp lệ!";
+    } else {
+      // Check if email exists
+      try {
+        const response = await postData(
+          "account/register",
+          { email },
+          { method: "POST" }
+        );
+        if (
+          response.status === 400 &&
+          response.message === "Email đã tồn tại!"
+        ) {
+          validationErrors.email = "Email đã tồn tại!";
+        }
+      } catch (err) {
+        if (err.status === 400 && err.message === "Email đã tồn tại!") {
+          validationErrors.email = "Email đã tồn tại!";
+        }
+      }
     }
 
     if (!phone) {

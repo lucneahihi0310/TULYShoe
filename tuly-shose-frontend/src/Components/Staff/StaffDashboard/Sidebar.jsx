@@ -1,90 +1,98 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useContext } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { Nav, Badge, Spinner } from "react-bootstrap"
-import { FaComments, FaBox, FaShoppingCart, FaBell, FaCalendarAlt, FaUser, FaTachometerAlt } from "react-icons/fa"
-import { AuthContext } from "../../API/AuthContext"
-import { fetchNotifications } from "../../API/notificationApi"
+import { useEffect, useState, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Nav, Badge, Spinner } from "react-bootstrap";
+import {
+  FaComments,
+  FaBox,
+  FaShoppingCart,
+  FaBell,
+  FaCalendarAlt,
+  FaUser,
+  FaTachometerAlt,
+} from "react-icons/fa";
+import { AuthContext } from "../../API/AuthContext";
+import { fetchNotifications } from "../../API/notificationApi";
 
 const Sidebar = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { user } = useContext(AuthContext)
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useContext(AuthContext);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   // Load notifications để lấy số lượng chưa đọc
   const loadUnreadCount = async () => {
     try {
-      if (!user) return
-      setLoading(true)
-      const data = await fetchNotifications()
-      const unread = data.filter((noti) => !noti.is_read).length
-      setUnreadCount(unread)
+      if (!user) return;
+      setLoading(true);
+      const data = await fetchNotifications();
+      const unread = data.filter((noti) => !noti.is_read).length;
+      setUnreadCount(unread);
     } catch (error) {
-      console.error("Lỗi khi lấy thông báo:", error)
+      console.error("Lỗi khi lấy thông báo:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadUnreadCount()
+    loadUnreadCount();
     // Refresh unread count every 30 seconds
-    const interval = setInterval(loadUnreadCount, 30000)
-    return () => clearInterval(interval)
-  }, [user])
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const menu = [
     {
       key: "dashboard",
-      label: "Dashboard",
+      label: "Thống kê",
       icon: FaTachometerAlt,
       path: "/dashboard/dashboard",
     },
     {
       key: "feedbacks",
-      label: "Customer Feedbacks",
+      label: "Phản hồi khách hàng",
       icon: FaComments,
       path: "/dashboard/feedbacks",
     },
     {
       key: "products",
-      label: "Products",
+      label: "Sản phẩm tồn kho",
       icon: FaBox,
       path: "/dashboard/products",
     },
     {
       key: "orders",
-      label: "Orders",
+      label: "Thông tin đơn hàng mới",
       icon: FaShoppingCart,
       path: "/dashboard/orders",
     },
     {
       key: "notifications",
-      label: "Notifications",
+      label: "Thông báo",
       icon: FaBell,
       path: "/dashboard/notifications",
       badge: unreadCount,
     },
     {
       key: "schedule",
-      label: "Schedule",
+      label: "Lịch làm việc",
       icon: FaCalendarAlt,
       path: "/dashboard/schedule",
     },
     {
       key: "profile",
-      label: "Profile",
+      label: "Thông tin cá nhân",
       icon: FaUser,
       path: "/dashboard/profile",
     },
-  ]
+  ];
 
   const isActive = (path) => {
-    return location.pathname === path
-  }
+    return location.pathname === path;
+  };
 
   return (
     <div className="d-flex flex-column h-100 py-3">
@@ -92,21 +100,23 @@ const Sidebar = () => {
       <div className="px-3 mb-4">
         <h4 className="text-white mb-0">
           <FaTachometerAlt className="me-2" />
-          Staff Panel
+          Bảng điều khiển
         </h4>
       </div>
 
       {/* Navigation Menu */}
       <Nav className="flex-column px-2">
         {menu.map((item) => {
-          const IconComponent = item.icon
-          const active = isActive(item.path)
+          const IconComponent = item.icon;
+          const active = isActive(item.path);
 
           return (
             <Nav.Item key={item.key} className="mb-1">
               <Nav.Link
                 className={`d-flex align-items-center px-3 py-2 rounded text-decoration-none position-relative ${
-                  active ? "bg-primary text-white" : "text-light hover-bg-secondary"
+                  active
+                    ? "bg-primary text-white"
+                    : "text-light hover-bg-secondary"
                 }`}
                 style={{
                   cursor: "pointer",
@@ -116,12 +126,12 @@ const Sidebar = () => {
                 onClick={() => navigate(item.path)}
                 onMouseEnter={(e) => {
                   if (!active) {
-                    e.target.style.backgroundColor = "rgba(255,255,255,0.1)"
+                    e.target.style.backgroundColor = "rgba(255,255,255,0.1)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
-                    e.target.style.backgroundColor = "transparent"
+                    e.target.style.backgroundColor = "transparent";
                   }
                 }}
               >
@@ -157,7 +167,7 @@ const Sidebar = () => {
                 )}
               </Nav.Link>
             </Nav.Item>
-          )
+          );
         })}
       </Nav>
 
@@ -172,14 +182,16 @@ const Sidebar = () => {
               <FaUser size={14} />
             </div>
             <div className="flex-grow-1">
-              <div className="small fw-semibold">{user.name || "Staff User"}</div>
+              <div className="small fw-semibold">
+                {user.last_name || "Nhân Viên"}
+              </div>
               <div className="small text-muted">{user.email}</div>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

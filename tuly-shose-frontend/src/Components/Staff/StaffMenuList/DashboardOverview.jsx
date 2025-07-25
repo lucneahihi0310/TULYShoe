@@ -19,6 +19,7 @@ import { fetchOrders } from "../../API/orderApi"
 import { fetchNotifications } from "../../API/notificationApi"
 import { fetchSchedulesByStaff } from "../../API/scheduleApi"
 import { fetchInventory } from "../../API/inventoryApi"
+import { useNavigate } from "react-router-dom"
 
 const DashboardOverview = () => {
   const { user } = useContext(AuthContext)
@@ -30,6 +31,7 @@ const DashboardOverview = () => {
     inventory: [],
   })
 
+  const navigate = useNavigate();
   useEffect(() => {
     if (user?._id) {
       loadDashboardData()
@@ -342,7 +344,7 @@ const DashboardOverview = () => {
         <Col>
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-white border-bottom">
-              <h5 className="mb-0 fw-bold text-secondary">
+              <h5 className="mb-0 fw-bold text-secondary" >
                 <FaTasks className="me-2" />
                 Thao tác nhanh
               </h5>
@@ -350,25 +352,29 @@ const DashboardOverview = () => {
             <Card.Body>
               <Row>
                 <Col md={3} className="mb-3">
-                  <Button variant="outline-primary" className="w-100 py-3">
+                  <Button variant="outline-primary" className="w-100 py-3"
+                  onClick={() => navigate("/dashboard/orders")} >
                     <FaShoppingCart className="d-block mb-2" size={24} />
                     Quản lý đơn hàng
                   </Button>
                 </Col>
                 <Col md={3} className="mb-3">
-                  <Button variant="outline-info" className="w-100 py-3">
+                  <Button variant="outline-info" className="w-100 py-3"
+                  onClick={() => navigate("/dashboard/schedule")} >
                     <FaCalendarAlt className="d-block mb-2" size={24} />
                     Xem lịch làm việc
                   </Button>
                 </Col>
                 <Col md={3} className="mb-3">
-                  <Button variant="outline-warning" className="w-100 py-3">
+                  <Button variant="outline-warning" className="w-100 py-3"
+                  onClick={() => navigate("/dashboard/notifications")} >
                     <FaBell className="d-block mb-2" size={24} />
                     Thông báo
                   </Button>
                 </Col>
                 <Col md={3} className="mb-3">
-                  <Button variant="outline-success" className="w-100 py-3">
+                  <Button variant="outline-success" className="w-100 py-3"
+                  onClick={() => navigate("/dashboard/products")} >
                     <FaBox className="d-block mb-2" size={24} />
                     Kiểm tra kho
                   </Button>
