@@ -7,7 +7,7 @@ const ManagerDashboard = () => {
     return (
         <div style={{ display: "flex", height: "100%" }}>
             <div style={{
-                width: '200px',
+                width: '15%',
                 backgroundColor: '#1e1e2f',
                 color: 'white',
                 padding: '16px'

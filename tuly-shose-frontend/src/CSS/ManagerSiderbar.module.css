@@ -1,0 +1,24 @@
+/* src/CSS/ManagerSidebar.module.css */
+.sidebar {
+  width: 200px;
+  background-color: #1e1e2f;
+  color: white;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px; /* bo góc cho cả sidebar */
+}
+
+.sidebarItem {
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 8px;              /* bo góc cho từng item */
+  transition: background-color 0.3s ease;
+  cursor: pointer;                 /* con trỏ pointer */
+  user-select: none;               /* không cho bôi đen text */
+  width: 100%;
+}
+
+.sidebarItem:hover {
+  background-color: #33334d;       /* nền sáng khi hover */
+}

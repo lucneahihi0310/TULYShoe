@@ -95,253 +95,173 @@ const ManagerAccount = () => {
         return fullName.includes(filterCategoryName.toLowerCase());
     });
 
-
     //setup các column
     const columns = [
         {
             title: 'No',
             key: 'index',
-            width: 50,
             render: (text, record, index) => index + 1
         },
         {
             title: 'Họ và tên',
             key: 'name',
-            width: 100,
+            width: 200,
             render: (_, record) => {
                 const fullName = `${record.first_name?.trim() || ''} ${record.last_name?.trim() || ''}`.trim();
                 return <span>{fullName}</span>;
             }
         },
         {
-            title: 'Ngày sinh',
-            dataIndex: 'dob',
-            key: 'dob',
-            width: 100,
-            render: (value, record) => {
-                const date = new Date(value);
+            title: 'Thông tin',
+            key: 'info',
+            render: (_, record) => {
+                const date = new Date(record.dob);
                 const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng tính từ 0
+                const month = String(date.getMonth() + 1).padStart(2, '0');
                 const year = date.getFullYear();
                 const hours = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
                 const seconds = String(date.getSeconds()).padStart(2, '0');
-
-                const formatted = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                const formattedDob = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
                 return (
                     <div>
-                        {formatted}
+                        <div><strong>Ngày sinh:</strong> {formattedDob}</div>
+                        <div><strong>Giới tính:</strong> {record.gender}</div>
+                        <div><strong>SĐT:</strong> {record.phone}</div>
+                        <div><strong>Địa chỉ:</strong> {record.address_shipping_id.address}</div>
                     </div>
-                )
-            }
-        },
-        {
-            title: 'Giới tính',
-            dataIndex: 'gender',
-            key: 'gender',
-            width: 10,
-            render: (value, record) => {
-                return (
-                    <div>
-                        {value}
-                    </div>
-                )
+                );
             }
         },
         {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            width: 80,
-            render: (value, record) => {
-                return (
-                    <div>
-                        {value}
-                    </div>
-                )
-            }
-        },
-        {
-            title: 'Địa chỉ',
-            dataIndex: 'address_shipping_id',
-            key: 'address_shipping_id',
-            width: 100,
-            render: (value, record) => {
-                return (
-                    <div>
-                        {value.address}
-                    </div>
-                )
-            }
-        },
-        {
-            title: 'SĐT',
-            dataIndex: 'phone',
-            key: 'phone',
-            width: 100,
-            render: (value, record) => {
-                return (
-                    <div>
-                        {value}
-                    </div>
-                )
-            }
+            render: (value) => <div>{value}</div>
         },
         {
             title: 'Role',
             dataIndex: 'role',
             key: 'role',
-            width: 50,
-            render: (value, record) => {
-                return (
-                    <div>
-                        {value}
-                    </div>
-                )
-            }
+            render: (value) => <div>{value}</div>
         },
         {
             title: 'Status',
             dataIndex: 'is_active',
             key: 'is_active',
-            width: 50,
-            render: (value, record) => {
+            render: (value, record) => (
+                <div>
+                    <Tag color={record.is_active ? "green" : "red"}>
+                        {record.is_active ? 'ACTIVE' : 'INACTIVE'}
+                    </Tag>
+                </div>
+            )
+        },
+        {
+            title: 'Thời gian',
+            key: 'time',
+            render: (_, record) => {
+                const createDate = new Date(record.create_at);
+                const updateDate = new Date(record.update_at);
+                const formatDate = (date) => {
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                };
                 return (
                     <div>
-                        <Tag color={record.is_active ? "green" : "red"}>
-                            {record.is_active ? 'ACTIVE' : 'INACTIVE'}
-                        </Tag>
+                        <div><strong>Tạo:</strong> {formatDate(createDate)}</div>
+                        <div><strong>Cập nhật:</strong> {formatDate(updateDate)}</div>
                     </div>
-                )
-            }
-        },
-        {
-            title: 'Ngày tạo',
-            dataIndex: 'create_at',
-            key: 'create_at',
-            width: 100,
-            render: (value) => {
-                const date = new Date(value);
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const seconds = String(date.getSeconds()).padStart(2, '0');
-
-                return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-            }
-        },
-        {
-            title: 'Ngày cập nhật',
-            dataIndex: 'update_at',
-            key: 'update_at',
-            width: 100,
-            render: (value) => {
-                const date = new Date(value);
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const seconds = String(date.getSeconds()).padStart(2, '0');
-
-                return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                );
             }
         },
         {
             title: 'Action',
             key: 'action',
-            width: 200,
-            render: (_, record) => {
-                return (
-                    <Space>
-                        <div>
-                            <Row>
-                                <Button
-                                    style={{ margin: '5px' }}
-                                    color="primary"
-                                    variant="solid"
-                                    icon={<EditOutlined />}
-                                    onClick={() => {
-                                        openEditModal(record);
-                                    }}>
-                                    Edit
-                                </Button>
-                            </Row>
-                            <Row>
-                                {
-                                    record.is_active ? (
-                                        <Popconfirm
-                                            title="Bạn chắc là bạn muốn ban tài khoản này chứ ?"
-                                            onConfirm={() => {
-                                                handleBanAccount(record._id);
-                                            }}
-                                            okText="Đồng ý"
-                                            cancelText="Không đồng ý"
-                                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
-                                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
-                                        >
-                                            <Button
-                                                style={{ margin: '5px' }}
-                                                danger
-                                                type="primary"
-                                                variant="solid"
-                                                icon={<MinusCircleOutlined />}
-                                            >
-                                                Ban
-                                            </Button>
-                                        </Popconfirm>
-
-                                    ) : (
-                                        <Popconfirm
-                                            title="Bạn chắc là bạn muốn ban tài khoản này chứ ?"
-                                            onConfirm={() => {
-                                                handleUnbanAccount(record._id);
-                                            }}
-                                            okText="Đồng ý"
-                                            cancelText="Không đồng ý"
-                                            okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
-                                            cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
-                                        >
-                                            <Button
-                                                style={{ margin: '5px' }}
-                                                color="primary"
-                                                variant="solid"
-                                                icon={<CheckCircleOutlined />}
-                                            >
-                                                Unban
-                                            </Button>
-                                        </Popconfirm>
-                                    )
-                                }
-                            </Row>
-                            <Row>
+            render: (_, record) => (
+                <Space>
+                    <div>
+                        <Row>
+                            <Button
+                                style={{ margin: '5px' }}
+                                color="primary"
+                                variant="solid"
+                                icon={<EditOutlined />}
+                                onClick={() => openEditModal(record)}
+                            >
+                                Edit
+                            </Button>
+                        </Row>
+                        <Row>
+                            {record.is_active ? (
                                 <Popconfirm
-                                    title="Bạn chắc là bạn muốn xóa tài khoản này chứ ?"
-                                    onConfirm={() => {
-                                        handleDeleteCategory(record._id)
-                                    }}
-                                    okText="Yes"
-                                    cancelText="No"
-                                    okButtonProps={{ size: 'small', style: { width: "110px" } }}    // Đặt kích thước nhỏ cho nút "Yes"
-                                    cancelButtonProps={{ size: 'small', style: { width: "110px" } }} // Đặt kích thước nhỏ cho nút "No"
+                                    title="Bạn chắc là bạn muốn ban tài khoản này chứ ?"
+                                    onConfirm={() => handleBanAccount(record._id)}
+                                    okText="Đồng ý"
+                                    cancelText="Không đồng ý"
+                                    okButtonProps={{ size: 'small', style: { width: "110px" } }}
+                                    cancelButtonProps={{ size: 'small', style: { width: "110px" } }}
                                 >
                                     <Button
                                         style={{ margin: '5px' }}
-                                        color="danger"
+                                        danger
+                                        type="primary"
                                         variant="solid"
-                                        icon={<DeleteOutlined />}>
-                                        Delete
+                                        icon={<MinusCircleOutlined />}
+                                    >
+                                        Ban
                                     </Button>
                                 </Popconfirm>
-                            </Row>
-                        </div>
-                    </Space>
-                )
-            }
+                            ) : (
+                                <Popconfirm
+                                    title="Bạn chắc là bạn muốn bỏ ban tài khoản này chứ ?"
+                                    onConfirm={() => handleUnbanAccount(record._id)}
+                                    okText="Đồng ý"
+                                    cancelText="Không đồng ý"
+                                    okButtonProps={{ size: 'small', style: { width: "110px" } }}
+                                    cancelButtonProps={{ size: 'small', style: { width: "110px" } }}
+                                >
+                                    <Button
+                                        style={{ margin: '5px' }}
+                                        color="primary"
+                                        variant="solid"
+                                        icon={<CheckCircleOutlined />}
+                                    >
+                                        Unban
+                                    </Button>
+                                </Popconfirm>
+                            )}
+                        </Row>
+                        <Row>
+                            <Popconfirm
+                                title="Bạn chắc là bạn muốn xóa tài khoản này chứ ?"
+                                onConfirm={() => handleDeleteCategory(record._id)}
+                                okText="Yes"
+                                cancelText="No"
+                                okButtonProps={{ size: 'small', style: { width: "110px" } }}
+                                cancelButtonProps={{ size: 'small', style: { width: "110px" } }}
+                            >
+                                <Button
+                                    style={{ margin: '5px' }}
+                                    color="danger"
+                                    variant="solid"
+                                    icon={<DeleteOutlined />}
+                                >
+                                    Delete
+                                </Button>
+                            </Popconfirm>
+                        </Row>
+                    </div>
+                </Space>
+            )
         }
     ];
+
     return (
         <div style={{ borderRadius: '0px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
             <Row gutter={16} style={{ padding: '10px' }}>
@@ -356,9 +276,8 @@ const ManagerAccount = () => {
                 <Col span={4} offset={4}>
                     <Button
                         shape="round" icon={<PlusOutlined />}
-                        onClick={() => {
-                            setIsAddModalOpen(true);
-                        }}>
+                        onClick={() => setIsAddModalOpen(true)}
+                    >
                         Thêm nhân viên
                     </Button>
                 </Col>
@@ -434,11 +353,8 @@ const ManagerAccount = () => {
                     ]}>
                         <Input maxLength={10} />
                     </Form.Item>
-                    <Form.Item
-                        label=" ">
-                        <Button
-                            type="primary"
-                            htmlType="submit">
+                    <Form.Item label=" ">
+                        <Button type="primary" htmlType="submit">
                             Submit
                         </Button>
                     </Form.Item>
@@ -520,11 +436,8 @@ const ManagerAccount = () => {
                     ]}>
                         <Input maxLength={10} />
                     </Form.Item>
-                    <Form.Item
-                        label=" ">
-                        <Button
-                            type="primary"
-                            htmlType="submit">
+                    <Form.Item label=" ">
+                        <Button type="primary" htmlType="submit">
                             Submit
                         </Button>
                     </Form.Item>

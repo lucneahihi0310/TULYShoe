@@ -1,37 +1,61 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CheckOutlined } from '@ant-design/icons'
+import { Col, Input, Row, Button, Space, Modal, Table, Select, Spin, Flex } from "antd";
+import { SearchOutlined, FilterOutlined, EyeOutlined, CheckOutlined, LoadingOutlined, FileTextOutlined } from '@ant-design/icons'
 import axios from 'axios';
 import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
 import { fetchOrders, confirmOrder, updateOrderStatus } from "../API/orderApi";
 import { AuthContext } from "../API/AuthContext"
 import moment from 'moment';
-import Swal from "sweetalert2"
+import Swal from "sweetalert2";
+import styles from "../../CSS/ManagerOrder.module.css";
 
 const ManagerOrder = () => {
     const [orders, setOrders] = useState([]);
     const [orderStatus, setOrderStatus] = useState([]);
+    const [filterCategoryName, setFilterCategoryName] = useState("");
+    const [filterCategoryStatus, setFilterCategoryStatus] = useState(undefined);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [form] = Form.useForm();
     const { user } = useContext(AuthContext)
+
+    const loadingIcon = <LoadingOutlined style={{ fontSize: 100 }} spin />;
 
     useEffect(() => {
         fetchOrders();
         fetchOrderStatus()
     }, [])
+
     const fetchOrders = async () => {
-        const res = await fetchData('/staff/orders');
-        const sortedOrders = res.formattedOrders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date))
-        setOrders(sortedOrders);
-        console.log(sortedOrders);
+        setLoading(true);
+        try {
+            const res = await fetchData('/staff/orders');
+            const sortedOrders = res.formattedOrders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
+            setOrders(sortedOrders);
+        } catch (error) {
+            console.error("Lỗi khi fetch orders:", error);
+        } finally {
+            setLoading(false);
+        }
     }
+
     const fetchOrderStatus = async () => {
-        const res = await fetchData('/order_status/get_all_order_statuses');
-        setOrderStatus(res);
-        console.log(res);
+        setLoading(true);
+        try {
+            const res = await fetchData('/order_status/get_all_order_statuses');
+            setOrderStatus(res);
+        } catch (error) {
+            console.error("Lỗi khi fetch order status:", error);
+        } finally {
+            setLoading(false);
+        }
     }
+
+    const searchCategory = orders.filter((c) => {
+        const findCategoryByName = c.userName.toLowerCase().includes(filterCategoryName.toLowerCase());
+        const findCategoryByStatus = filterCategoryStatus === undefined || c.order_status === filterCategoryStatus;
+        return findCategoryByName && findCategoryByStatus;
+    })
 
     const handleView = (record) => {
         console.log(record)
@@ -99,35 +123,21 @@ const ManagerOrder = () => {
     }
 
     const getAvailableStatusOptions = (currentStatus) => {
-        const statusFlow = {
-            "Chờ xác nhận": ["Chờ xác nhận", "Đã xác nhận"],
-            "Đã xác nhận": ["Đã xác nhận", "Đang vận chuyển"],
-            "Đang vận chuyển": ["Đang vận chuyển", "Hoàn thành"],
-            "Hoàn thành": ["Hoàn thành"],
+        switch (currentStatus) {
+            case 'Chờ xác nhận':
+                return ['Đã xác nhận', 'Đã huỷ'];
+            case 'Đã xác nhận':
+                return ['Đang vận chuyển'];
+            case 'Đang vận chuyển':
+                return ['Hoàn thành'];
+            case 'Hoàn thành':
+            case 'Đã huỷ':
+                return [];
+            default:
+                return [];
         }
-        return statusFlow[currentStatus] || []
-    }
+    };
 
-    const formatDateTime = (dateString) => {
-        const date = new Date(dateString)
-        return {
-            date: date.toLocaleDateString("vi-VN"),
-            time: date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
-        }
-    }
-
-    const getTimeAgo = (dateString) => {
-        const now = new Date()
-        const orderDate = new Date(dateString)
-        const diffInMinutes = Math.floor((now - orderDate) / (1000 * 60))
-        const diffInHours = Math.floor(diffInMinutes / 60)
-        const diffInDays = Math.floor(diffInHours / 24)
-
-        if (diffInMinutes < 60) return `${diffInMinutes} phút trước`
-        if (diffInHours < 24) return `${diffInHours} giờ trước`
-        if (diffInDays < 7) return `${diffInDays} ngày trước`
-        return formatDateTime(dateString).date
-    }
     //setup các column
     const columns = [
         {
@@ -157,25 +167,26 @@ const ManagerOrder = () => {
             dataIndex: 'order_status',
             key: 'order_status',
             render: (value, record) => {
-                const availableOptions = getAvailableStatusOptions(record?.order_status);
+                const currentStatus = record?.order_status;
+                const availableOptions = getAvailableStatusOptions(currentStatus); // Trả về danh sách trạng thái tiếp theo
+
                 return (
                     <>
-                        <span>{record?.order_status}</span>
-                        {record.accepted_by && availableOptions.length > 0 && (
+                        {record.accepted_by && availableOptions.length > 0 ? (
                             <Select
-                                placeholder="Chọn trạng thái tiếp theo"
-                                onChange={(newStatus) => handleStatusChange(record?._id, newStatus)}
-                                style={{ width: 120, marginLeft: 8 }}
-                            >
-                                {availableOptions.map((status) => (
-                                    <Option key={status} value={status}>
-                                        {status}
-                                    </Option>
-                                ))}
-                            </Select>
+                                defaultValue={currentStatus}
+                                style={{ width: 160 }}
+                                onChange={(newStatus) => handleStatusChange(record._id, newStatus)}
+                                options={availableOptions.map((status) => ({
+                                    label: status,
+                                    value: status
+                                }))}
+                            />
+                        ) : (
+                            <span>{currentStatus}</span>
                         )}
                     </>
-                )
+                );
             }
         },
         {
@@ -272,31 +283,41 @@ const ManagerOrder = () => {
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Search user..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
+                    <Input
+                        placeholder="Tìm kiếm theo tên khách hàng..."
+                        prefix={<SearchOutlined />}
+                        onChange={(e) => setFilterCategoryName(e.target.value)}
+                        size="large"
+                    />
                 </Col>
                 <Col span={4} offset={4}>
                     <Select
-                        placeholder="Filter by status"
+                        size="large"
+                        suffixIcon={<FilterOutlined />}
+                        placeholder="Tất cả trạng thái"
                         allowClear
                         onChange={(value) => {
-                            // setFilterCategoryStatus(value);
+                            setFilterCategoryStatus(value);
                         }}
-                        options={[
-                            { label: 'Active', value: true },
-                            { label: 'Inactive', value: false }
-                        ]}
+                        options={orderStatus.map((status) => ({
+                            label: status.order_status_name,
+                            value: status.order_status_name
+                        }))}
                     />
                 </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
-                <Form form={form}>
-                    <Table rowKey="_id" dataSource={orders} columns={columns} />
-                </Form>
+                <Table
+                    rowKey="_id"
+                    dataSource={searchCategory}
+                    columns={columns}
+                    loading={{ indicator: loadingIcon, spinning: loading }}
+                />
             </div>
+
 
             {/* MODAL ORDER DETAIL */}
             <Modal
-                title="Chi tiết đơn hàng"
                 closable={{ "aria-label": "Custom Close Button" }}
                 open={showModal}
                 onCancel={() => {
@@ -306,61 +327,83 @@ const ManagerOrder = () => {
                 footer={null}
             >
                 <>
-                    <Row gutter={16}>
-                        <Col span={11}>
-                            <div>
-                                <Row style={{
-                                    backgroundColor: "#98f5f5",
-                                    padding: "10px"
-                                }}>
-                                    <div style={{ textAlign: "center" }}>
-                                        <h5>Thông tin khách hàng</h5>
-                                    </div>
-                                </Row>
-                                <Row style={{
-                                    backgroundColor: "#ddebeb",
-                                    padding: "10px"
-                                }}>
-                                    <div>
-                                        <h6>Khách hàng : {selectedOrder?.userName}</h6>
-                                        <h6>Mã đơn hàng : {selectedOrder?.order_code}</h6>
-                                        <h6>Trạng thái : {selectedOrder?.order_status}</h6>
-                                        <h6>Ghi chú : {selectedOrder?.order_note || "Không có"}</h6>
-                                    </div>
-                                </Row>
-                            </div>
-                        </Col>
-                        <Col span={11} offset={2}>
-                            <Row>
-                                <h5>Thông tin vận chuyển</h5>
-                            </Row>
-                            <Row>
-                                <div>
-                                    <h6>Địa chỉ : {selectedOrder?.address_shipping}</h6>
-                                    <h6>Ngày đặt : {moment(selectedOrder?.order_date).format('DD/MM/YYYY')}</h6>
-                                    <h6>Giờ đặt : {moment(selectedOrder?.order_status).format('HH:mm')}</h6>
-                                    <h6>Giao hàng dự kiến : {moment(selectedOrder?.delivery_date).format('DD/MM/YYYY')}</h6>
-                                </div>
-                            </Row>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <div>
-                            <Row>
-                                <h5>Thông tin xử lý</h5>
-                            </Row>
-                            <Row>
-                                <Col>
-                                    <div>
-                                        <h6>Người xác nhận : {selectedOrder?.accepted_by || "Chưa xác nhận"}</h6>
-                                        <h6>Tổng tiền : {selectedOrder?.total_amount}</h6>
-                                        <h6>Thanh toán : {selectedOrder?.payment_status}</h6>
-                                        <h6>Cập nhật lần cuối : {moment(selectedOrder?.update_at).format("DD/MM/YYYY")}</h6>
-                                    </div>
-                                </Col>
-                            </Row>
+                    <Flex style={{ marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FileTextOutlined style={{ fontSize: 32 }} />
                         </div>
-                    </Row>
+                        <div style={{ marginLeft: '15px' }}>
+                            <h4>Chi tiết đơn hàng</h4>
+                            <h6>Mã đơn hàng : {selectedOrder?.order_code}</h6>
+                        </div>
+                    </Flex>
+
+                    <div className={styles.sectionCard} style={{ marginBottom: '10px' }}>
+                        <Row style={{
+                            backgroundColor: "#98f5f5",
+                            padding: "10px",
+                            borderTopLeftRadius: '10px',
+                            borderTopRightRadius: '10px'
+                        }}>
+                            <h5>Thông tin đơn hàng</h5>
+                        </Row>
+                        <Row style={{
+                            backgroundColor: "#ddebeb",
+                            padding: "10px",
+                            borderBottomLeftRadius: '10px',
+                            borderBottomRightRadius: '10px'
+                        }}>
+                            <div>
+                                <h6>Khách hàng : {selectedOrder?.userName}</h6>
+                                <h6>Ngày đặt : {moment(selectedOrder?.order_date).format('DD/MM/YYYY HH:MM')}</h6>
+                                <h6>Trạng thái : {selectedOrder?.order_status}</h6>
+                            </div>
+                        </Row>
+                    </div>
+                    <div className={styles.sectionCard} style={{ marginBottom: '10px' }}>
+                        <Row style={{
+                            backgroundColor: "#f3ec1fff",
+                            padding: "10px",
+                            borderTopLeftRadius: '10px',
+                            borderTopRightRadius: '10px'
+                        }}>
+                            <h5>Thông Tin Giao Hàng</h5>
+                        </Row>
+                        <Row style={{
+                            backgroundColor: "#ddebeb",
+                            padding: "10px",
+                            borderBottomLeftRadius: '10px',
+                            borderBottomRightRadius: '10px'
+                        }}>
+                            <div>
+                                <h6>Địa chỉ : {selectedOrder?.address_shipping}</h6>
+                                <h6>Giao hàng dự kiến : {moment(selectedOrder?.delivery_date).format('DD/MM/YYYY')}</h6>
+                                <h6>Ghi chú : {selectedOrder?.order_note || "Không có"}</h6>
+                            </div>
+                        </Row>
+                    </div>
+                    <div className={styles.sectionCard} style={{ marginBottom: '10px' }}>
+                        <Row style={{
+                            backgroundColor: "#4ae328ff",
+                            padding: "10px",
+                            borderTopLeftRadius: '10px',
+                            borderTopRightRadius: '10px'
+                        }}>
+                            <h5>Thông tin xử lý</h5>
+                        </Row>
+                        <Row style={{
+                            backgroundColor: "#ddebeb",
+                            padding: "10px",
+                            borderBottomLeftRadius: '10px',
+                            borderBottomRightRadius: '10px'
+                        }}>
+                            <div>
+                                <h6>Người xác nhận : {selectedOrder?.accepted_by || "Chưa xác nhận"}</h6>
+                                <h6>Tổng tiền : {selectedOrder?.total_amount}</h6>
+                                <h6>Thanh toán : {selectedOrder?.payment_status}</h6>
+                                <h6>Cập nhật lần cuối : {moment(selectedOrder?.update_at).format("DD/MM/YYYY")}</h6>
+                            </div>
+                        </Row>
+                    </div>
                 </>
             </Modal>
         </div>

@@ -43,8 +43,10 @@ const ManagerProduct = () => {
   const [edittingRow, setEdittingRow] = useState(null);
   const [filterCategoryName, setFilterCategoryName] = useState("");
   const [addCategory, setAddCategory] = useState(false);
+  const [editCategory, setEditCategory] = useState(false);
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
+  const [form_edit] = Form.useForm();
   const [form_add_product_detail] = Form.useForm();
   const [form_edit_product_detail] = Form.useForm();
   const [listProductDetail, setListProductDetail] = useState(false);
@@ -61,6 +63,7 @@ const ManagerProduct = () => {
   const cropperRef = useRef(null);
   const [fileQueue, setFileQueue] = useState([]);
   const [expanded, setExpanded] = useState(false);
+
   // Hàm upload lên Cloudinary
   const uploadToCloudinary = async (file) => {
     const data = new FormData();
@@ -111,7 +114,7 @@ const ManagerProduct = () => {
           setFileList((prev) =>
             prev.map((f) =>
               f.uid ===
-              fileList.find((file) => file.status === "uploading")?.uid
+                fileList.find((file) => file.status === "uploading")?.uid
                 ? { ...f, status: "done", url }
                 : f
             )
@@ -125,7 +128,7 @@ const ManagerProduct = () => {
           setFileList((prev) =>
             prev.map((f) =>
               f.uid ===
-              fileList.find((file) => file.status === "uploading")?.uid
+                fileList.find((file) => file.status === "uploading")?.uid
                 ? { ...f, status: "error" }
                 : f
             )
@@ -187,14 +190,37 @@ const ManagerProduct = () => {
     form2.resetFields();
   };
 
+  const showEditCategoryModal = (record) => {
+    setEdittingRow(record._id);
+    form_edit.setFieldsValue({
+      productName: record.productName,
+      title: record.title,
+      description: record.description,
+      price: record.price,
+      categories_id: record.categories_id._id,
+      brand_id: record.brand_id._id,
+      material_id: record.material_id._id,
+      form_id: record.form_id._id,
+      gender_id: record.gender_id._id,
+    });
+    setEditCategory(true);
+  };
+
+  const handleCancelEditCategory = () => {
+    setEditCategory(false);
+    setEdittingRow(null);
+    form_edit.resetFields();
+  };
+
   const handleEditCategory = async () => {
     try {
-      const record = await form.validateFields();
+      const record = await form_edit.validateFields();
       await updateData(
         "products/manager/edit_product",
         edittingRow,
         {
           productName: record.productName,
+          title: record.title,
           description: record.description,
           price: record.price,
           categories_id: record.categories_id,
@@ -207,14 +233,13 @@ const ManagerProduct = () => {
       );
       message.success("Cập nhật thành công!");
       setEdittingRow(null);
+      setEditCategory(false);
+      form_edit.resetFields();
       fetchCategories();
     } catch (error) {
       console.log(error);
+      message.error("Cập nhật thất bại!");
     }
-  };
-
-  const handleCancelEdit = () => {
-    setEdittingRow(null);
   };
 
   const handleDeleteCategory = async (id) => {
@@ -340,50 +365,22 @@ const ManagerProduct = () => {
       render: (text, record, index) => index + 1,
     },
     {
-      title: "Product name",
+      title: "Tên Sản Phẩm",
       dataIndex: "productName",
       key: "productName",
-      width: 200,
-      render: (value, record) => {
-        if (record._id == edittingRow) {
-          return (
-            <Form.Item
-              name="productName"
-              rules={[{ required: true, message: "Please enter product name" }]}
-            >
-              <Input />
-            </Form.Item>
-          );
-        } else {
-          return <div>{value}</div>;
-        }
-      },
+      width: 210,
     },
     {
-      title: "Title",
+      title: "Mô Tả Ngắn",
       dataIndex: "title",
       key: "title",
-      width: 100,
-      render: (value, record) => {
-        if (record._id == edittingRow) {
-          return (
-            <Form.Item
-              name="title"
-              rules={[{ required: true, message: "Please enter title" }]}
-            >
-              <Input />
-            </Form.Item>
-          );
-        } else {
-          return <div>{value}</div>;
-        }
-      },
+      width: 210,
     },
     {
-      title: "Description",
+      title: "Mô Tả Chi Tiết",
       dataIndex: "description",
       key: "description",
-      width: 200,
+      width: 210,
       render: (value) => {
         const toggleExpanded = () => {
           setExpanded((prev) => !prev);
@@ -410,204 +407,87 @@ const ManagerProduct = () => {
       },
     },
     {
-      title: "Product info",
+      title: "Thông Tin Sản Phẩm",
       key: "info",
-      render: (_, record) => {
-        if (record._id == edittingRow) {
-          return (
-            <>
-              <Form.Item
-                label="Price"
-                name="price"
-                rules={[
-                  { required: true, message: "Please enter product price" },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label="Category"
-                name="categories_id"
-                rules={[{ required: true, message: "Please select category" }]}
-              >
-                <Select
-                  placeholder="Select category"
-                  allowClear
-                  options={categories_2.map((p) => ({
-                    label: p.category_name,
-                    value: p._id,
-                  }))}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Brand"
-                name="brand_id"
-                rules={[{ required: true, message: "Please select brand" }]}
-              >
-                <Select
-                  placeholder="Select brand"
-                  allowClear
-                  options={brands.map((p) => ({
-                    label: p.brand_name,
-                    value: p._id,
-                  }))}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Material"
-                name="material_id"
-                rules={[{ required: true, message: "Please select material" }]}
-              >
-                <Select
-                  placeholder="Select material"
-                  allowClear
-                  options={materials.map((p) => ({
-                    label: p.material_name,
-                    value: p._id,
-                  }))}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Form"
-                name="form_id"
-                rules={[{ required: true, message: "Please select form" }]}
-              >
-                <Select
-                  placeholder="Select form"
-                  allowClear
-                  options={forms.map((p) => ({
-                    label: p.form_name,
-                    value: p._id,
-                  }))}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Gender"
-                name="gender_id"
-                rules={[{ required: true, message: "Please select gender" }]}
-              >
-                <Select
-                  placeholder="Select gender"
-                  allowClear
-                  options={genders.map((p) => ({
-                    label: p.gender_name,
-                    value: p._id,
-                  }))}
-                />
-              </Form.Item>
-            </>
-          );
-        } else {
-          return (
-            <div>
-              <div>Price: {record.price}</div>
-              <div>Category name: {record.categories_id.category_name}</div>
-              <div>Brand name: {record.brand_id.brand_name}</div>
-              <div>Material name: {record.material_id.material_name}</div>
-              <div>Form name: {record.form_id.form_name}</div>
-              <div>
-                Gender name:{" "}
-                {record.gender_id?.gender_name || "Không có gender"}
-              </div>
-            </div>
-          );
-        }
-      },
+      render: (_, record) => (
+        <div>
+          <div>Price: {record.price}</div>
+          <div>Category name: {record.categories_id.category_name}</div>
+          <div>Brand name: {record.brand_id.brand_name}</div>
+          <div>Material name: {record.material_id.material_name}</div>
+          <div>Form name: {record.form_id.form_name}</div>
+          <div>
+            Gender name: {record.gender_id?.gender_name || "Không có gender"}
+          </div>
+        </div>
+      ),
     },
     {
-      title: "Create date",
-      dataIndex: "create_at",
-      key: "create_at",
+      title: "Ngày",
+      key: "date",
       width: 200,
+      render: (_, record) => (
+        <div>
+          <div>Ngày tạo: {record.create_at}</div>
+          {record.update_at && record.update_at !== record.create_at && (
+            <div>Ngày cập nhật: {record.update_at}</div>
+          )}
+        </div>
+      ),
     },
     {
-      title: "Update date",
-      dataIndex: "update_at",
-      key: "update_at",
-      width: 200,
-    },
-    {
-      title: "Action",
+      title: "Hành động",
       key: "action",
-      render: (_, record) => {
-        const isEditting = edittingRow == record._id;
-        return isEditting ? (
-          <Space>
-            <Button
-              color="primary"
-              variant="solid"
-              onClick={handleEditCategory}
-            >
-              Save
-            </Button>
-            <Button color="danger" variant="solid" onClick={handleCancelEdit}>
-              Cancel
-            </Button>
-          </Space>
-        ) : (
-          <Space>
-            <div>
-              <Row>
+      render: (_, record) => (
+        <Space>
+          <div>
+            <Row>
+              <Button
+                style={{ margin: "5px" }}
+                color="primary"
+                variant="solid"
+                icon={<UnorderedListOutlined />}
+                onClick={() => showProductDetail(record._id, record)}
+              >
+                Chi Tiết
+              </Button>
+            </Row>
+            <Row>
+              <Button
+                style={{ margin: "5px" }}
+                color="yellow"
+                variant="solid"
+                icon={<EditOutlined />}
+                onClick={() => showEditCategoryModal(record)}
+              >
+                Sửa
+              </Button>
+            </Row>
+            <Row>
+              <Popconfirm
+                title="Are you sure to delete this category?"
+                onConfirm={() => handleDeleteCategory(record._id)}
+                okText="Yes"
+                cancelText="No"
+                okButtonProps={{ size: "small", style: { width: "110px" } }}
+                cancelButtonProps={{
+                  size: "small",
+                  style: { width: "110px" },
+                }}
+              >
                 <Button
                   style={{ margin: "5px" }}
-                  color="primary"
+                  color="danger"
                   variant="solid"
-                  icon={<UnorderedListOutlined />}
-                  onClick={() => showProductDetail(record._id, record)}
+                  icon={<DeleteOutlined />}
                 >
-                  Product Detail
+                  Xóa
                 </Button>
-              </Row>
-              <Row>
-                <Button
-                  style={{ margin: "5px" }}
-                  color="yellow"
-                  variant="solid"
-                  icon={<EditOutlined />}
-                  onClick={() => {
-                    setEdittingRow(record._id);
-                    form.setFieldsValue({
-                      productName: record.productName,
-                      title: record.title,
-                      description: record.description,
-                      price: record.price,
-                      categories_id: record.categories_id._id,
-                      brand_id: record.brand_id._id,
-                      material_id: record.material_id._id,
-                      form_id: record.form_id._id,
-                      gender_id: record.gender_id._id,
-                    });
-                  }}
-                >
-                  Edit
-                </Button>
-              </Row>
-              <Row>
-                <Popconfirm
-                  title="Are you sure to delete this category?"
-                  onConfirm={() => handleDeleteCategory(record._id)}
-                  okText="Yes"
-                  cancelText="No"
-                  okButtonProps={{ size: "small", style: { width: "110px" } }}
-                  cancelButtonProps={{
-                    size: "small",
-                    style: { width: "110px" },
-                  }}
-                >
-                  <Button
-                    style={{ margin: "5px" }}
-                    color="danger"
-                    variant="solid"
-                    icon={<DeleteOutlined />}
-                  >
-                    Delete
-                  </Button>
-                </Popconfirm>
-              </Row>
-            </div>
-          </Space>
-        );
-      },
+              </Popconfirm>
+            </Row>
+          </div>
+        </Space>
+      ),
     },
   ];
 
@@ -639,7 +519,7 @@ const ManagerProduct = () => {
             icon={<PlusOutlined />}
             onClick={showAddCategoryModal}
           >
-            Add New Product
+            Tạo Thêm Sản Phẩm
           </Button>
           <Modal
             title="Add new product"
@@ -679,6 +559,7 @@ const ManagerProduct = () => {
                   fetchCategories();
                 } catch (error) {
                   console.log(error);
+                  message.error("Thêm thất bại!");
                 }
               }}
             >
@@ -692,8 +573,7 @@ const ManagerProduct = () => {
                       const isDuplicate = categories.some(
                         (cat) =>
                           cat.productName.trim().toLowerCase() ===
-                            value?.trim().toLowerCase() &&
-                          cat._id !== edittingRow
+                          value?.trim().toLowerCase()
                       );
                       return isDuplicate
                         ? Promise.reject("This product name already exists!")
@@ -714,9 +594,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Description"
                 name="description"
-                rules={[
-                  { required: true, message: "Please enter description" },
-                ]}
+                rules={[{ required: true, message: "Please enter description" }]}
               >
                 <Input.TextArea placeholder="Enter description" />
               </Form.Item>
@@ -804,11 +682,151 @@ const ManagerProduct = () => {
               </Form.Item>
             </Form>
           </Modal>
+          <Modal
+            title="Edit Product"
+            closable={{ "aria-label": "Custom Close Button" }}
+            open={editCategory}
+            onCancel={handleCancelEditCategory}
+            footer={null}
+          >
+            <Form
+              form={form_edit}
+              name="edit_product"
+              labelCol={{ flex: "110px" }}
+              labelAlign="left"
+              labelWrap
+              wrapperCol={{ flex: 1 }}
+              colon={false}
+              onFinish={handleEditCategory}
+            >
+              <Form.Item
+                label="Product name"
+                name="productName"
+                rules={[
+                  { required: true, message: "Please enter product name" },
+                  {
+                    validator: (_, value) => {
+                      const isDuplicate = categories.some(
+                        (cat) =>
+                          cat.productName.trim().toLowerCase() ===
+                          value?.trim().toLowerCase() &&
+                          cat._id !== edittingRow
+                      );
+                      return isDuplicate
+                        ? Promise.reject("This product name already exists!")
+                        : Promise.resolve();
+                    },
+                  },
+                ]}
+              >
+                <Input placeholder="Enter product name" />
+              </Form.Item>
+              <Form.Item
+                label="Title"
+                name="title"
+                rules={[{ required: true, message: "Please enter title" }]}
+              >
+                <Input placeholder="Enter title" />
+              </Form.Item>
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[{ required: true, message: "Please enter description" }]}
+              >
+                <Input.TextArea placeholder="Enter description" />
+              </Form.Item>
+              <Form.Item
+                label="Price"
+                name="price"
+                rules={[{ required: true, message: "Please enter price" }]}
+              >
+                <Input placeholder="Enter product price" />
+              </Form.Item>
+              <Form.Item
+                label="Category"
+                name="categories_id"
+                rules={[{ required: true, message: "Please select category" }]}
+              >
+                <Select
+                  placeholder="Select category"
+                  allowClear
+                  options={categories_2.map((p) => ({
+                    label: p.category_name,
+                    value: p._id,
+                  }))}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Brand"
+                name="brand_id"
+                rules={[{ required: true, message: "Please select brand" }]}
+              >
+                <Select
+                  placeholder="Select brand"
+                  allowClear
+                  options={brands.map((p) => ({
+                    label: p.brand_name,
+                    value: p._id,
+                  }))}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Material"
+                name="material_id"
+                rules={[{ required: true, message: "Please select material" }]}
+              >
+                <Select
+                  placeholder="Select material"
+                  allowClear
+                  options={materials.map((p) => ({
+                    label: p.material_name,
+                    value: p._id,
+                  }))}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Form"
+                name="form_id"
+                rules={[{ required: true, message: "Please select form" }]}
+              >
+                <Select
+                  placeholder="Select form"
+                  allowClear
+                  options={forms.map((p) => ({
+                    label: p.form_name,
+                    value: p._id,
+                  }))}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Gender"
+                name="gender_id"
+                rules={[{ required: true, message: "Please select gender" }]}
+              >
+                <Select
+                  placeholder="Select gender"
+                  allowClear
+                  options={genders.map((p) => ({
+                    label: p.gender_name,
+                    value: p._id,
+                  }))}
+                />
+              </Form.Item>
+              <Form.Item label=" ">
+                <Space>
+                  <Button type="primary" htmlType="submit">
+                    Save
+                  </Button>
+                  <Button onClick={handleCancelEditCategory}>Cancel</Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Modal>
         </Col>
       </Row>
       <div justify={"center"} align={"middle"}>
         <Modal
-          title="List product detail"
+          title="Danh Sách Chi Tiết Sản Phẩm"
           closable={{ "aria-label": "Custom Close Button" }}
           open={listProductDetail}
           onCancel={handleCancelShowProductDetail}
@@ -827,7 +845,7 @@ const ManagerProduct = () => {
               setAddProductDetail(true);
             }}
           >
-            Add New Product Detail
+            Tạo thêm
           </Button>
           <Modal
             title="Add Product Detail"
@@ -893,9 +911,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Id sản phẩm"
                 name="product_id"
-                rules={[
-                  { required: true, message: "Please enter product name" },
-                ]}
+                rules={[{ required: true, message: "Please enter product name" }]}
               >
                 <Input disabled placeholder="Enter product name" />
               </Form.Item>
@@ -935,12 +951,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Size"
                 name="size"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select at least one size",
-                  },
-                ]}
+                rules={[{ required: true, message: "Please select at least one size" }]}
               >
                 <Select
                   mode="multiple"
@@ -982,9 +993,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Inventory number"
                 name="inventory_number"
-                rules={[
-                  { required: true, message: "Hãy điền inventory number" },
-                ]}
+                rules={[{ required: true, message: "Hãy điền inventory number" }]}
               >
                 <InputNumber
                   placeholder="Enter inventory number"
@@ -999,12 +1008,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Price after discount"
                 name="price_after_discount"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter price after discount",
-                  },
-                ]}
+                rules={[{ required: true, message: "Please enter price after discount" }]}
               >
                 <InputNumber
                   placeholder="Auto calculated"
@@ -1015,12 +1019,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Images"
                 name="images"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please upload at least one image",
-                  },
-                ]}
+                rules={[{ required: true, message: "Please upload at least one image" }]}
               >
                 <Upload
                   multiple
@@ -1038,12 +1037,7 @@ const ManagerProduct = () => {
               <Form.Item
                 label="Product detail status"
                 name="product_detail_status"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select product detail status",
-                  },
-                ]}
+                rules={[{ required: true, message: "Please select product detail status" }]}
               >
                 <Select
                   placeholder="Select product detail status"
@@ -1145,7 +1139,7 @@ const ManagerProduct = () => {
                         />
                       </div>
                       <div>Size: {record.size_id.size_name}</div>
-                      <div>Discount: {record.discount_id.percent_discount}</div>
+                      <div>Discount: {record.discount_id.percent_discount}%</div>
                       <div>Inventory number: {record.inventory_number}</div>
                       <div>Sold number: {record.sold_number}</div>
                       <div>
@@ -1155,8 +1149,10 @@ const ManagerProduct = () => {
                         Product detail status:{" "}
                         {record.product_detail_status.productdetail_status_name}
                       </div>
-                      <div>Create at: {record.create_at}</div>
-                      <div>Update at: {record.update_at}</div>
+                      <div>Created: {record.create_at}</div>
+                      {record.update_at && record.update_at !== record.create_at && (
+                        <div>Updated: {record.update_at}</div>
+                      )}
                     </div>
                   ),
                 },
@@ -1173,7 +1169,7 @@ const ManagerProduct = () => {
                           icon={<EditOutlined />}
                           onClick={() => showEditProductDetailModal(record)}
                         >
-                          Edit
+                          Sửa
                         </Button>
                       </Row>
                       <Row>
@@ -1207,7 +1203,7 @@ const ManagerProduct = () => {
                             variant="solid"
                             icon={<DeleteOutlined />}
                           >
-                            Delete
+                            Xóa
                           </Button>
                         </Popconfirm>
                       </Row>
@@ -1368,12 +1364,7 @@ const ManagerProduct = () => {
             <Form.Item
               label="Price after discount"
               name="price_after_discount"
-              rules={[
-                {
-                  required: true,
-                  message: "Please enter price after discount",
-                },
-              ]}
+              rules={[{ required: true, message: "Please enter price after discount" }]}
             >
               <InputNumber
                 placeholder="Auto calculated"
@@ -1384,9 +1375,7 @@ const ManagerProduct = () => {
             <Form.Item
               label="Images"
               name="images"
-              rules={[
-                { required: true, message: "Please upload at least one image" },
-              ]}
+              rules={[{ required: "true", message: "Please upload at least one image" }]}
             >
               <Upload
                 multiple
@@ -1404,12 +1393,7 @@ const ManagerProduct = () => {
             <Form.Item
               label="Product detail status"
               name="product_detail_status"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select product detail status",
-                },
-              ]}
+              rules={[{ required: true, message: "Please select product detail status" }]}
             >
               <Select
                 placeholder="Select product detail status"

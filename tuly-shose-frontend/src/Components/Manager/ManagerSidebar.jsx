@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import styles from '../../CSS/ManagerSiderbar.module.css'
 
 const ManagerSidebar = () => {
     const navigate = useNavigate();
@@ -20,14 +21,14 @@ const ManagerSidebar = () => {
     ];
 
     return (
-        <div style={{ borderRadius: "20px" }}>
+        <div className={styles.sidebar} style={{ borderRadius: "20px" }}>
             {menu.map((item) => (
                 <div
                     key={item.key}
-                    className="sidebar-item"
+                    className={styles.sidebarItem}
                     onClick={() => navigate(`/manager/${item.key}`)}
                 >
-                    {item.label}
+                    <h6>{item.label}</h6>
                 </div>
             ))}
         </div>

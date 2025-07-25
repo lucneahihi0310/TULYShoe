@@ -1,4 +1,5 @@
 const Product = require('../models/product.model.js');
+const ProductDetail = require('../models/productDetail.model.js');
 const mongoose = require('mongoose');
 const formatDateTime = (date) => {
   const d = new Date(date);
@@ -276,28 +277,32 @@ exports.getFilteredProductsByOnSale = async (req, res) => {
 
 exports.list_product = async (req, res, next) => {
   try {
-    const newProduct = await Product.find().populate("categories_id").populate("brand_id").populate("material_id").populate("form_id").populate("gender_id");
-    const listProduct = newProduct.map((p) => {
-      return {
-        _id: p.id,
-        productName: p.productName,
-        title: p.title,
-        description: p.description,
-        price: p.price,
-        categories_id: p.categories_id,
-        brand_id: p.brand_id,
-        material_id: p.material_id,
-        form_id: p.form_id,
-        gender_id: p.gender_id,
-        create_at: formatDateTime(p.create_at),
-        update_at: formatDateTime(p.update_at)
-      }
-    })
-    res.status(201).json(listProduct);
+    const newProduct = await Product.find()
+      .sort({ create_at: -1 }) // Sort by create_at in descending order
+      .populate("categories_id")
+      .populate("brand_id")
+      .populate("material_id")
+      .populate("form_id")
+      .populate("gender_id");
+    const listProduct = newProduct.map((p) => ({
+      _id: p.id,
+      productName: p.productName,
+      title: p.title,
+      description: p.description,
+      price: p.price,
+      categories_id: p.categories_id,
+      brand_id: p.brand_id,
+      material_id: p.material_id,
+      form_id: p.form_id,
+      gender_id: p.gender_id,
+      create_at: formatDateTime(p.create_at),
+      update_at: p.update_at ? formatDateTime(p.update_at) : null,
+    }));
+    res.status(200).json(listProduct);
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.create_product = async (req, res, next) => {
   try {
@@ -312,19 +317,19 @@ exports.create_product = async (req, res, next) => {
       form_id: req.body.form_id,
       gender_id: req.body.gender_id,
       create_at: new Date(),
-      update_at: new Date()
-    })
+      update_at: null,
+    });
     const insertProduct = await newProduct.save();
     res.status(201).json(insertProduct);
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.edit_product = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const { productName, title, description, price, categories_id, brand_id, material_id, gender_id ,form_id } = req.body;
+    const { productName, title, description, price, categories_id, brand_id, material_id, gender_id, form_id } = req.body;
     const newProduct = await Product.findByIdAndUpdate(
       id,
       {
@@ -337,21 +342,51 @@ exports.edit_product = async (req, res, next) => {
         material_id,
         form_id,
         gender_id,
-        update_at: new Date()
-      }
-    )
-    res.status(201).json(newProduct);
+        update_at: new Date(),
+      },
+      { new: true }
+    );
+    res.status(200).json(newProduct);
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.delete_product = async (req, res, next) => {
   try {
     const id = req.params.id;
     const newProduct = await Product.findByIdAndDelete(id);
-    res.status(201).json(newProduct);
+    res.status(200).json(newProduct);
   } catch (error) {
     next(error);
   }
-}
+};
+
+exports.list_product_detail_by_id = async (req, res, next) => {
+  try {
+    const product_id = req.params.id;
+    const productDetails = await ProductDetail.find({ product_id })
+      .populate("product_id")
+      .populate("color_id")
+      .populate("size_id")
+      .populate("discount_id")
+      .populate("product_detail_status");
+    const listProductDetails = productDetails.map((pd) => ({
+      _id: pd._id,
+      product_id: pd.product_id,
+      color_id: pd.color_id,
+      size_id: pd.size_id,
+      discount_id: pd.discount_id,
+      inventory_number: pd.inventory_number,
+      sold_number: pd.sold_number,
+      price_after_discount: pd.price_after_discount,
+      product_detail_status: pd.product_detail_status,
+      images: pd.images,
+      create_at: formatDateTime(pd.create_at),
+      update_at: pd.update_at ? formatDateTime(pd.update_at) : null,
+    }));
+    res.status(200).json(listProductDetails);
+  } catch (error) {
+    next(error);
+  }
+};
