@@ -52,6 +52,10 @@ const ScheduleCalendar = () => {
     const startTime = moment(`${schedule.schedule_date}T${schedule.scheduled_start_time}`);
     const diffMinutes = startTime.diff(now, 'minutes');
 
+    if (now.isAfter(startTime)) {
+    toast.error('Bạn không thể check-in vì đã quá giờ bắt đầu ca làm.');
+    return;
+  }
     if (diffMinutes > 10) {
       toast.warn('Bạn chỉ được check-in trong vòng 10 phút trước khi ca làm bắt đầu.');
       return;
@@ -72,6 +76,7 @@ const ScheduleCalendar = () => {
     const endTime = moment(`${schedule.schedule_date}T${schedule.scheduled_end_time}`);
     const diffMinutes = endTime.diff(now, 'minutes');
 
+    
     if (diffMinutes > 10) {
       toast.warn('Bạn chỉ được check-out trong vòng 10 phút trước khi ca làm kết thúc.');
       return;
@@ -141,8 +146,7 @@ const ScheduleCalendar = () => {
 
   const CustomEvent = ({ event }) => (
   <div
-    className="custom-event clickable"
-    onClick={() => handleSelectEvent(event)}
+    className="custom-event"
     style={{
       display: 'flex',
       justifyContent: 'space-between',
@@ -153,12 +157,12 @@ const ScheduleCalendar = () => {
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
     }}
-    title={`${event.title} - Bấm để xem`}
+    title={`${event.title}`}
   >
     <span>{event.title}</span>
-    <FaEye style={{ minWidth: 12 }} />
   </div>
 );
+
 
 
 
@@ -219,6 +223,7 @@ const ScheduleCalendar = () => {
     min={new Date(1970, 1, 1, 7, 0)}
     max={new Date(1970, 1, 1, 21, 0)}
     formats={{ timeGutterFormat: customTimeGutterFormat }}
+    onSelectEvent={(event) => handleSelectEvent(event)}
   />
 ) : (
   <div className="text-center text-muted mt-4">

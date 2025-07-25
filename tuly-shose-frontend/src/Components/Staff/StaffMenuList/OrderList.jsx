@@ -153,7 +153,7 @@ console.log(statusList);
   const statusFlow = {
     "Chờ xác nhận": ["Chờ xác nhận", "Đã xác nhận"],
     "Đã xác nhận": ["Đã xác nhận", "Đã xác nhận và đang chờ vận chuyển"],
-    "Đã xác nhận và đang chờ vận chuyển": [ "Đang vận chuyển"],
+    "Đã xác nhận và đang chờ vận chuyển": ["Đã xác nhận và đang chờ vận chuyển", "Đang vận chuyển"],
     "Đang vận chuyển": ["Đang vận chuyển", "Hoàn thành"],
     "Hoàn thành": ["Hoàn thành"],
     "Đã hủy": ["Đã hủy"]

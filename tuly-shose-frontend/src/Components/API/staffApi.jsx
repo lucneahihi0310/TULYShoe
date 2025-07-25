@@ -30,7 +30,7 @@ export const updateStaffProfile = async (staffId, updatedData) => {
 // Cập nhật địa chỉ
 export const updateShippingAddress = async (addressId, newAddress) => {
   try {
-    const res = await fetch(`${BASE_URL}/staff/customers/${addressId}`, {
+    const res = await fetch(`${BASE_URL}/address/customers/${addressId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
