@@ -271,12 +271,18 @@ const ManagerAccount = () => {
                     </div>
                 </Col>
                 <Col span={8} offset={4}>
-                    <Input placeholder="Tìm kiếm khách hàng..." prefix={<SearchOutlined />} onChange={(e) => setFilterCategoryName(e.target.value)} />
+                    <Input
+                        placeholder="Tìm kiếm khách hàng..."
+                        prefix={<SearchOutlined />}
+                        onChange={(e) => setFilterCategoryName(e.target.value)}
+                        size="large"
+                    />
                 </Col>
                 <Col span={4} offset={4}>
                     <Button
                         shape="round" icon={<PlusOutlined />}
                         onClick={() => setIsAddModalOpen(true)}
+                        size="large"
                     >
                         Thêm nhân viên
                     </Button>
