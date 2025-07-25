@@ -1,225 +1,290 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, ColorPicker } from "antd";
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import axios from 'axios';
-import { fetchData, postData, updateData, deleteData } from "../API/ApiService";
+import { Col, Row, Select, Card, Table, Spin, DatePicker } from "antd";
+import { fetchData } from "../API/ApiService";
+import moment from "moment";
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from "recharts";
+
+const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const ManagerStatistic = () => {
+    const [loading, setLoading] = useState(false);
+    const [timeRange, setTimeRange] = useState("day");
+    const [customDateRange, setCustomDateRange] = useState([]);
+    const [revenueData, setRevenueData] = useState([]);
+    const [topProducts, setTopProducts] = useState([]);
+    const [inventoryData, setInventoryData] = useState([]);
+
+    // Fetch revenue data
+    const fetchRevenueData = async (range, startDate, endDate) => {
+        setLoading(true);
+        try {
+            let start, end;
+            const now = moment();
+
+            if (range === "custom" && startDate && endDate) {
+                start = startDate.startOf("day").toDate();
+                end = endDate.endOf("day").toDate();
+            } else {
+                switch (range) {
+                    case "day":
+                        start = now.startOf("day").toDate();
+                        end = now.endOf("day").toDate();
+                        break;
+                    case "week":
+                        start = now.startOf("week").toDate();
+                        end = now.endOf("week").toDate();
+                        break;
+                    case "month":
+                        start = now.startOf("month").toDate();
+                        end = now.endOf("month").toDate();
+                        break;
+                    default:
+                        start = now.startOf("day").toDate();
+                        end = now.endOf("day").toDate();
+                }
+            }
+
+            const orders = await fetchData(
+                `/staff/orders?startDate=${start.toISOString()}&endDate=${end.toISOString()}`,
+                true
+            );
+
+            const revenueByDate = {};
+            orders.formattedOrders.forEach((order) => {
+                if (order.order_status !== "Đã hủy") {
+                    const date = moment(order.order_date).format(
+                        range === "day" ? "HH:mm" : "YYYY-MM-DD"
+                    );
+                    revenueByDate[date] = (revenueByDate[date] || 0) + order.total_amount;
+                }
+            });
+
+            const chartData = Object.keys(revenueByDate)
+                .map((date) => ({
+                    date,
+                    revenue: revenueByDate[date],
+                }))
+                .sort((a, b) => (range === "day" ? a.date.localeCompare(b.date) : moment(a.date).diff(moment(b.date))));
+
+            setRevenueData(chartData);
+        } catch (error) {
+            console.error("Error fetching revenue data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch top-selling products
+    const fetchTopProducts = async () => {
+        setLoading(true);
+        try {
+            const products = await fetchData(
+                "/products/customers/listproducts?sortBy=sold-desc&limit=5",
+                true
+            );
+            const topProductsData = products.data.map((product) => ({
+                key: product._id,
+                productName: product.productName,
+                sold: product.detail.sold_number || 0,
+                price: product.detail.price_after_discount || product.price,
+                revenue: (product.detail.price_after_discount || product.price) * (product.detail.sold_number || 0),
+            }));
+            setTopProducts(topProductsData);
+        } catch (error) {
+            console.error("Error fetching top products:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch inventory data
+    const fetchInventory = async () => {
+        setLoading(true);
+        try {
+            const inventory = await fetchData("/staff/inventory", true);
+            const inventoryData = inventory.data.map((item) => ({
+                key: item.productDetailId,
+                productName: item.productName,
+                inventory_number: item.inventory_number,
+                price: item.price_after_discount,
+                status: item.product_detail_status,
+            }));
+            setInventoryData(inventoryData);
+        } catch (error) {
+            console.error("Error fetching inventory data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle time range change
+    const handleTimeRangeChange = (value) => {
+        setTimeRange(value);
+        if (value !== "custom") {
+            setCustomDateRange([]);
+            fetchRevenueData(value);
+        }
+    };
+
+    // Handle custom date range change
+    const handleDateRangeChange = (dates) => {
+        setCustomDateRange(dates);
+        if (dates && dates.length === 2) {
+            fetchRevenueData("custom", dates[0], dates[1]);
+        }
+    };
+
+    useEffect(() => {
+        fetchRevenueData(timeRange);
+        fetchTopProducts();
+        fetchInventory();
+    }, []);
+
+    // Table columns for top products
+    const topProductsColumns = [
+        {
+            title: "Tên sản phẩm",
+            dataIndex: "productName",
+            key: "productName",
+        },
+        {
+            title: "Số lượng bán",
+            dataIndex: "sold",
+            key: "sold",
+            sorter: (a, b) => a.sold - b.sold,
+        },
+        {
+            title: "Giá",
+            dataIndex: "price",
+            key: "price",
+            render: (price) => `${price.toLocaleString()} ₫`,
+        },
+        {
+            title: "Doanh thu",
+            dataIndex: "revenue",
+            key: "revenue",
+            render: (revenue) => `${revenue.toLocaleString()} ₫`,
+            sorter: (a, b) => a.revenue - b.revenue,
+        },
+    ];
+
+    // Table columns for inventory
+    const inventoryColumns = [
+        {
+            title: "Tên sản phẩm",
+            dataIndex: "productName",
+            key: "productName",
+        },
+        {
+            title: "Số lượng tồn kho",
+            dataIndex: "inventory_number",
+            key: "inventory_number",
+            sorter: (a, b) => a.inventory_number - b.inventory_number,
+        },
+        {
+            title: "Giá",
+            dataIndex: "price",
+            key: "price",
+            render: (price) => `${price.toLocaleString()} ₫`,
+        },
+        {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+        },
+    ];
 
     return (
-        <div style={{ borderRadius: '0px', padding: '10px', backgroundColor: '#f7f9fa', width: "100%" }}>
-            <Row gutter={16} style={{ padding: '10px' }}>
-                <Col span={4}>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <h4>Thống kê</h4>
-                    </div>
-                </Col>
-            </Row>
-            {/* <div justify={"center"} align={"middle"}>
-                <Form form={form}>
-                    <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
-                </Form>
-            </div> */}
-            <Row gutter={16} style={{ padding: '10px' }}>
-                <Col span={6}>
-                    <div style={{
-                        backgroundColor: '#d1e6df',
-                        borderRadius: '5px',
-                        padding: '20px'
-                    }}>
-                        <h6 style={{ fontWeight: 'normal' }}>Tổng doanh thu</h6>
-                        <h5 style={{
-                            color: "#1e1e2f",
-                            fontWeight: "bold"
-                        }}>
-                            3000000 ₫
-                        </h5>
-                    </div>
-                </Col>
-                <Col span={6}>
-                    <div style={{
-                        backgroundColor: '#d1e6df',
-                        borderRadius: '5px',
-                        padding: '20px'
-                    }}>
-                        <h6 style={{ fontWeight: 'normal' }}>
-                            Đơn hàng hôm này
-                        </h6>
-                        <h5 style={{
-                            color: "#1e1e2f",
-                            fontWeight: "bold"
-                        }}>
-                            0
-                        </h5>
-                    </div>
-                </Col>
-                <Col span={6}>
-                    <div style={{
-                        backgroundColor: '#d1e6df',
-                        borderRadius: '5px',
-                        padding: '20px'
-                    }}>
-                        <h6 style={{ fontWeight: 'normal' }}>
-                            Doanh thu hôm nay
-                        </h6>
-                        <h5 style={{
-                            color: "#1e1e2f",
-                            fontWeight: "bold"
-                        }}>
-                            0 ₫
-                        </h5>
-                    </div>
-                </Col>
-                <Col span={6}>
-                    <div style={{
-                        backgroundColor: '#d1e6df',
-                        borderRadius: '5px',
-                        padding: '20px'
-                    }}>
-                        <h6 style={{ fontWeight: 'normal' }}>
-                            Giá trị đơn trung bình
-                        </h6>
-                        <h5 style={{
-                            color: "#1e1e2f",
-                            fontWeight: "bold"
-                        }}>
-                            3000000 ₫
-                        </h5>
-                    </div>
-                </Col>
-            </Row>
-            <Row gutter={16} style={{ padding: '10px' }} >
-                <Col span={12}>
-                    <div style={{
-                        backgroundColor: '#d1e6df',
-                        borderRadius: '5px',
-                        padding: '20px'
-                    }}>
-                        <h5 style={{ fontWeight: 'bold', paddingBottom: '5px' }}>
-                            Thống kê đơn hàng
-                        </h5>
-                        <Row gutter={16}>
-                            <Col span={6}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "normal"
-                                }}>
-                                    Tổng số đơn hàng
-                                </h6>
-                            </Col>
-                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "bold"
-                                }}>
-                                    6
-                                </h6>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={6}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "normal"
-                                }}>
-                                    Đơn đã giao
-                                </h6>
-                            </Col>
-                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
-                                <h6 style={{
-                                    color: "#21e288ff",
-                                    fontWeight: "bold"
-                                }}>
-                                    6
-                                </h6>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={6}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "normal"
-                                }}>
-                                    Đơn đang chờ
-                                </h6>
-                            </Col>
-                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
-                                <h6 style={{
-                                    color: "#cdd61cff",
-                                    fontWeight: "bold"
-                                }}>
-                                    6
-                                </h6>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={6}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "normal"
-                                }}>
-                                    Đơn đã hủy
-                                </h6>
-                            </Col>
-                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
-                                <h6 style={{
-                                    color: "#da1c1cff",
-                                    fontWeight: "bold"
-                                }}>
-                                    6
-                                </h6>
-                            </Col>
-                        </Row>
-                    </div>
-                </Col>
-                <Col span={12}>
-                    <div style={{
-                        backgroundColor: '#d1e6df',
-                        borderRadius: '5px',
-                        padding: '20px'
-                    }}>
-                        <h5 style={{ fontWeight: 'bold', paddingBottom: '5px' }}>
-                            Thống kê thanh toán
-                        </h5>
-                        <Row gutter={16}>
-                            <Col span={6}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "normal"
-                                }}>
-                                    Tổng số sản phẩm
-                                </h6>
-                            </Col>
-                            <Col span={4} offset={14} style={{ textAlign: 'right' }}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "bold"
-                                }}>
-                                    6
-                                </h6>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={8}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "normal"
-                                }}>
-                                    Tổng số người dùng
-                                </h6>
-                            </Col>
-                            <Col span={4} offset={12} style={{ textAlign: 'right' }}>
-                                <h6 style={{
-                                    color: "#1e1e2f",
-                                    fontWeight: "bold"
-                                }}>
-                                    6
-                                </h6>
-                            </Col>
-                        </Row>
-                    </div>
-                </Col>
-            </Row>
+        <div style={{ padding: "20px", backgroundColor: "#f7f9fa", minHeight: "100vh" }}>
+            <Spin spinning={loading}>
+                <Row gutter={[16, 16]}>
+                    <Col span={24}>
+                        <Card title="Báo cáo doanh thu" bordered={false}>
+                            <Row gutter={16} style={{ marginBottom: 16 }}>
+                                <Col span={8}>
+                                    <Select
+                                        value={timeRange}
+                                        onChange={handleTimeRangeChange}
+                                        style={{ width: "100%" }}
+                                    >
+                                        <Option value="day">Theo ngày</Option>
+                                        <Option value="week">Theo tuần</Option>
+                                        <Option value="month">Theo tháng</Option>
+                                        <Option value="custom">Tùy chỉnh</Option>
+                                    </Select>
+                                </Col>
+                                {timeRange === "custom" && (
+                                    <Col span={16}>
+                                        <RangePicker
+                                            value={customDateRange}
+                                            onChange={handleDateRangeChange}
+                                            format="DD/MM/YYYY"
+                                        />
+                                    </Col>
+                                )}
+                            </Row>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <LineChart data={revenueData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                        dataKey="date"
+                                        label={{
+                                            value: timeRange === "day" ? "Giờ" : "Ngày",
+                                            position: "insideBottom",
+                                            offset: -5,
+                                        }}
+                                    />
+                                    <YAxis
+                                        label={{
+                                            value: "Doanh thu (₫)",
+                                            angle: -90,
+                                            position: "insideLeft",
+                                        }}
+                                    />
+                                    <Tooltip formatter={(value) => `${value.toLocaleString()} ₫`} />
+                                    <Legend />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        stroke="#8884d8"
+                                        activeDot={{ r: 8 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </Card>
+                    </Col>
+                    <Col span={12}>
+                        <Card title="Sản phẩm bán chạy nhất" bordered={false}>
+                            <Table
+                                columns={topProductsColumns}
+                                dataSource={topProducts}
+                                pagination={false}
+                                rowKey="key"
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={12}>
+                        <Card title="Tồn kho" bordered={false}>
+                            <Table
+                                columns={inventoryColumns}
+                                dataSource={inventoryData}
+                                pagination={{ pageSize: 5 }}
+                                rowKey="key"
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+            </Spin>
         </div>
     );
 };

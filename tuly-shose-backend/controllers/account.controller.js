@@ -216,9 +216,33 @@ exports.register = async (req, res, next) => {
 
 exports.listAll = async (req, res, next) => {
     try {
-        const users = await User.find().populate("address");
+        const users = await User.find()
+            .select('first_name last_name dob gender phone email avatar_image address_shipping_id role is_active')
+            .populate({
+                path: 'address_shipping_id',
+                select: 'address',
+                options: { strictPopulate: false }
+            });
+
+        // Format the response to match frontend expectations
+        const formattedUsers = users.map(user => ({
+            _id: user._id,
+            first_name: user.first_name || '',
+            last_name: user.last_name || '',
+            dob: user.dob || '',
+            gender: user.gender || '',
+            phone: user.phone || '',
+            email: user.email || '',
+            avatar_image: user.avatar_image || '',
+            address: user.address_shipping_id ? user.address_shipping_id.address || '' : '',
+            role: user.role || 'user',
+            is_active: user.is_active || false
+        }));
+
+        res.status(200).json(formattedUsers);
     } catch (error) {
-        next(error);
+        console.error('Error listing users:', error);
+        res.status(500).json({ message: 'Lỗi server khi lấy danh sách người dùng', error: error.message });
     }
 };
 
@@ -397,7 +421,7 @@ exports.getProfile = async (req, res) => {
         const result = {
             ...account._doc,
             address: account.address_shipping_id ? account.address_shipping_id.address : null,
-            address_id: account.address_shipping_id ? account.address_shipping_id._id : null // Thêm ID địa chỉ
+            address_id: account.address_shipping_id ? account.address_shipping_id._id : null
         };
 
         delete result.address_shipping_id;

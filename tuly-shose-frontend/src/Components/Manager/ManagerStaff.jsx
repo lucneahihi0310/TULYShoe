@@ -30,7 +30,7 @@ const ManagerStaff = () => {
                     name: `${item.first_name} ${item.last_name}`,
                     dob: item.dob,
                     gender: item.gender,
-                    address: item.address_shipping_id.address,
+                    address: item.address || 'Chưa có địa chỉ',
                     email: item.email,
                     phone: item.phone,
                     role: item.role,
@@ -65,7 +65,7 @@ const ManagerStaff = () => {
             setFilteredSchedules(calendarEvents);
             setSelectedStaffId(staffId);
             setSelectedStaffName(staffName);
-            setIsViewSchedulesModalVisible(true); // Show modal with FullCalendar
+            setIsViewSchedulesModalVisible(true);
         } catch (error) {
             message.error('Lỗi khi lấy lịch làm việc: ' + error.message);
         }
@@ -112,7 +112,7 @@ const ManagerStaff = () => {
             scheduleForm.resetFields();
             setIsScheduleModalVisible(false);
             if (selectedStaffId) {
-                fetchSchedules(selectedStaffId, selectedStaffName); // Refresh schedules
+                fetchSchedules(selectedStaffId, selectedStaffName);
             }
         } catch (error) {
             message.error(error.message || 'Lỗi khi thêm lịch làm việc');
@@ -219,8 +219,8 @@ const ManagerStaff = () => {
                 onCancel={handleViewSchedulesCancel}
                 footer={null}
                 width={2000}
-                style={{ top: 20 }} // Adjust modal position if needed
-                styles={{ height: '600px', overflowY: 'auto' }} // Add scroll if content overflows
+                style={{ top: 20 }}
+                styles={{ height: '600px', overflowY: 'auto' }}
             >
                 {filteredSchedules.length > 0 ? (
                     <FullCalendar

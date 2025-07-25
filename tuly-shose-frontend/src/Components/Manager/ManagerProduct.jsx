@@ -13,6 +13,7 @@ import {
   message,
   InputNumber,
   Upload,
+  Spin,
 } from "antd";
 import {
   SearchOutlined,
@@ -21,6 +22,7 @@ import {
   DeleteOutlined,
   UnorderedListOutlined,
   UploadOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import Cropper from "react-cropper";
@@ -60,9 +62,12 @@ const ManagerProduct = () => {
   const [cropperVisible, setCropperVisible] = useState(false);
   const [cropperImage, setCropperImage] = useState("");
   const [croppedImages, setCroppedImages] = useState([]);
+  const [loading, setLoading] = useState(false);
   const cropperRef = useRef(null);
   const [fileQueue, setFileQueue] = useState([]);
   const [expanded, setExpanded] = useState(false);
+
+  const loadingIcon = <LoadingOutlined style={{ fontSize: 100 }} spin />;
 
   // Hàm upload lên Cloudinary
   const uploadToCloudinary = async (file) => {
@@ -248,13 +253,20 @@ const ManagerProduct = () => {
   };
 
   const showProductDetail = async (productId, record) => {
-    const res = await fetchData(
-      `/product_details/manager/list_product_detail_by_id/${productId}`
-    );
-    setDetailData(res);
-    setCurrentProductPrice(record.price);
-    setCurrentProductId(productId);
-    setListProductDetail(true);
+    setLoading(true);
+    try {
+      const res = await fetchData(
+        `/product_details/manager/list_product_detail_by_id/${productId}`
+      );
+      setDetailData(res);
+      setCurrentProductPrice(record.price);
+      setCurrentProductId(productId);
+      setListProductDetail(true);
+    } catch (error) {
+      console.error("Lỗi khi fetch product details:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelShowProductDetail = () => {
@@ -299,55 +311,125 @@ const ManagerProduct = () => {
   }, []);
 
   const fetchCategories = async () => {
-    const res = await fetchData("/products/manager/list_product");
-    setCategories(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/products/manager/list_product");
+      setCategories(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch categories:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchCategories_2 = async () => {
-    const res = await fetchData("/categories/manager/list_category");
-    setCategories_2(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/categories/manager/list_category");
+      setCategories_2(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch categories_2:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchBrands = async () => {
-    const res = await fetchData("/brands/manager/list_brand");
-    setBrands(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/brands/manager/list_brand");
+      setBrands(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch brands:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchMaterials = async () => {
-    const res = await fetchData("/materials/manager/list_material");
-    setMaterials(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/materials/manager/list_material");
+      setMaterials(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch materials:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchForms = async () => {
-    const res = await fetchData("/forms/manager/list_form");
-    setForms(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/forms/manager/list_form");
+      setForms(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch forms:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchGenders = async () => {
-    const res = await fetchData("/genders/manager/list_gender");
-    setGenders(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/genders/manager/list_gender");
+      setGenders(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch genders:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchColors = async () => {
-    const res = await fetchData("/colors/manager/list_color");
-    setColors(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/colors/manager/list_color");
+      setColors(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch colors:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchSizes = async () => {
-    const res = await fetchData("/sizes/manager/list_size");
-    setSizes(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/sizes/manager/list_size");
+      setSizes(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch sizes:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchDiscounts = async () => {
-    const res = await fetchData("/discounts/manager/list_discount");
-    setDiscounts(res);
+    setLoading(true);
+    try {
+      const res = await fetchData("/discounts/manager/list_discount");
+      setDiscounts(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch discounts:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchProductDetailStatuses = async () => {
-    const res = await fetchData(
-      "/product_detail_status/manager/list_product_detail_status"
-    );
-    setProduct_detail_statuses(res);
+    setLoading(true);
+    try {
+      const res = await fetchData(
+        "/product_detail_status/manager/list_product_detail_status"
+      );
+      setProduct_detail_statuses(res);
+    } catch (error) {
+      console.error("Lỗi khi fetch product detail statuses:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const searchCategory = categories.filter((c) => {
@@ -612,7 +694,7 @@ const ManagerProduct = () => {
                         return Promise.reject("Giá phải là một số");
                       }
                       if (num <= 0) {
-                        return Promise.reject("Giá phải lơn hơn 0");
+                        return Promise.reject("Giá phải lớn hơn 0");
                       }
                       if (!Number.isInteger(num)) {
                         return Promise.reject("Giá phải là số nguyên");
@@ -1105,6 +1187,7 @@ const ManagerProduct = () => {
               rowKey="_id"
               dataSource={detailData}
               pagination={false}
+              loading={{ indicator: loadingIcon, spinning: loading }}
               columns={[
                 {
                   title: "No",
@@ -1431,7 +1514,12 @@ const ManagerProduct = () => {
           </Form>
         </Modal>
         <Form form={form}>
-          <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
+          <Table
+            rowKey="_id"
+            dataSource={searchCategory}
+            columns={columns}
+            loading={{ indicator: loadingIcon, spinning: loading }}
+          />
         </Form>
       </div>
     </div>

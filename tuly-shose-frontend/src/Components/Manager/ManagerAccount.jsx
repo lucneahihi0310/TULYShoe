@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message } from "antd";
-import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import axios from 'axios';
+import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message, Spin } from "antd";
+import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import { fetchData, postData, updateData, deleteData, patchData } from "../API/ApiService";
+import moment from 'moment';
 
 const ManagerAccount = () => {
     const [categories, setCategories] = useState([]);
@@ -10,97 +10,105 @@ const ManagerAccount = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [filterCategoryName, setFilterCategoryName] = useState("");
+    const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const [form_add] = Form.useForm();
 
+    const loadingIcon = <LoadingOutlined style={{ fontSize: 100 }} spin />;
+
     const openEditModal = (record) => {
         setSelectedRecord(record._id);
-
         const dt = new Date(record.dob);
         const pad = n => String(n).padStart(2, '0');
         const isoLocal =
-            `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}` +
-            `T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-        console.log(isoLocal);
+            `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
         form.setFieldsValue({
             first_name: record.first_name,
             last_name: record.last_name,
             dob: isoLocal,
             gender: record.gender,
-            address: record.address_shipping_id.address,
+            address: record.address,
             email: record.email,
             phone: record.phone
         });
         setIsModalOpen(true);
     };
 
-    // Cancel modal
     const cancelEdit = () => {
         setIsModalOpen(false);
+        form.resetFields();
     };
 
-    //delete account
     const handleDeleteCategory = async (id) => {
+        setLoading(true);
         try {
-            console.log("Delete : ", id);
             await deleteData('/account/profile/delete', id, true);
             message.success("Xóa tài khoản thành công!");
             fetchCategories();
-        }
-        catch (error) {
-            console.log(error);
+        } catch (error) {
+            console.error(error);
+            message.error("Xóa tài khoản thất bại!");
+        } finally {
+            setLoading(false);
         }
     };
 
-    //ban account
     const handleBanAccount = async (banId) => {
+        setLoading(true);
         try {
-            console.log("Ban account:", banId);
-            await patchData('/account/profile/ban', banId, {
-                is_active: false
-            }, true);
+            await patchData('/account/profile/ban', banId, { is_active: false }, true);
+            message.success("Ban tài khoản thành công!");
             fetchCategories();
-        }
-        catch (error) {
-            console.log(error);
+        } catch (error) {
+            console.error(error);
+            message.error("Ban tài khoản thất bại!");
+        } finally {
+            setLoading(false);
         }
     };
 
-    //unban account
     const handleUnbanAccount = async (banId) => {
+        setLoading(true);
         try {
-            console.log("Unban account:", banId);
-            await patchData('/account/profile/unban', banId, {
-                is_active: true
-            }, true);
+            await patchData('/account/profile/unban', banId, { is_active: true }, true);
+            message.success("Bỏ ban tài khoản thành công!");
             fetchCategories();
-        }
-        catch (error) {
-            console.log(error);
+        } catch (error) {
+            console.error(error);
+            message.error("Bỏ ban tài khoản thất bại!");
+        } finally {
+            setLoading(false);
         }
     };
 
-    //fetch data và filter category
     useEffect(() => {
         fetchCategories();
-    }, [])
+    }, []);
+
     const fetchCategories = async () => {
-        const res = await fetchData('/account', true);
-        setCategories(res);
-    }
+        setLoading(true);
+        try {
+            const res = await fetchData('/account', true);
+            setCategories(res);
+        } catch (error) {
+            console.error("Lỗi khi fetch accounts:", error);
+            message.error("Lấy danh sách tài khoản thất bại!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const searchCategory = categories.filter((c) => {
         if (!filterCategoryName) return true;
-
         const fullName = `${c.first_name?.trim() || ''} ${c.last_name?.trim() || ''}`.toLowerCase();
         return fullName.includes(filterCategoryName.toLowerCase());
     });
 
-    //setup các column
     const columns = [
         {
             title: 'No',
             key: 'index',
-            render: (text, record, index) => index + 1
+            render: (text, record, index) => index + 1,
         },
         {
             title: 'Họ và tên',
@@ -109,7 +117,7 @@ const ManagerAccount = () => {
             render: (_, record) => {
                 const fullName = `${record.first_name?.trim() || ''} ${record.last_name?.trim() || ''}`.trim();
                 return <span>{fullName}</span>;
-            }
+            },
         },
         {
             title: 'Thông tin',
@@ -128,34 +136,32 @@ const ManagerAccount = () => {
                         <div><strong>Ngày sinh:</strong> {formattedDob}</div>
                         <div><strong>Giới tính:</strong> {record.gender}</div>
                         <div><strong>SĐT:</strong> {record.phone}</div>
-                        <div><strong>Địa chỉ:</strong> {record.address_shipping_id.address}</div>
+                        <div><strong>Địa chỉ:</strong> {record.address}</div>
                     </div>
                 );
-            }
+            },
         },
         {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            render: (value) => <div>{value}</div>
+            render: (value) => <div>{value}</div>,
         },
         {
             title: 'Role',
             dataIndex: 'role',
             key: 'role',
-            render: (value) => <div>{value}</div>
+            render: (value) => <div>{value}</div>,
         },
         {
             title: 'Status',
             dataIndex: 'is_active',
             key: 'is_active',
             render: (value, record) => (
-                <div>
-                    <Tag color={record.is_active ? "green" : "red"}>
-                        {record.is_active ? 'ACTIVE' : 'INACTIVE'}
-                    </Tag>
-                </div>
-            )
+                <Tag color={record.is_active ? "green" : "red"}>
+                    {record.is_active ? 'ACTIVE' : 'INACTIVE'}
+                </Tag>
+            ),
         },
         {
             title: 'Thời gian',
@@ -174,11 +180,11 @@ const ManagerAccount = () => {
                 };
                 return (
                     <div>
-                        <div><strong>Tạo:</strong> {formatDate(createDate)}</div>
-                        <div><strong>Cập nhật:</strong> {formatDate(updateDate)}</div>
+                        <div><strong>Tạo:</strong> {moment(record.create_at).format('DD/MM/YYYY HH:mm')}</div>
+                        <div><strong>Cập nhật:</strong> {moment(record.update_at).format('DD/MM/YYYY HH:mm')}</div>
                     </div>
                 );
-            }
+            },
         },
         {
             title: 'Action',
@@ -258,8 +264,8 @@ const ManagerAccount = () => {
                         </Row>
                     </div>
                 </Space>
-            )
-        }
+            ),
+        },
     ];
 
     return (
@@ -280,7 +286,8 @@ const ManagerAccount = () => {
                 </Col>
                 <Col span={4} offset={4}>
                     <Button
-                        shape="round" icon={<PlusOutlined />}
+                        shape="round"
+                        icon={<PlusOutlined />}
                         onClick={() => setIsAddModalOpen(true)}
                         size="large"
                     >
@@ -289,10 +296,14 @@ const ManagerAccount = () => {
                 </Col>
             </Row>
             <div justify={"center"} align={"middle"}>
-                <Table rowKey="_id" dataSource={searchCategory} columns={columns} />
+                <Table
+                    rowKey="_id"
+                    dataSource={searchCategory}
+                    columns={columns}
+                    loading={{ indicator: loadingIcon, spinning: loading }}
+                />
             </div>
 
-            {/* MODAL CHỈNH SỬA TÀI KHOẢN */}
             <Modal
                 width={600}
                 title="Chỉnh sửa tài khoản"
@@ -302,15 +313,15 @@ const ManagerAccount = () => {
             >
                 <Form
                     form={form}
-                    name="wrap"
+                    name="edit_account"
                     labelCol={{ flex: '110px' }}
                     labelAlign="left"
                     labelWrap
                     wrapperCol={{ flex: 1 }}
                     colon={false}
                     onFinish={async (values) => {
+                        setLoading(true);
                         try {
-                            console.log(values);
                             await updateData('/account/profile/update', selectedRecord, {
                                 first_name: values.first_name,
                                 last_name: values.last_name,
@@ -318,75 +329,94 @@ const ManagerAccount = () => {
                                 gender: values.gender,
                                 address: values.address,
                                 phone: values.phone,
-                                email: values.email
+                                email: values.email,
                             }, true);
                             message.success("Cập nhật thành công!");
-                            cancelEdit(false);
+                            setIsModalOpen(false);
+                            form.resetFields();
                             fetchCategories();
                         } catch (error) {
-                            console.log(error)
+                            console.error(error);
+                            message.error("Cập nhật thất bại!");
+                        } finally {
+                            setLoading(false);
                         }
                     }}
                 >
-                    <Form.Item name="first_name" label="Họ" rules={[{ required: false }]}>
+                    <Form.Item name="first_name" label="Họ" rules={[{ required: true, message: "Vui lòng nhập họ" }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="last_name" label="Tên" rules={[{ required: false }]}>
+                    <Form.Item name="last_name" label="Tên" rules={[{ required: true, message: "Vui lòng nhập tên" }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="dob" label="Ngày sinh" rules={[{ required: false }]}>
+                    <Form.Item name="dob" label="Ngày sinh" rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}>
                         <Input type="datetime-local" style={{ width: '100%' }} />
                     </Form.Item>
-                    <Form.Item name="gender" label="Giới tính" rules={[{ required: false }]}>
-                        <Select options={[
-                            { label: "Nam", value: "Nam" },
-                            { label: "Nữ", value: "Nữ" },
-                            { label: "Khác", value: "Khác" },
-                        ]} />
+                    <Form.Item name="gender" label="Giới tính" rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}>
+                        <Select
+                            options={[
+                                { label: "Nam", value: "Nam" },
+                                { label: "Nữ", value: "Nữ" },
+                                { label: "Khác", value: "Khác" },
+                            ]}
+                        />
                     </Form.Item>
-                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: false }]}>
+                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="email" label="Email" rules={[{ type: 'email', required: false }]}>
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập email" },
+                            { type: 'email', message: "Email không hợp lệ" },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
-                    <Form.Item name="phone" label="SĐT" rules={[
-                        { required: false },
-                        {
-                            pattern: /^\d{10}$/,
-                            message: "SĐT phải là 10 chữ số",
-                        }
-                    ]}>
-                        <Input maxLength={10} />
+                    <Form.Item
+                        name="phone"
+                        label="SĐT"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập số điện thoại" },
+                            { pattern: /^\d{10}$/, message: "SĐT phải là 10 chữ số" },
+                        ]}
+                    >
+                        <Input />
                     </Form.Item>
-                    <Form.Item label=" ">
-                        <Button type="primary" htmlType="submit">
-                            Submit
-                        </Button>
+                    <Form.Item>
+                        <Space>
+                            <Button type="primary" htmlType="submit">
+                                Lưu
+                            </Button>
+                            <Button onClick={cancelEdit}>Hủy</Button>
+                        </Space>
                     </Form.Item>
                 </Form>
             </Modal>
 
-            {/* MODAL TẠO TÀI KHOẢN CHO STAFF*/}
             <Modal
                 width={600}
-                title="Tạo tài khoản nhân viên"
+                title="Thêm nhân viên"
                 open={isAddModalOpen}
-                onCancel={() => setIsAddModalOpen(false)}
+                onCancel={() => {
+                    setIsAddModalOpen(false);
+                    form_add.resetFields();
+                }}
                 footer={null}
             >
                 <Form
                     form={form_add}
-                    name="wrap"
+                    name="add_account"
                     labelCol={{ flex: '110px' }}
                     labelAlign="left"
                     labelWrap
                     wrapperCol={{ flex: 1 }}
                     colon={false}
                     onFinish={async (values) => {
+                        setLoading(true);
                         try {
-                            console.log(values);
-                            await postData('/account/add_staff', {
+                            await postData('/account/register', {
                                 first_name: values.first_name,
                                 last_name: values.last_name,
                                 dob: values.dob,
@@ -394,58 +424,96 @@ const ManagerAccount = () => {
                                 address: values.address,
                                 email: values.email,
                                 phone: values.phone,
-                                password: values.password
+                                password: values.password,
+                                role: values.role,
                             }, true);
-                            message.success("Thêm tài khoản thành công!");
-                            form_add.resetFields();
+                            message.success("Thêm nhân viên thành công!");
                             setIsAddModalOpen(false);
+                            form_add.resetFields();
                             fetchCategories();
                         } catch (error) {
-                            console.log(error)
+                            console.error(error);
+                            message.error("Thêm nhân viên thất bại!");
+                        } finally {
+                            setLoading(false);
                         }
                     }}
                 >
-                    <Form.Item name="first_name" label="Họ" rules={[{ required: true }]}>
+                    <Form.Item name="first_name" label="Họ" rules={[{ required: true, message: "Vui lòng nhập họ" }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="last_name" label="Tên" rules={[{ required: true }]}>
+                    <Form.Item name="last_name" label="Tên" rules={[{ required: true, message: "Vui lòng nhập tên" }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: true }]}>
-                        <Input />
-                    </Form.Item>
-                    <Form.Item name="dob" label="Ngày sinh" rules={[{ required: true }]}>
+                    <Form.Item name="dob" label="Ngày sinh" rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}>
                         <Input type="datetime-local" style={{ width: '100%' }} />
                     </Form.Item>
-                    <Form.Item name="gender" label="Giới tính" rules={[{ required: true }]}>
-                        <Select options={[
-                            { label: "Nam", value: "Nam" },
-                            { label: "Nữ", value: "Nữ" },
-                            { label: "Khác", value: "Khác" },
-                        ]} />
-                    </Form.Item>
-                    <Form.Item name="email" label="Email" rules={[{ type: 'email', required: true }]}>
-                        <Input />
-                    </Form.Item>
-                    <Form.Item name="password" label="Password" rules={[{ required: true }]}>
-                        <Input.Password
-                            placeholder="Enter your password"
-                            visibilityToggle={true}
+                    <Form.Item name="gender" label="Giới tính" rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}>
+                        <Select
+                            options={[
+                                { label: "Nam", value: "Nam" },
+                                { label: "Nữ", value: "Nữ" },
+                                { label: "Khác", value: "Khác" },
+                            ]}
                         />
                     </Form.Item>
-                    <Form.Item name="phone" label="SĐT" rules={[
-                        { required: true },
-                        {
-                            pattern: /^\d{10}$/,
-                            message: "SĐT phải là 10 chữ số",
-                        }
-                    ]}>
-                        <Input maxLength={10} />
+                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}>
+                        <Input />
                     </Form.Item>
-                    <Form.Item label=" ">
-                        <Button type="primary" htmlType="submit">
-                            Submit
-                        </Button>
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập email" },
+                            { type: 'email', message: "Email không hợp lệ" },
+                        ]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="phone"
+                        label="SĐT"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập số điện thoại" },
+                            { pattern: /^\d{10}$/, message: "SĐT phải là 10 chữ số" },
+                        ]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="password"
+                        label="Mật khẩu"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập mật khẩu" },
+                            { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự" },
+                        ]}
+                    >
+                        <Input.Password />
+                    </Form.Item>
+                    <Form.Item
+                        name="role"
+                        label="Vai trò"
+                        rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
+                    >
+                        <Select
+                            options={[
+                                { label: "Staff", value: "staff" },
+                                { label: "Admin", value: "admin" },
+                            ]}
+                        />
+                    </Form.Item>
+                    <Form.Item>
+                        <Space>
+                            <Button type="primary" htmlType="submit">
+                                Thêm
+                            </Button>
+                            <Button onClick={() => {
+                                setIsAddModalOpen(false);
+                                form_add.resetFields();
+                            }}>
+                                Hủy
+                            </Button>
+                        </Space>
                     </Form.Item>
                 </Form>
             </Modal>
