@@ -520,7 +520,7 @@ const ProfileSection = ({
                     },
                   ]}
                 >
-                  <Input disabled={!isEditing} />
+                  <Input disabled />
                 </Form.Item>
 
                 <Form.Item
