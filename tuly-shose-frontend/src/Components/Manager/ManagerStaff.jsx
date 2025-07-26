@@ -30,7 +30,7 @@ const ManagerStaff = () => {
                     name: `${item.first_name} ${item.last_name}`,
                     dob: item.dob,
                     gender: item.gender,
-                    address: item.address || 'Chưa có địa chỉ',
+                    address: item.address,
                     email: item.email,
                     phone: item.phone,
                     role: item.role,
@@ -93,10 +93,53 @@ const ManagerStaff = () => {
         setIsScheduleModalVisible(true);
     };
 
+    // Check for schedule conflicts
+    const checkScheduleConflict = async (staffId, scheduleDate, startTime, endTime) => {
+        try {
+            const schedules = await fetchData(`/staff/schedules/${staffId}`, true);
+            const formattedDate = scheduleDate.format('YYYY-MM-DD');
+            const startMinutes = startTime.hour() * 60 + startTime.minute();
+            const endMinutes = endTime.hour() * 60 + endTime.minute();
+
+            for (const schedule of schedules) {
+                if (schedule.schedule_date === formattedDate) {
+                    const existingStart = parseInt(schedule.scheduled_start_time.split(':')[0]) * 60 +
+                        parseInt(schedule.scheduled_start_time.split(':')[1]);
+                    const existingEnd = parseInt(schedule.scheduled_end_time.split(':')[0]) * 60 +
+                        parseInt(schedule.scheduled_end_time.split(':')[1]);
+
+                    if (startMinutes < existingEnd && endMinutes > existingStart) {
+                        return {
+                            conflict: true,
+                            message: `Lịch làm việc trùng với lịch từ ${schedule.scheduled_start_time} đến ${schedule.scheduled_end_time}`
+                        };
+                    }
+                }
+            }
+            return { conflict: false };
+        } catch (error) {
+            throw new Error('Lỗi khi kiểm tra trùng lịch: ' + error.message);
+        }
+    };
+
     // Handle schedule submission
     const handleScheduleOk = async () => {
         try {
             const values = await scheduleForm.validateFields();
+
+            // Check for conflicts
+            const conflictCheck = await checkScheduleConflict(
+                values.staffId,
+                values.scheduleDate,
+                values.startTime,
+                values.endTime
+            );
+
+            if (conflictCheck.conflict) {
+                message.error(conflictCheck.message);
+                return;
+            }
+
             const dataToSend = {
                 staff_id: values.staffId,
                 schedule_date: values.scheduleDate.format('YYYY-MM-DD'),
@@ -168,23 +211,9 @@ const ManagerStaff = () => {
         },
     ];
 
-    // Validation for time range (9:00 AM to 8:00 PM, inclusive)
+    // Validation for time range (removed 9:00 AM to 8:00 PM restriction)
     const isValidTimeRange = (time) => {
-        if (!time) return false;
-        const startOfDay = moment().startOf('day');
-        const timeInMinutes = time.diff(startOfDay, 'minutes');
-        return timeInMinutes >= 9 * 60 && timeInMinutes <= 20 * 60;
-    };
-
-    // Check if current time is past working hours (8:00 PM) for today
-    const isPastWorkingHours = (date) => {
-        const now = moment();
-        const selectedDate = moment(date);
-        if (selectedDate.isSame(now, 'day')) {
-            const currentTimeInMinutes = now.hour() * 60 + now.minute();
-            return currentTimeInMinutes >= 20 * 60;
-        }
-        return false;
+        return !!time; // Only check if time is provided
     };
 
     return (
@@ -196,12 +225,12 @@ const ManagerStaff = () => {
                     </div>
                 </Col>
                 <Col span={6}>
-                    <DatePicker
+                    {/* <DatePicker
                         format="YYYY-MM-DD"
                         onChange={handleSearchDate}
                         placeholder="Tìm kiếm theo ngày"
                         style={{ width: '100%' }}
-                    />
+                    /> */}
                 </Col>
                 <Col span={4} offset={10}>
                     <Button type="primary" onClick={showAddScheduleModal}>
@@ -264,134 +293,153 @@ const ManagerStaff = () => {
                 open={isScheduleModalVisible}
                 onCancel={handleScheduleCancel}
                 footer={null}
+                width={600}
             >
                 <Form
                     form={scheduleForm}
                     layout="vertical"
                     onFinish={handleScheduleOk}
                 >
-                    <Form.Item
-                        name="staffId"
-                        label="Nhân viên"
-                        rules={[{ required: true, message: 'Vui lòng chọn nhân viên' }]}
-                    >
-                        <Select>
-                            {staffList.map(staff => (
-                                <Select.Option key={staff.id} value={staff.id}>
-                                    {staff.name}
-                                </Select.Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item
-                        name="scheduleDate"
-                        label="Ngày làm việc"
-                        rules={[
-                            { required: true, message: 'Vui lòng chọn ngày' },
-                            () => ({
-                                validator(_, value) {
-                                    if (!value) {
-                                        return Promise.reject(new Error('Vui lòng chọn ngày'));
-                                    }
-                                    const selectedDate = moment(value);
-                                    const today = moment();
-                                    if (selectedDate.isBefore(today, 'day')) {
-                                        return Promise.reject(new Error('Ngày làm việc phải từ hôm nay trở đi'));
-                                    }
-                                    if (isPastWorkingHours(value)) {
-                                        return Promise.reject(new Error('Đã quá giờ làm việc, vui lòng chọn ngày khác'));
-                                    }
-                                    return Promise.resolve();
-                                },
-                            }),
-                        ]}
-                    >
-                        <DatePicker format="YYYY-MM-DD" />
-                    </Form.Item>
-                    <Form.Item
-                        name="startTime"
-                        label="Giờ bắt đầu"
-                        rules={[
-                            { required: true, message: 'Vui lòng chọn giờ bắt đầu' },
-                            () => ({
-                                validator(_, value) {
-                                    if (!value) return Promise.reject(new Error('Vui lòng chọn giờ bắt đầu'));
-                                    if (!isValidTimeRange(value)) {
-                                        return Promise.reject(new Error('Giờ bắt đầu phải từ 9:00 sáng đến 20:00 tối'));
-                                    }
-                                    return Promise.resolve();
-                                },
-                            }),
-                        ]}
-                    >
-                        <TimePicker format="HH:mm" />
-                    </Form.Item>
-                    <Form.Item
-                        name="endTime"
-                        label="Giờ kết thúc"
-                        rules={[
-                            { required: true, message: 'Vui lòng chọn giờ kết thúc' },
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    if (!value) return Promise.reject(new Error('Vui lòng chọn giờ kết thúc'));
-                                    if (!isValidTimeRange(value)) {
-                                        return Promise.reject(new Error('Giờ kết thúc phải từ 9:00 sáng đến 20:00 tối'));
-                                    }
-                                    const startTime = getFieldValue('startTime');
-                                    if (startTime) {
-                                        const diff = value.diff(startTime, 'hours', true);
-                                        if (diff < 1) {
-                                            return Promise.reject(new Error('Giờ kết thúc phải lớn hơn giờ bắt đầu ít nhất 1 tiếng'));
-                                        }
-                                    }
-                                    return Promise.resolve();
-                                },
-                            }),
-                        ]}
-                    >
-                        <TimePicker format="HH:mm" />
-                    </Form.Item>
-                    <Form.Item
-                        name="is_recurring"
-                        label="Lặp lại hàng ngày"
-                        valuePropName="checked"
-                    >
-                        <Checkbox />
-                    </Form.Item>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="staffId"
+                                label="Nhân viên"
+                                rules={[{ required: true, message: 'Vui lòng chọn nhân viên' }]}
+                            >
+                                <Select>
+                                    {staffList.map(staff => (
+                                        <Select.Option key={staff.id} value={staff.id}>
+                                            {staff.name}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="scheduleDate"
+                                label="Ngày làm việc"
+                                rules={[
+                                    { required: true, message: 'Vui lòng chọn ngày' },
+                                    () => ({
+                                        validator(_, value) {
+                                            if (!value) {
+                                                return Promise.reject(new Error('Vui lòng chọn ngày'));
+                                            }
+                                            const selectedDate = moment(value);
+                                            const today = moment();
+                                            if (selectedDate.isBefore(today, 'day')) {
+                                                return Promise.reject(new Error('Ngày làm việc phải từ hôm nay trở đi'));
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    }),
+                                ]}
+                            >
+                                <DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="startTime"
+                                label="Giờ bắt đầu"
+                                rules={[
+                                    { required: true, message: 'Vui lòng chọn giờ bắt đầu' },
+                                    () => ({
+                                        validator(_, value) {
+                                            if (!value) return Promise.reject(new Error('Vui lòng chọn giờ bắt đầu'));
+                                            return Promise.resolve();
+                                        },
+                                    }),
+                                ]}
+                            >
+                                <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="endTime"
+                                label="Giờ kết thúc"
+                                rules={[
+                                    { required: true, message: 'Vui lòng chọn giờ kết thúc' },
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            if (!value) return Promise.reject(new Error('Vui lòng chọn giờ kết thúc'));
+                                            const startTime = getFieldValue('startTime');
+                                            if (startTime) {
+                                                const diff = value.diff(startTime, 'hours', true);
+                                                if (diff < 1) {
+                                                    return Promise.reject(new Error('Giờ kết thúc phải lớn hơn giờ bắt đầu ít nhất 1 tiếng'));
+                                                }
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    }),
+                                ]}
+                            >
+                                <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item
+                                name="is_recurring"
+                                valuePropName="checked"
+                            >
+                                <Checkbox>Lặp lại hàng ngày</Checkbox>
+                            </Form.Item>
+                        </Col>
+                    </Row>
                     <Form.Item
                         noStyle
                         shouldUpdate={(prevValues, currentValues) => prevValues.is_recurring !== currentValues.is_recurring}
                     >
                         {({ getFieldValue }) =>
                             getFieldValue('is_recurring') ? (
-                                <Form.Item
-                                    name="recurrence_end_date"
-                                    label="Ngày kết thúc lặp lại"
-                                    rules={[
-                                        { required: true, message: 'Vui lòng chọn ngày kết thúc lặp lại' },
-                                        ({ getFieldValue }) => ({
-                                            validator(_, value) {
-                                                if (!value || moment(getFieldValue('scheduleDate')).isSameOrBefore(value)) {
-                                                    return Promise.resolve();
-                                                }
-                                                return Promise.reject(new Error('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu'));
-                                            },
-                                        }),
-                                    ]}
-                                >
-                                    <DatePicker format="YYYY-MM-DD" />
-                                </Form.Item>
+                                <Row gutter={16}>
+                                    <Col span={24}>
+                                        <Form.Item
+                                            name="recurrence_end_date"
+                                            label="Ngày kết thúc lặp lại"
+                                            rules={[
+                                                { required: true, message: 'Vui lòng chọn ngày kết thúc lặp lại' },
+                                                ({ getFieldValue }) => ({
+                                                    validator(_, value) {
+                                                        if (!value || moment(getFieldValue('scheduleDate')).isSameOrBefore(value)) {
+                                                            return Promise.resolve();
+                                                        }
+                                                        return Promise.reject(new Error('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu'));
+                                                    },
+                                                }),
+                                            ]}
+                                        >
+                                            <DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
                             ) : null
                         }
                     </Form.Item>
-                    <Form.Item name="notes" label="Ghi chú">
-                        <Input.TextArea />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit">
-                            Submit
-                        </Button>
-                    </Form.Item>
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item name="notes" label="Ghi chú">
+                                <Input.TextArea rows={4} />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item>
+                                <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+                                    Thêm lịch
+                                </Button>
+                            </Form.Item>
+                        </Col>
+                    </Row>
                 </Form>
             </Modal>
         </div>

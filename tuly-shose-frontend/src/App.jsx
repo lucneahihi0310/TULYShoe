@@ -114,7 +114,7 @@ function App() {
         />
       </Routes>
 
-      {!isAuthLoading && user?.role !== "staff" && user?.role !== "manager" && (
+      {!isAuthLoading && user?.role !== "staff" && user?.role === "manager" && (
         <Footer />
       )}
     </BrowserRouter>
