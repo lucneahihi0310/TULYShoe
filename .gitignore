@@ -1,2 +1,6 @@
 # Bỏ qua tất cả node_modules trong mọi thư mục con
 **/node_modules/
+
+# Bỏ qua tất cả file .env và biến thể có hậu tố (local, dev, sample, v.v.)
+**/.env
+**/.env.*
