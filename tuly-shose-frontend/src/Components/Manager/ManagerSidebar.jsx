@@ -23,14 +23,21 @@ const ManagerSidebar = () => {
 
     return (
         <div className={styles.sidebar} style={{ borderRadius: "20px" }}>
+            <div className={styles.brand}>
+                <img src="/image/logo_trang.png" alt="TULY Shoe" className={styles.brandLogo} />
+                <div className={styles.brandText}>
+                    <span className={styles.brandTitle}>TULY Shoe</span>
+                    <span className={styles.brandSubtitle}>Trang quản lý</span>
+                </div>
+            </div>
             {menu.map((item) => (
                 <div
-                    style={{ width: '200px' }}
                     key={item.key}
                     className={styles.sidebarItem}
                     onClick={() => navigate(`/manager/${item.key}`)}
                 >
-                    {item.icon} <h6 style={{ display: 'inline', marginLeft: '5px' }}>{item.label}</h6>
+                    {item.icon}
+                    <h6 className={styles.sidebarLabel}>{item.label}</h6>
                 </div>
             ))}
         </div>

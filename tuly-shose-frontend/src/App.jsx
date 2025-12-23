@@ -114,9 +114,8 @@ function App() {
         />
       </Routes>
 
-      {!isAuthLoading && user?.role !== "staff" && user?.role === "manager" && (
-        <Footer />
-      )}
+      {/* Chỉ hiển thị footer cho khách hoặc user; ẩn với staff/manager */}
+      {!isAuthLoading && (!user || user.role === "user") && <Footer />}
     </BrowserRouter>
   );
 }

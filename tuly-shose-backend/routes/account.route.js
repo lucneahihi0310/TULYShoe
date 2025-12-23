@@ -4,7 +4,7 @@ const middleware = require('../middlewares/auth.middleware');
 const { listAll, login, register, getUser, addAccount, forgotPassword, resetPassword, getFullUserInfo,
     getProfile, updateProfile, changePassword, updateProfileUser, uploadAvatar, changePasswordUser, updateStatusAccount, delete_account, updateAccount, addStaff } = require('../controllers/account.controller');
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinaryUser');
 
 const timlog = (req, res, next) => {
@@ -12,12 +12,12 @@ const timlog = (req, res, next) => {
     next();
 }
 
-// Khai báo multer
-const storage = new CloudinaryStorage({
+// Khai báo multer (multer-storage-cloudinary@2.x xuất hàm thay vì class)
+const storage = cloudinaryStorage({
     cloudinary,
     params: {
         folder: 'avatars',
-        allowed_formats: ['jpg', 'jpeg', 'png'],
+        allowedFormats: ['jpg', 'jpeg', 'png'],
     },
 });
 const upload = multer({ storage });

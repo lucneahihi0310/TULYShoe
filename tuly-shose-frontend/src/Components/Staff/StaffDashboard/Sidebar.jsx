@@ -97,11 +97,16 @@ const Sidebar = () => {
   return (
     <div className="d-flex flex-column h-100 py-3">
       {/* Logo/Brand */}
-      <div className="px-3 mb-4">
-        <h4 className="text-white mb-0">
-          <FaTachometerAlt className="me-2" />
-          Bảng điều khiển
-        </h4>
+      <div className="px-3 mb-4 d-flex align-items-center gap-2">
+        <img
+          src="/image/logo_trang.png"
+          alt="TULY Shoe"
+          style={{ width: "36px", height: "36px", objectFit: "contain" }}
+        />
+        <div className="d-flex flex-column">
+          <span className="text-white fw-bold">TULY Shoe</span>
+          <span style={{ color: "#d0d0d0", fontSize: "12px" }}>Trang nhân viên</span>
+        </div>
       </div>
 
       {/* Navigation Menu */}

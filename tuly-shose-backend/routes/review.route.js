@@ -3,15 +3,15 @@ const router = express.Router();
 const middleware = require('../middlewares/auth.middleware');
 const { getAllReviews, getReviewById, getReviewsByProductDetailId, createOrUpdateReview, getRandomReviews, getReview, createReply, updateReply,  deleteReply } = require('../controllers/review.controller');
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinaryStorage = require("multer-storage-cloudinary");
 const cloudinary = require("../config/cloudinaryUser");
 
-// Storage config
-const storage = new CloudinaryStorage({
+// Storage config (multer-storage-cloudinary@2.x là hàm factory)
+const storage = cloudinaryStorage({
     cloudinary,
     params: {
         folder: "reviews",
-        allowed_formats: ["jpg", "jpeg", "png"],
+        allowedFormats: ["jpg", "jpeg", "png"],
     },
 });
 const upload = multer({ storage });

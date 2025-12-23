@@ -2,15 +2,15 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('../config/cloudinaryUser');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 const User = require('../models/account.modle');
 const auth = require('../middlewares/auth.middleware');
 
-const storage = new CloudinaryStorage({
+const storage = cloudinaryStorage({
   cloudinary,
   params: {
     folder: 'avatars',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
+    allowedFormats: ['jpg', 'jpeg', 'png'],
   },
 });
 

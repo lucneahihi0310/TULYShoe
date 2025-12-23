@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 const { cloudinary } = require('../config/cloudinary');
 
-// Cấu hình storage
-const storage = new CloudinaryStorage({
+// Cấu hình storage (multer-storage-cloudinary@2.x dùng hàm factory)
+const storage = cloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'staff_avatars',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowedFormats: ['jpg', 'png', 'jpeg'],
   },
 });
 

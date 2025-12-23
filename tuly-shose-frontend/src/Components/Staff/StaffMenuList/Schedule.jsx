@@ -20,6 +20,7 @@ import {
   checkInSchedule,
   checkOutSchedule,
   fetchSchedulesByStaff,
+  fetchScheduleSummary,
 } from "../../API/scheduleApi";
 
 const localizer = momentLocalizer(moment);
@@ -28,6 +29,8 @@ const ScheduleCalendar = () => {
   const { user } = useContext(AuthContext);
   const [scheduleData, setScheduleData] = useState([]);
   const [filters, setFilters] = useState({ date: "", status: "" });
+  const [monthFilter, setMonthFilter] = useState(moment().format("YYYY-MM"));
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -35,8 +38,9 @@ const ScheduleCalendar = () => {
   useEffect(() => {
     if (user && user._id) {
       loadSchedules(user._id);
+      loadSummary(user._id, monthFilter);
     }
-  }, [user]);
+  }, [user, monthFilter]);
 
   const loadSchedules = async (staffId) => {
     setLoading(true);
@@ -50,12 +54,31 @@ const ScheduleCalendar = () => {
     setLoading(false);
   };
 
+  const loadSummary = async (staffId, month) => {
+    try {
+      const result = await fetchScheduleSummary(staffId, month);
+      setSummary(result.summary);
+    } catch (error) {
+      toast.error("Không lấy được tổng quan lịch");
+      setSummary(null);
+    }
+  };
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
     if (name === "date" && value) {
       setCurrentDate(new Date(value));
     }
+  };
+
+  const handleMonthChange = (e) => {
+    const value = e.target.value;
+    setMonthFilter(value);
+    // Đưa currentDate về đầu tháng được chọn và reset lọc ngày
+    const startOfMonth = moment(value, "YYYY-MM").startOf("month").toDate();
+    setCurrentDate(startOfMonth);
+    setFilters((prev) => ({ ...prev, date: "" }));
   };
 
   const handleCheckIn = async (schedule) => {
@@ -107,17 +130,28 @@ const ScheduleCalendar = () => {
   };
 
   const handleSelectEvent = (event) => {
+    if (event.status === "Nghỉ") return;
     setSelectedEvent(event.resource);
   };
 
   const handleNextWeek = () => {
     const nextWeek = moment(currentDate).add(1, "week").toDate();
     setCurrentDate(nextWeek);
+    const nextMonth = moment(nextWeek).format("YYYY-MM");
+    if (nextMonth !== monthFilter) {
+      setFilters((prev) => ({ ...prev, date: "" }));
+    }
+    setMonthFilter(nextMonth);
   };
 
   const handlePrevWeek = () => {
     const prevWeek = moment(currentDate).subtract(1, "week").toDate();
     setCurrentDate(prevWeek);
+    const prevMonth = moment(prevWeek).format("YYYY-MM");
+    if (prevMonth !== monthFilter) {
+      setFilters((prev) => ({ ...prev, date: "" }));
+    }
+    setMonthFilter(prevMonth);
   };
 
   const filteredData = scheduleData.filter((item) => {
@@ -126,9 +160,14 @@ const ScheduleCalendar = () => {
       item.scheduled_start_time &&
       item.scheduled_end_time;
 
-    const matchDate = filters.date ? item.schedule_date === filters.date : true;
+    const selectedDate = filters.date
+      ? moment(filters.date).format("YYYY-MM-DD")
+      : null;
+    const matchDate = selectedDate ? item.schedule_date === selectedDate : true;
+
+    const statusValue = item.computed_status || item.work_status;
     const matchStatus = filters.status
-      ? item.work_status === filters.status
+      ? statusValue === filters.status
       : true;
 
     return hasValidTime && matchDate && matchStatus;
@@ -140,14 +179,16 @@ const ScheduleCalendar = () => {
     start: new Date(`${item.schedule_date}T${item.scheduled_start_time}`),
     end: new Date(`${item.schedule_date}T${item.scheduled_end_time}`),
     resource: item,
+    status: item.computed_status || item.work_status,
   }));
 
   const eventPropGetter = (event) => {
-    const status = event.resource.work_status;
+    const status = event.status;
     let className = "";
     if (status === "Chưa bắt đầu ca làm") className = "chua-bat-dau";
     else if (status === "Đang thực hiện công việc") className = "dang-lam";
     else if (status === "Ca làm đã hoàn thành") className = "hoan-thanh";
+    else if (status === "Nghỉ") className = "nghi";
     return { className };
   };
 
@@ -189,6 +230,37 @@ const ScheduleCalendar = () => {
         </div>
       ) : (
         <>
+          <div className="mb-3 d-flex align-items-center gap-3">
+            <div>
+              <Form.Label>Chọn tháng</Form.Label>
+              <Form.Control
+                type="month"
+                value={monthFilter}
+                onChange={handleMonthChange}
+                style={{ maxWidth: 180 }}
+              />
+            </div>
+            {summary && (
+              <div className="d-flex flex-wrap gap-3" style={{ fontSize: 14 }}>
+                <div className="p-2 border rounded bg-light">
+                  <strong>Tháng:</strong> {summary.month}
+                </div>
+                <div className="p-2 border rounded bg-light">
+                  <strong>Ngày làm:</strong> {summary.days_completed + summary.days_in_progress}
+                </div>
+                <div className="p-2 border rounded bg-light">
+                  <strong>Đang làm:</strong> {summary.days_in_progress}
+                </div>
+                <div className="p-2 border rounded bg-light">
+                  <strong>Chưa làm:</strong> {summary.days_not_started}
+                </div>
+                <div className="p-2 border rounded bg-light">
+                  <strong>Nghỉ:</strong> {summary.days_off}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="header-bar mb-4">
             <h3>
               Lịch làm việc tuần:{" "}

@@ -474,6 +474,11 @@ exports.updateStatusAccount = async (req, res) => {
     try {
         const { is_active } = req.body;
 
+        // Không cho tự ban/unban chính mình
+        if (req.params.id === req.customerId) {
+            return res.status(400).json({ message: 'Không thể thay đổi trạng thái tài khoản đang đăng nhập' });
+        }
+
         const updatedAccount = await User.findByIdAndUpdate(
             req.params.id,
             {
@@ -494,6 +499,12 @@ exports.updateStatusAccount = async (req, res) => {
 exports.delete_account = async (req, res, next) => {
     try {
         const id = req.params.id;
+
+        // Không cho tự xóa chính mình
+        if (id === req.customerId) {
+            return res.status(400).json({ message: 'Không thể xóa tài khoản đang đăng nhập' });
+        }
+
         const deleteAccount = await User.findByIdAndDelete(id);
         res.status(201).json({ message: 'Account delete successfully', account: deleteAccount });
     } catch (error) {
@@ -536,13 +547,25 @@ exports.changePassword = async (req, res) => {
     }
 };
 
+const ALLOWED_ROLES = ['user', 'staff', 'manager'];
+
 exports.updateAccount = async (req, res) => {
     try {
-        const { first_name, last_name, phone, dob, gender, address, email } = req.body;
+        const { first_name, last_name, phone, dob, gender, address, email, role } = req.body;
 
         const user = await User.findById(req.params.id);
 
         if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+
+        // Không cho chỉnh sửa role hoặc thông tin của tài khoản đang đăng nhập qua endpoint này
+        if (req.params.id === req.customerId) {
+            return res.status(400).json({ message: 'Không thể chỉnh sửa tài khoản đang đăng nhập từ endpoint quản lý' });
+        }
+
+        // Validate role nếu được gửi lên
+        if (role && !ALLOWED_ROLES.includes(role)) {
+            return res.status(400).json({ message: 'Role không hợp lệ' });
+        }
 
         // Check if email exists and belongs to another user
         if (email && email !== user.email) {
@@ -556,6 +579,7 @@ exports.updateAccount = async (req, res) => {
         user.gender = gender || user.gender;
         user.phone = phone || user.phone;
         user.email = email || user.email;
+        if (role) user.role = role;
         user.update_at = new Date();
 
         if (address && user.address_shipping_id) {
@@ -576,6 +600,7 @@ exports.updateAccount = async (req, res) => {
                 gender: user.gender,
                 phone: user.phone,
                 email: user.email,
+                role: user.role,
             },
         });
     } catch (error) {
@@ -594,7 +619,8 @@ exports.addStaff = async (req, res, next) => {
             address,
             email,
             phone,
-            password
+            password,
+            role
         } = req.body;
 
         // Validate required fields
@@ -620,6 +646,9 @@ exports.addStaff = async (req, res, next) => {
             update_at: null
         });
 
+        // Validate role (mặc định staff nếu không truyền)
+        const newRole = role && ALLOWED_ROLES.includes(role) ? role : 'staff';
+
         // Create new user
         const user = await User.create({
             first_name,
@@ -630,7 +659,7 @@ exports.addStaff = async (req, res, next) => {
             email,
             phone,
             password: passwordHash,
-            role: "staff",
+            role: newRole,
             avatar_image: null,
             is_active: true,
             create_at: Date.now(),

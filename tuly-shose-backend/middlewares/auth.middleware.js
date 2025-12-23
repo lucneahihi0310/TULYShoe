@@ -9,7 +9,9 @@ module.exports = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.customerId = payload;
+    // Chỉ gán id và role thay vì cả payload để tránh lỗi khi sử dụng
+    req.customerId = payload._id;
+    req.role = payload.role;
     next();
   } catch (err) {
     res.status(401).json({ message: 'Token invalid or expired' });

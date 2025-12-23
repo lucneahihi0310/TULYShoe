@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Col, Input, Row, Button, Space, Modal, Form, Table, Select, Tag, Popconfirm, message, Spin } from "antd";
 import { SearchOutlined, MinusCircleOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import { fetchData, postData, updateData, deleteData, patchData } from "../API/ApiService";
 import moment from 'moment';
+import { AuthContext } from "../API/AuthContext";
 
 const ManagerAccount = () => {
+    const { user } = useContext(AuthContext);
     const [categories, setCategories] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,6 +19,10 @@ const ManagerAccount = () => {
     const loadingIcon = <LoadingOutlined style={{ fontSize: 100 }} spin />;
 
     const openEditModal = (record) => {
+        if (user && record._id === user._id) {
+            message.warning("Không thể chỉnh sửa tài khoản đang đăng nhập.");
+            return;
+        }
         setSelectedRecord(record._id);
         const dt = new Date(record.dob);
         const pad = n => String(n).padStart(2, '0');
@@ -29,7 +35,8 @@ const ManagerAccount = () => {
             gender: record.gender,
             address: record.address,
             email: record.email,
-            phone: record.phone
+            phone: record.phone,
+            role: record.role || 'user',
         });
         setIsModalOpen(true);
     };
@@ -199,6 +206,7 @@ const ManagerAccount = () => {
                                 variant="solid"
                                 icon={<EditOutlined />}
                                 onClick={() => openEditModal(record)}
+                                disabled={user && record._id === user._id}
                             >
                                 Edit
                             </Button>
@@ -219,6 +227,7 @@ const ManagerAccount = () => {
                                         type="primary"
                                         variant="solid"
                                         icon={<MinusCircleOutlined />}
+                                        disabled={user && record._id === user._id}
                                     >
                                         Ban
                                     </Button>
@@ -237,6 +246,7 @@ const ManagerAccount = () => {
                                         color="primary"
                                         variant="solid"
                                         icon={<CheckCircleOutlined />}
+                                        disabled={user && record._id === user._id}
                                     >
                                         Unban
                                     </Button>
@@ -257,6 +267,7 @@ const ManagerAccount = () => {
                                     color="danger"
                                     variant="solid"
                                     icon={<DeleteOutlined />}
+                                    disabled={user && record._id === user._id}
                                 >
                                     Delete
                                 </Button>
@@ -330,6 +341,7 @@ const ManagerAccount = () => {
                                 address: values.address,
                                 phone: values.phone,
                                 email: values.email,
+                                role: values.role,
                             }, true);
                             message.success("Cập nhật thành công!");
                             setIsModalOpen(false);
@@ -384,6 +396,19 @@ const ManagerAccount = () => {
                     >
                         <Input />
                     </Form.Item>
+                    <Form.Item
+                        name="role"
+                        label="Vai trò"
+                        rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
+                    >
+                        <Select
+                            options={[
+                                { label: "User", value: "user" },
+                                { label: "Staff", value: "staff" },
+                                { label: "Manager", value: "manager" },
+                            ]}
+                        />
+                    </Form.Item>
                     <Form.Item>
                         <Space>
                             <Button type="primary" htmlType="submit">
@@ -416,7 +441,7 @@ const ManagerAccount = () => {
                     onFinish={async (values) => {
                         setLoading(true);
                         try {
-                            await postData('/account/register', {
+                            await postData('/account/add_staff', {
                                 first_name: values.first_name,
                                 last_name: values.last_name,
                                 dob: values.dob,
