@@ -53,7 +53,10 @@ app.use('/staff/orders', require('./routes/order.routes'));
 app.use('/staff/schedules', require('./routes/workSchedule.route'));
 app.use('/staff/notifications', require('./routes/notification.router'));
 app.use('/upload', require('./routes/upload'));
-
+app.get('/api/health', (req, res) => {
+  res.json({ status: '200', message: 'Server is running', time: new Date().toISOString() });
+  console.log("Health check pinged at", new Date().toISOString());
+});
 app.get('/robots.txt', (req, res) => {
     res.type('text/plain');
     res.send(`User-agent: *
